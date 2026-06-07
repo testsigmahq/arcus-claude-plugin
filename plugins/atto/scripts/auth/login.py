@@ -143,6 +143,10 @@ def login(plugin_version: str, hostname: str) -> int:
         "auth_status": "ok",
     })
 
-    user_label = claims.get("email") or claims.get("user_id") or "(unknown)"
-    print(f"atto: authenticated as {user_label}. You can close the browser tab.", file=sys.stderr)
+    email = str(claims.get("email") or "").strip()
+    user_label = email or user_id
+    print("atto: signed in", file=sys.stderr)
+    print(f"  account   {account_id}", file=sys.stderr)
+    print(f"  user      {user_label}", file=sys.stderr)
+    print("token stored in OS keychain. You can close the browser tab.", file=sys.stderr)
     return 0

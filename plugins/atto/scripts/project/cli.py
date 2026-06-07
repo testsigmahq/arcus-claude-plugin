@@ -27,10 +27,17 @@ def _cmd_list(args: argparse.Namespace) -> int:
     if not projects:
         print("(no projects)")
         return 0
-    width = max(len(p.get("human_id_prefix") or "") for p in projects) or 1
+    id_w = max(max(len(str(p.get("id", ""))) for p in projects), len("ID"))
+    pre_w = max(
+        max((len(p.get("human_id_prefix") or "") for p in projects), default=0),
+        len("PREFIX"),
+    )
+    print(f"Projects ({len(projects)}):")
+    print(f"  {'ID'.ljust(id_w)}  {'PREFIX'.ljust(pre_w)}  NAME")
     for p in projects:
-        prefix = (p.get("human_id_prefix") or "").ljust(width)
-        print(f"{p['id']}  {prefix}  {p.get('name', '')}")
+        pid = str(p.get("id", "")).ljust(id_w)
+        prefix = (p.get("human_id_prefix") or "").ljust(pre_w)
+        print(f"  {pid}  {prefix}  {p.get('name', '')}")
     return 0
 
 
@@ -39,25 +46,53 @@ def _cmd_use(args: argparse.Namespace) -> int:
     if not cfg:
         print("atto: not authenticated. Run /atto:login first.", file=sys.stderr)
         return 1
+    auth = AuthState.load()
     cfg["project_id"] = args.project_id
+    # Best-effort: resolve human id + name so `current` can show them offline.
+    human_id = ""
+    name = ""
+    for p in list_projects(auth) or []:
+        if str(p.get("id")) == str(args.project_id):
+            human_id = p.get("human_id_prefix") or ""
+            name = p.get("name") or ""
+            break
+    cfg["project_human_id"] = human_id
+    cfg["project_name"] = name
     write_config(cfg)
-    print(f"atto: pinned project_id={args.project_id}")
+    print("atto: pinned project")
+    print(f"  project   {args.project_id}" + (f"  {human_id}" if human_id else ""))
+    if name:
+        print(f"  name      {name}")
     # Best-effort: update any active workflow attached to this session.
     workflow_id = cfg.get("active_workflow_id")
     if workflow_id:
-        auth = AuthState.load()
         if patch_workflow_project(auth, workflow_id, args.project_id):
-            print(f"atto: updated workflow {workflow_id} project")
+            print(f"  workflow  {workflow_id} (project updated)")
     return 0
 
 
 def _cmd_current(_args: argparse.Namespace) -> int:
     cfg = read_config() or {}
     pid = cfg.get("project_id")
-    if pid:
-        print(pid)
-    else:
+    if not pid:
         print("(no project pinned; run /atto:project use <id>)")
+        return 0
+    # Cache miss (e.g. project pinned before metadata caching existed): resolve
+    # human id + name once via the API and backfill so future calls stay offline.
+    if "project_human_id" not in cfg:
+        auth = AuthState.load()
+        if auth.usable():
+            for p in list_projects(auth) or []:
+                if str(p.get("id")) == str(pid):
+                    cfg["project_human_id"] = p.get("human_id_prefix") or ""
+                    cfg["project_name"] = p.get("name") or ""
+                    write_config(cfg)
+                    break
+    human_id = cfg.get("project_human_id") or ""
+    name = cfg.get("project_name") or ""
+    print(f"project   {pid}" + (f"  {human_id}" if human_id else ""))
+    if name:
+        print(f"name      {name}")
     return 0
 
 

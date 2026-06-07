@@ -66,11 +66,13 @@ def _cmd_ticket(args: argparse.Namespace) -> int:
         return 5
 
     wf = data.get("workflow_id")
-    provider = data.get("provider") or "unknown provider"
+    provider = data.get("provider") or "unknown"
     sprint = data.get("sprint_id")
-    mapped = "ok" if data.get("mapped") else "already-mapped"
-    sprint_part = f" sprint={sprint}" if sprint else ""
-    print(f"atto: {mapped} — {provider} ticket {args.ticket_key} -> workflow {wf}{sprint_part}")
+    print("atto: ticket mapped" if data.get("mapped") else "atto: ticket already mapped")
+    print(f"  ticket     {args.ticket_key} ({provider})")
+    print(f"  workflow   {wf}")
+    if sprint:
+        print(f"  sprint     {sprint}")
     return 0
 
 
