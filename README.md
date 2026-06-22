@@ -48,6 +48,7 @@ Until then hooks run as a **no-op** — nothing is sent remotely.
 | `/atto:project use <project_id>` | Pin a project; future events carry it. |
 | `/atto:project current` | Show the pinned project. |
 | `/atto:map ticket <KEY>` | Link a ticket (Jira / ADO / Linear / ClickUp / GitHub) to the session's workflow. |
+| `/atto:test [feature]` | Author Testsigma script e2e tests for this repo, validate them, and offer to run them. |
 | `/atto:help` | Show commands and typical flow. |
 
 **Typical flow:** `/atto:login` → `/atto:project list` then `/atto:project use <id>` → work on a branch (each session auto-resolves to a workflow) → `/atto:map ticket <KEY>`.

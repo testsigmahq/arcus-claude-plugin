@@ -1,7 +1,7 @@
 {
   "name": "atto",
   "description": "Capture Claude Code session context for Testsigma — SSO auth, project pinning, ticket mapping, and automatic grouping signals (branch, repo, tickets).",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "author": {
     "name": "Testsigma"
   },

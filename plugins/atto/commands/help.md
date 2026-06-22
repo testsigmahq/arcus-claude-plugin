@@ -12,6 +12,7 @@ Atto captures Claude Code session context (prompts, tool I/O, file snapshots, su
 - `/atto:project use <project_id>` — Pin a project. Future events tag this project.
 - `/atto:project current` — Show pinned project.
 - `/atto:map ticket <KEY>` — Link ticket (Jira / ADO / Linear / ClickUp / GitHub) to the workflow resolved from this session. Provider auto-detected from sprint membership.
+- `/atto:test [feature]` — Author Testsigma script e2e tests for this repo, validate them, and offer to run them.
 
 ## Typical flow
 
