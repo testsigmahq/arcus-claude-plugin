@@ -36,11 +36,11 @@ def test_skill_body_covers_the_procedure():
     assert "testsigma code run" in body
     assert "testsigma list devices --local" in body
     # The safety gate: validate always; run only after confirmation.
-    assert "confirm" in body or "ask" in body
+    assert "run it now" in body or "explicit confirmation" in body
     # Placement convention.
     assert "tests/testsigma" in body
     # The three application types.
     for t in ("web", "mobile", "api"):
         assert t in body
     # CLI-presence guard.
-    assert "path" in body  # checks `testsigma` on PATH before authoring
+    assert "command -v testsigma" in body or "testsigma --version" in body
