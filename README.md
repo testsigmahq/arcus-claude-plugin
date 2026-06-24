@@ -49,9 +49,10 @@ Until then hooks run as a **no-op** — nothing is sent remotely.
 | `/atto:project current` | Show the pinned project. |
 | `/atto:map ticket <KEY>` | Link a ticket (Jira / ADO / Linear / ClickUp / GitHub) to the session's workflow. |
 | `/atto:test [feature]` | Author Testsigma script e2e tests for this repo, validate them, and offer to run them. |
+| `/atto:push` | Push the test cases authored this session to Agentic Test; pick a sprint or leave unmapped (the `testsigma` CLI does the work). |
 | `/atto:help` | Show commands and typical flow. |
 
-**Typical flow:** `/atto:login` → `/atto:project list` then `/atto:project use <id>` → work on a branch (each session auto-resolves to a workflow) → `/atto:map ticket <KEY>`.
+**Typical flow:** `/atto:login` → `/atto:project list` then `/atto:project use <id>` → work on a branch (each session auto-resolves to a workflow) → `/atto:map ticket <KEY>` → `/atto:test` to author tests → `/atto:push` to push them into a sprint.
 
 ## What gets captured
 

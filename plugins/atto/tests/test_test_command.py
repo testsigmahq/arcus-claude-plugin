@@ -19,7 +19,7 @@ def test_command_exists_with_description_and_invokes_skill():
 
 def test_version_bumped():
     pj = json.loads((PLUGIN / ".claude-plugin" / "plugin.json").read_text())
-    assert pj["version"] == "0.3.0"
+    assert pj["version"] == "0.4.0"
 
 
 def test_help_and_readme_mention_the_command():
