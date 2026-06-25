@@ -42,7 +42,14 @@ def test_command_stays_thin():
 
 def test_version_bumped():
     pj = json.loads((PLUGIN / ".claude-plugin" / "plugin.json").read_text())
-    assert pj["version"] == "0.4.0"
+    assert pj["version"] == "0.5.0"
+
+
+def test_command_lists_issues_and_passes_issue_flag():
+    body = " ".join(CMD.read_text().lower().split())
+    # Sprint path must let the user pick a story and pass it as --issue.
+    assert "testsigma sprints issues" in body
+    assert "--issue" in body
 
 
 def test_help_and_readme_mention_the_command():
