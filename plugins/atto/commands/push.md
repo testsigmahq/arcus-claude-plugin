@@ -50,7 +50,8 @@ happen in the `testsigma` CLI. This command only helps you pick a target. It doe
 6. Run exactly one of:
 
    ```bash
-   testsigma code push --sprint <work_cycle_id> --issue <issue_key> --run-status Passed
+   testsigma code push --input <spec> --sprint <work_cycle_id> --issue <issue_key> \
+     --module <module_id_or_name> --run-status Passed
    ```
 
    or
