@@ -55,3 +55,11 @@ def test_command_lists_issues_and_passes_issue_flag():
 def test_help_and_readme_mention_the_command():
     assert "/atto:push" in (PLUGIN / "commands" / "help.md").read_text()
     assert "/atto:push" in (REPO / "README.md").read_text()
+
+
+def test_push_doc_mentions_status_flag():
+    body = CMD.read_text()
+    assert "--run-status" in body
+    assert "Passed" in body and "Failed" in body
+    # Only send when the test was actually run in this session:
+    assert "if you ran" in body.lower() or "when the test was run" in body.lower()

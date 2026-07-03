@@ -50,7 +50,7 @@ happen in the `testsigma` CLI. This command only helps you pick a target. It doe
 6. Run exactly one of:
 
    ```bash
-   testsigma code push --sprint <work_cycle_id> --issue <issue_key>
+   testsigma code push --sprint <work_cycle_id> --issue <issue_key> --run-status Passed
    ```
 
    or
@@ -63,6 +63,10 @@ happen in the `testsigma` CLI. This command only helps you pick a target. It doe
    **not** pass `--project-id` — the server derives the project from the target.
    If the CLI reports an invalid issue (HTTP 422), re-run `testsigma sprints issues`
    to show valid `ISSUE_KEY`s and ask the user to pick again.
+
+   If you ran the test in this session with `testsigma code run` and observed the
+   result, add `--run-status Passed` or `--run-status Failed` so the pushed test case
+   records its last code-run result. Omit `--run-status` when the test was not run.
 
 7. Report back the per-test-case results the CLI prints (each line is
    `created` or `updated`, with the test case name and id). If the CLI reports
