@@ -6,8 +6,8 @@ Push the Testsigma-script test cases authored in this Claude session — the
 `*.spec.ts` files written or edited under `tests/` — into Agentic Test.
 
 Authentication, session detection, compilation, and the Agentic Test calls all
-happen in the `testsigma` CLI. This command only helps you pick a target. It does
-**not** read files, compile, or handle auth itself.
+happen in the `testsigma` CLI. This command only helps you gather the target and
+metadata the CLI needs. It does **not** read files, compile, or handle auth itself.
 
 ## Required pre-flight (do NOT skip)
 
@@ -20,12 +20,15 @@ happen in the `testsigma` CLI. This command only helps you pick a target. It doe
 2. If the output is `(no project pinned; run /atto:project use <id>)`, ABORT. Tell
    the user to pin a project first with `/atto:project use <id>`. Do NOT continue.
 
+   Otherwise capture the printed project id as `<project_id>` — every command below
+   needs it.
+
 ## Choose a target
 
-3. List the project's sprints (substitute the pinned project id from step 1):
+3. List the project's sprints:
 
    ```bash
-   testsigma sprints list --project-id <pinned_project_id>
+   testsigma sprints list --project-id <project_id>
    ```
 
    If this fails with an authentication error, tell the user to run `testsigma login`
@@ -45,31 +48,71 @@ happen in the `testsigma` CLI. This command only helps you pick a target. It doe
    chosen `ISSUE_KEY` is required for a sprint push — without it the test cases are
    pushed without a story link and will not appear under any story in the UI.
 
-## Push (only after the user picks)
+## Choose a module (REQUIRED for every push)
 
-6. Run exactly one of:
-
-   ```bash
-   testsigma code push --input <spec> --sprint <work_cycle_id> --issue <issue_key> \
-     --module <module_id_or_name> --run-status Passed
-   ```
-
-   or
+6. Every pushed test case must be stamped with a product module. List the project's
+   modules:
 
    ```bash
-   testsigma code push --unmapped
+   testsigma modules list --project-id <project_id>
    ```
 
-   Do **not** pass `--session-id` — the CLI auto-detects the current session. Do
-   **not** pass `--project-id` — the server derives the project from the target.
-   If the CLI reports an invalid issue (HTTP 422), re-run `testsigma sprints issues`
-   to show valid `ISSUE_KEY`s and ask the user to pick again.
+   Show the user the `MODULE_ID` + `NAME` (+ `SLUG`) rows and ask them to pick exactly
+   one. Pass the chosen `MODULE_ID` as `--module`. If none fits, the user may instead
+   give a **new module name** — `--module <name>` creates it on the fly. Do NOT guess
+   a module; `--module` is mandatory and the push fails without it.
 
-   If you ran the test in this session with `testsigma code run` and observed the
-   result, add `--run-status Passed` or `--run-status Failed` so the pushed test case
-   records its last code-run result. Omit `--run-status` when the test was not run.
+## Optional metadata (offer, then include when set)
 
-7. Report back the per-test-case results the CLI prints (each line is
-   `created` or `updated`, with the test case name and id). If the CLI reports
-   "Nothing to push," tell the user no changed `*.spec.ts` files were found in this
-   session — they may need to author tests first (see `/atto:test`).
+7. **Priority** — ask whether to set a priority (`High` / `Medium` / `Low`). Pass it
+   as `--priority <name>`. If the user doesn't care, omit the flag (the server
+   defaults to `Medium`).
+
+8. **Run status** — if the tests were run this session (e.g. via `/atto:test`, which
+   reports an overall `passed`/`failed`), pass the result as `--run-status Passed`
+   or `--run-status Failed` so each test case records its last code-run result. It
+   accepts only `Passed` or `Failed`; **omit** the flag entirely if the tests were
+   not run.
+
+## Push (only after the user has picked target + module)
+
+9. Build one command with every applicable flag. Use the sprint form:
+
+   ```bash
+   testsigma code push \
+     --project-id <project_id> \
+     --sprint <work_cycle_id> \
+     --issue <issue_key> \
+     --module <module_id_or_name> \
+     [--priority <High|Medium|Low>] \
+     [--run-status <Passed|Failed>]
+   ```
+
+   or the unmapped form:
+
+   ```bash
+   testsigma code push \
+     --project-id <project_id> \
+     --unmapped \
+     --module <module_id_or_name> \
+     [--priority <High|Medium|Low>] \
+     [--run-status <Passed|Failed>]
+   ```
+
+   Rules:
+   - `--project-id` is **required** for both `--sprint` and `--unmapped`.
+   - `--module` is **required** for every push.
+   - `--sprint` and `--unmapped` are mutually exclusive; `--issue` is sprint-only
+     (it cannot be combined with `--unmapped`).
+   - Do **not** pass `--session-id` — the CLI auto-detects the current session.
+   - Do **not** pass `--input` — omit it so the CLI pushes exactly the `*.spec.ts`
+     files authored/changed in this session. (Only pass `--input <comma,separated>`
+     if the user explicitly wants to push specific files instead.)
+   - Drop any bracketed `[--flag]` above that the user chose not to set.
+   - If the CLI reports an invalid issue (HTTP 422), re-run `testsigma sprints issues`
+     to show valid `ISSUE_KEY`s and ask the user to pick again.
+
+10. Report back the per-test-case results the CLI prints (each line is `created` or
+    `updated`, with the test case name and id). If the CLI reports "Nothing to push,"
+    tell the user no changed `*.spec.ts` files were found in this session — they may
+    need to author tests first (see `/atto:test`).

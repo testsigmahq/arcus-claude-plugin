@@ -35,9 +35,29 @@ def test_command_stays_thin():
     body = " ".join(CMD.read_text().lower().split())
     # The CLI auto-detects the session; the command must say not to pass it.
     assert "auto-detect" in body
-    # It should not pass --session-id / --project-id to code push (CLI/server own those).
+    # It should not pass --session-id to code push (the CLI owns session detection).
     assert "do **not** pass `--session-id`" in body
-    assert "do **not** pass `--project-id`" in body
+    # --project-id is now REQUIRED for --sprint / --unmapped, so it must be passed
+    # (the old "do not pass --project-id" guidance is obsolete).
+    assert "--project-id" in body
+    assert "do **not** pass `--project-id`" not in body
+
+
+def test_command_uses_all_push_flags():
+    # /atto:push should exercise the full `testsigma code push` surface.
+    body = CMD.read_text()
+    for flag in (
+        "--project-id",
+        "--sprint",
+        "--unmapped",
+        "--issue",
+        "--module",
+        "--priority",
+        "--run-status",
+    ):
+        assert flag in body, f"push.md should reference {flag}"
+    # --module is mandatory, so the user must be shown the modules to pick from.
+    assert "testsigma modules list" in body
 
 
 def test_version_bumped():
@@ -62,4 +82,9 @@ def test_push_doc_mentions_status_flag():
     assert "--run-status" in body
     assert "Passed" in body and "Failed" in body
     # Only send when the test was actually run in this session:
-    assert "if you ran" in body.lower() or "when the test was run" in body.lower()
+    lower = body.lower()
+    assert (
+        "if the tests were run" in lower
+        or "if you ran" in lower
+        or "when the test was run" in lower
+    )

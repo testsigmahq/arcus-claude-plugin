@@ -64,11 +64,19 @@ running app, so always do it before offering to run.
 
 ## Step 5 — Offer to run (gather target, then confirm)
 
-Tell the developer what running needs, then ask before executing:
+`testsigma code run` executes tests for **all three** types — web, api, and mobile.
+Tell the developer what the detected type needs, then ask before executing:
 
 - **web** — a base URL (a running dev server or a deployed site). Offer to detect
-  an obvious local dev-server port.
-- **api** — the API base URL and any required env (e.g. `API_PASSWORD`).
+  an obvious local dev-server port. Once the target is confirmed:
+
+  ```bash
+  testsigma code run --input tests/<e2e-dir>/<feature>.spec.ts
+  ```
+
+- **api** — the API base URL and any required env (e.g. `API_PASSWORD`). Then run
+  the same `testsigma code run --input tests/<e2e-dir>/<feature>.spec.ts`.
+
 - **mobile** — list devices and pick one, then gather Appium caps:
 
   ```bash
@@ -83,7 +91,24 @@ Tell the developer what running needs, then ask before executing:
     --caps '{"appium:appPackage":"...","appium:appActivity":"...","appium:noReset":false}'
   ```
 
-For web/api, run with `testsigma code run --input <file>` once the target is
-confirmed. Ask **"To run this I need <X>. Run it now?"** and only run on yes. On a
-run failure, report the failing step and offer to iterate on the spec. Never launch
-a device run or hit a live target without explicit confirmation.
+Whatever the type, ask **"To run this I need <X>. Run it now?"** and only run on yes.
+Never launch a mobile/device run or hit a live web/api target without explicit
+confirmation.
+
+## Step 6 — Read the results
+
+Run non-interactively (as you do), `code run` keeps stdout clean and prints a
+single JSON summary line, writing the full per-step results to a temp file:
+
+```json
+{"resultsFile":"/…/testsigma-run-<ts>.jsonl","logFile":"/…/testsigma-run-<ts>.bt.log","overall":"passed","counts":{"total":N,"passed":N,"failed":N},"durationMs":N}
+```
+
+- `overall` (`passed`/`failed`) and a non-zero exit code tell you the outcome;
+  `counts` is the tally.
+- **On failure, read `resultsFile`** (JSONL — one event per line) to report the
+  failing step. Each failed step line carries `description` (the DSL step),
+  `errorType` (e.g. `NO_SUCH_ELEMENT`), `message`, and `locator`. Use these to tell
+  the developer which step failed and why, then offer to iterate on the spec.
+- `logFile` holds the runner's internal engine logs — consult it only for deep
+  debugging; it is not needed for normal pass/fail reporting.
