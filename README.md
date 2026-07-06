@@ -10,7 +10,7 @@ This repo is **also a marketplace** (`.claude-plugin/marketplace.json` lists `at
 
 ```bash
 claude plugin marketplace add testsigmahq/atto-claude-plugin
-claude plugin install atto@Testsigma
+claude plugin install atto@testsigma
 ```
 
 **From a local clone (for development):**
@@ -19,12 +19,12 @@ claude plugin install atto@Testsigma
 git clone git@github.com:testsigmahq/atto-claude-plugin.git
 cd atto-claude-plugin
 claude plugin marketplace add ./
-claude plugin install atto@Testsigma
+claude plugin install atto@testsigma
 ```
 
-`claude plugin list` should then show `atto@Testsigma` as enabled.
+`claude plugin list` should then show `atto@testsigma` as enabled.
 
-To update after a code change, bump `version` in `plugins/atto/.claude-plugin/plugin.json` and run `claude plugin update atto@Testsigma`. To remove: `claude plugin uninstall atto@Testsigma && claude plugin marketplace remove Testsigma`.
+To update after a code change, bump `version` in `plugins/atto/.claude-plugin/plugin.json` and run `claude plugin update atto@testsigma`. To remove: `claude plugin uninstall atto@testsigma && claude plugin marketplace remove testsigma`.
 
 **Requirements:** Python **3.9+** on `PATH` as `python3` (standard on macOS/Linux).
 
@@ -48,9 +48,11 @@ Until then hooks run as a **no-op** — nothing is sent remotely.
 | `/atto:project use <project_id>` | Pin a project; future events carry it. |
 | `/atto:project current` | Show the pinned project. |
 | `/atto:map ticket <KEY>` | Link a ticket (Jira / ADO / Linear / ClickUp / GitHub) to the session's workflow. |
+| `/atto:test [feature]` | Author Testsigma script e2e tests for this repo, validate them, and offer to run them. |
+| `/atto:push` | Push the test cases authored this session to Agentic Test; pick a sprint or leave unmapped (the `testsigma` CLI does the work). |
 | `/atto:help` | Show commands and typical flow. |
 
-**Typical flow:** `/atto:login` → `/atto:project list` then `/atto:project use <id>` → work on a branch (each session auto-resolves to a workflow) → `/atto:map ticket <KEY>`.
+**Typical flow:** `/atto:login` → `/atto:project list` then `/atto:project use <id>` → work on a branch (each session auto-resolves to a workflow) → `/atto:map ticket <KEY>` → `/atto:test` to author tests → `/atto:push` to push them into a sprint.
 
 ## What gets captured
 

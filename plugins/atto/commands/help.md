@@ -12,6 +12,8 @@ Atto captures Claude Code session context (prompts, tool I/O, file snapshots, su
 - `/atto:project use <project_id>` — Pin a project. Future events tag this project.
 - `/atto:project current` — Show pinned project.
 - `/atto:map ticket <KEY>` — Link ticket (Jira / ADO / Linear / ClickUp / GitHub) to the workflow resolved from this session. Provider auto-detected from sprint membership.
+- `/atto:test [feature]` — Author Testsigma script e2e tests for this repo, validate them, and offer to run them.
+- `/atto:push` — Push the test cases authored this session to Agentic Test; pick a sprint or leave unmapped. The `testsigma` CLI does the work.
 
 ## Typical flow
 
@@ -19,6 +21,7 @@ Atto captures Claude Code session context (prompts, tool I/O, file snapshots, su
 2. `/atto:project list` then `/atto:project use <id>` — pick where sessions land.
 3. Start working on a branch. Each Claude session resolves to a workflow automatically.
 4. `/atto:map ticket <KEY>` — link ticket to the workflow when you know it.
+5. `/atto:test` to author tests, then `/atto:push` to push them into a sprint.
 
 ## Where data lives
 
