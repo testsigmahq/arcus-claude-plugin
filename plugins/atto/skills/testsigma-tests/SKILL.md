@@ -62,10 +62,13 @@ testsigma code validate --input tests/<e2e-dir>/<feature>.spec.ts
 If it reports diagnostics, fix the spec and re-validate until clean. This needs no
 running app, so always do it before offering to run.
 
-## Step 5 — Offer to run (gather target, then confirm)
+## Step 5 — Offer to run (resolve the target first, then confirm)
 
-`testsigma code run` executes tests for **all three** types — web, api, and mobile.
-Tell the developer what the detected type needs, then ask before executing:
+`testsigma code run` reaches a **live target**. Fully resolve what it needs
+BEFORE you call it, tell the developer exactly what you'll use, and run only on
+an explicit "yes". **Never call `code run` with empty or placeholder caps** — if
+you can't resolve the target, STOP and say what's missing instead of running a
+call you know will fail.
 
 - **web** — a base URL (a running dev server or a deployed site). Offer to detect
   an obvious local dev-server port. Once the target is confirmed:
@@ -77,22 +80,75 @@ Tell the developer what the detected type needs, then ask before executing:
 - **api** — the API base URL and any required env (e.g. `API_PASSWORD`). Then run
   the same `testsigma code run --input tests/<e2e-dir>/<feature>.spec.ts`.
 
-- **mobile** — list devices and pick one, then gather Appium caps:
+### mobile — a run needs a connected device AND the app installed on it
 
-  ```bash
-  testsigma list devices --local
-  ```
+A mobile run cannot work without a real device and a **resolved, installed**
+app-under-test. Do NOT ask the developer to hand you caps and do NOT guess them —
+work them out yourself from the device and the repo. Complete every step below
+before calling `code run`; if any step can't be satisfied, STOP and tell the
+developer what to fix.
 
-  Run with the chosen device id and caps (the agent supplies the Appium URL + udid):
+1. **Device (required).** List connected devices:
 
-  ```bash
-  testsigma code run --input tests/<e2e-dir>/<feature>.spec.ts \
-    --device <id> \
-    --caps '{"appium:appPackage":"...","appium:appActivity":"...","appium:noReset":false}'
-  ```
+   ```bash
+   testsigma list devices --local
+   ```
 
-Whatever the type, ask **"To run this I need <X>. Run it now?"** and only run on yes.
-Never launch a mobile/device run or hit a live web/api target without explicit
+   If none are listed, STOP: ask the developer to connect a device (USB, USB
+   debugging on) and confirm the Testsigma Agent (Gen 2) is running — then retry.
+   Take the chosen device id as `<id>` (it is also the adb serial).
+
+2. **Locate adb.** The machine often has no `adb` on `PATH`; the agent bundles
+   one. Resolve it once:
+
+   ```bash
+   ADB="$(command -v adb || echo "$HOME/.testsigma/android/platform-tools/adb")"
+   ```
+
+3. **Identify the app package from the repo** (prefer this over asking):
+   - Android native / React Native / Flutter — `applicationId` in
+     `app/build.gradle` or `android/app/build.gradle(.kts)`; else the `package`
+     in `AndroidManifest.xml`.
+   - Only if you truly can't find it, ASK the developer for the app package.
+
+4. **Verify the app is installed on the device:**
+
+   ```bash
+   "$ADB" -s <id> shell pm list packages | grep -w "package:<pkg>"
+   ```
+
+   If this prints nothing, the app is NOT on the device. STOP and ask the
+   developer to install it (e.g. `./gradlew installDebug`, or install the APK),
+   then retry. Never run against a device that doesn't have the app.
+
+5. **Resolve the launch activity** (don't invent it):
+
+   ```bash
+   "$ADB" -s <id> shell cmd package resolve-activity --brief <pkg> | tail -1
+   ```
+
+   This prints `<pkg>/<activity>`. Fallback: `"$ADB" -s <id> shell dumpsys package
+   <pkg>` and read the activity under `android.intent.action.MAIN` /
+   `category.LAUNCHER`.
+
+6. **Build caps and run** — only after device + installed app + activity are all
+   known, and the developer has confirmed:
+
+   ```bash
+   testsigma code run --input tests/<e2e-dir>/<feature>.spec.ts \
+     --device <id> \
+     --caps '{"appium:appPackage":"<pkg>","appium:appActivity":"<activity>","appium:noReset":false}'
+   ```
+
+   `appium:noReset:false` starts each run from a clean app state; use `true` to
+   keep existing data/login.
+
+   **iOS:** the identity is the bundle id — `appium:bundleId` (from the Xcode
+   project / `Info.plist` `CFBundleIdentifier`); there is no `appActivity`. Verify
+   the app is installed on the target simulator/device the same way before running.
+
+Whatever the type, ask **"To run this I need <X>. Run it now?"** and only run on
+yes. Never launch a device run or hit a live web/api target without explicit
 confirmation.
 
 ## Step 6 — Read the results
