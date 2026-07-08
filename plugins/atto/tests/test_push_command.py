@@ -61,8 +61,11 @@ def test_command_uses_all_push_flags():
 
 
 def test_version_bumped():
+    # /atto:push landed in 0.5.0; assert at least that (not an exact pin) so
+    # later version bumps don't break this test.
     pj = json.loads((PLUGIN / ".claude-plugin" / "plugin.json").read_text())
-    assert pj["version"] == "0.5.0"
+    version = tuple(int(x) for x in pj["version"].split("."))
+    assert version >= (0, 5, 0)
 
 
 def test_command_lists_issues_and_passes_issue_flag():

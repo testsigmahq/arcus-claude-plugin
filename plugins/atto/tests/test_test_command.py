@@ -18,8 +18,11 @@ def test_command_exists_with_description_and_invokes_skill():
 
 
 def test_version_bumped():
+    # /atto:test landed in 0.4.0; assert at least that (not an exact pin) so
+    # later version bumps don't break this test.
     pj = json.loads((PLUGIN / ".claude-plugin" / "plugin.json").read_text())
-    assert pj["version"] == "0.4.0"
+    version = tuple(int(x) for x in pj["version"].split("."))
+    assert version >= (0, 4, 0)
 
 
 def test_help_and_readme_mention_the_command():
