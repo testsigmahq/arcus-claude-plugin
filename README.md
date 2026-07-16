@@ -1,30 +1,30 @@
-# Atto (Claude Code plugin)
+# Arcus (Claude Code plugin)
 
 Hooks-based capture of **Claude Code session context** for downstream systems (e.g. Testsigma): prompts, tool inputs/outputs (including large reads), subagent boundaries, stop/summary signals, and transcript paths.
 
 ## Install
 
-This repo is **also a marketplace** (`.claude-plugin/marketplace.json` lists `atto`).
+This repo is **also a marketplace** (`.claude-plugin/marketplace.json` lists `arcus`).
 
 **From GitHub (no clone):**
 
 ```bash
-claude plugin marketplace add testsigmahq/atto-claude-plugin
-claude plugin install atto@testsigma
+claude plugin marketplace add testsigmahq/arcus-claude-plugin
+claude plugin install arcus@testsigma
 ```
 
 **From a local clone (for development):**
 
 ```bash
-git clone git@github.com:testsigmahq/atto-claude-plugin.git
-cd atto-claude-plugin
+git clone git@github.com:testsigmahq/arcus-claude-plugin.git
+cd arcus-claude-plugin
 claude plugin marketplace add ./
-claude plugin install atto@testsigma
+claude plugin install arcus@testsigma
 ```
 
-`claude plugin list` should then show `atto@testsigma` as enabled.
+`claude plugin list` should then show `arcus@testsigma` as enabled.
 
-To update after a code change, bump `version` in `plugins/atto/.claude-plugin/plugin.json` and run `claude plugin update atto@testsigma`. To remove: `claude plugin uninstall atto@testsigma && claude plugin marketplace remove testsigma`.
+To update after a code change, bump `version` in `plugins/arcus/.claude-plugin/plugin.json` and run `claude plugin update arcus@testsigma`. To remove: `claude plugin uninstall arcus@testsigma && claude plugin marketplace remove testsigma`.
 
 **Requirements:** Python **3.9+** on `PATH` as `python3` (standard on macOS/Linux).
 
@@ -33,7 +33,7 @@ To update after a code change, bump `version` in `plugins/atto/.claude-plugin/pl
 Capture only ships data once you log in:
 
 ```
-/atto:login        # SSO; stores refresh token in OS keychain. Run once per machine.
+/arcus:login        # SSO; stores refresh token in OS keychain. Run once per machine.
 ```
 
 Until then hooks run as a **no-op** — nothing is sent remotely.
@@ -42,17 +42,17 @@ Until then hooks run as a **no-op** — nothing is sent remotely.
 
 | Command | Purpose |
 | --- | --- |
-| `/atto:login` | Authenticate via SSO. Stores refresh token in OS keychain. |
-| `/atto:logout` | Clear local credentials (server-side revoke not yet supported). |
-| `/atto:project list [search]` | List accessible Testsigma projects (optional substring filter). |
-| `/atto:project use <project_id>` | Pin a project; future events carry it. |
-| `/atto:project current` | Show the pinned project. |
-| `/atto:map ticket <KEY>` | Link a ticket (Jira / ADO / Linear / ClickUp / GitHub) to the session's workflow. |
-| `/atto:test [feature]` | Author Testsigma script e2e tests for this repo, validate them, and offer to run them. |
-| `/atto:push` | Push the test cases authored this session to Agentic Test; pick a sprint or leave unmapped (the `testsigma` CLI does the work). |
-| `/atto:help` | Show commands and typical flow. |
+| `/arcus:login` | Authenticate via SSO. Stores refresh token in OS keychain. |
+| `/arcus:logout` | Clear local credentials (server-side revoke not yet supported). |
+| `/arcus:project list [search]` | List accessible Testsigma projects (optional substring filter). |
+| `/arcus:project use <project_id>` | Pin a project; future events carry it. |
+| `/arcus:project current` | Show the pinned project. |
+| `/arcus:map ticket <KEY>` | Link a ticket (Jira / ADO / Linear / ClickUp / GitHub) to the session's workflow. |
+| `/arcus:test [feature]` | Author Testsigma script e2e tests for this repo, validate them, and offer to run them. |
+| `/arcus:push` | Push the test cases authored this session to Agentic Test; pick a sprint or leave unmapped (the `testsigma` CLI does the work). |
+| `/arcus:help` | Show commands and typical flow. |
 
-**Typical flow:** `/atto:login` → `/atto:project list` then `/atto:project use <id>` → work on a branch (each session auto-resolves to a workflow) → `/atto:map ticket <KEY>` → `/atto:test` to author tests → `/atto:push` to push them into a sprint.
+**Typical flow:** `/arcus:login` → `/arcus:project list` then `/arcus:project use <id>` → work on a branch (each session auto-resolves to a workflow) → `/arcus:map ticket <KEY>` → `/arcus:test` to author tests → `/arcus:push` to push them into a sprint.
 
 ## What gets captured
 
@@ -66,7 +66,7 @@ Until then hooks run as a **no-op** — nothing is sent remotely.
 | Stop / StopFailure | Last assistant message or API error |
 | SessionEnd | Exit reason |
 
-Each hook POSTs to `{host}/api/v1/plugin/events` (host from `/atto:login`). Read/Write/Edit file snapshots and large binaries (base64 images, long strings) are also captured and sent as attachments. Nothing is written to a local event log.
+Each hook POSTs to `{host}/api/v1/plugin/events` (host from `/arcus:login`). Read/Write/Edit file snapshots and large binaries (base64 images, long strings) are also captured and sent as attachments. Nothing is written to a local event log.
 
 Per-session state lives under `$CLAUDE_PLUGIN_DATA/sessions/<session_id>/` (override with `TESTSIGMA_CONTEXT_DIR`) — a `session_manifest.json` (cwd, transcript, git/ticket grouping signals, Testsigma link) plus `attachments/` and `context_files/`.
 
@@ -108,11 +108,11 @@ Hooks fail safe — a capture error never blocks the Claude Code session.
 ## Repo layout
 
 ```
-atto-claude-plugin/
+arcus-claude-plugin/
 ├── .claude-plugin/marketplace.json   # marketplace manifest
-└── plugins/atto/                    # the plugin
+└── plugins/arcus/                    # the plugin
     ├── .claude-plugin/plugin.json
-    ├── commands/                     # /atto:login, logout, map, project, help
+    ├── commands/                     # /arcus:login, logout, map, project, help
     ├── hooks/hooks.json
     ├── scripts/                      # capture_hook, capture_sinks, auth/, map/, project/
     ├── tests/                        # pytest suite
