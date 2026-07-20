@@ -3,16 +3,15 @@
   "owner": {
     "name": "Testsigma"
   },
-  "description": "Local marketplace for the Atto Claude Code plugin.",
+  "description": "Local marketplace for the Arcus Claude Code plugin.",
   "plugins": [
     {
-      "name": "atto",
-      "source": "./plugins/atto",
-      "description": "Capture Claude Code session context for Testsigma — SSO auth, project pinning, ticket mapping, and automatic grouping signals (branch, repo, tickets).",
-      "config": {
-        "apiServer": "https://agentic-test-preview.testsigma.com",
-        "authServer": "https://arcus-preview.testsigma.com"
-      }
+      "name": "arcus",
+      "source": "./plugins/arcus",
+      "description": "Capture Claude Code session context for Testsigma — SSO auth, project pinning, ticket mapping, and automatic grouping signals (branch, repo, tickets)."
     }
-  ]
+  ],
+  "renames": {
+    "atto": "arcus"
+  }
 }
