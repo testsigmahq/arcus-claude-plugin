@@ -1,4 +1,4 @@
 {
-  "apiServer": "https://agentic-test-preview.testsigma.com",
-  "authServer": "https://arcus-preview.testsigma.com"
+  "apiServer": "https://agentic-test.testsigma.com",
+  "authServer": "https://arcus.testsigma.com"
 }
