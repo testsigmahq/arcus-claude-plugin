@@ -66,19 +66,45 @@ running app, so always do it before offering to run.
 
 `testsigma code run` reaches a **live target**. Fully resolve what it needs
 BEFORE you call it, tell the developer exactly what you'll use, and run only on
-an explicit "yes". **Never call `code run` with empty or placeholder caps** — if
+an explicit "yes". **Never call `code run` with empty or placeholder caps** (a
+mobile-only flag; web and api runs take no caps at all) — if
 you can't resolve the target, STOP and say what's missing instead of running a
 call you know will fail.
 
-- **web** — a base URL (a running dev server or a deployed site). Offer to detect
-  an obvious local dev-server port. Once the target is confirmed:
+- **web** — the target URL is **not a CLI flag**: it is whatever the spec's
+  `page.goto(...)` already points at. So "resolving the target" means confirming
+  that URL is reachable — a running dev server or a deployed site. Offer to detect
+  an obvious local dev-server port and, if the spec points somewhere else, edit the
+  spec first. Tell the developer the URL you're about to hit, then:
 
   ```bash
   testsigma code run --input tests/<e2e-dir>/<feature>.spec.ts
   ```
 
+  A web run drives the developer's **own installed browser** (Chrome by default,
+  via a Playwright channel) and is **headed** — a real window opens on their
+  screen. Say so when you ask; an unexpected browser stealing focus is worse than
+  a slow test. No device, no Appium, and no browser download is involved.
+
+  Two optional flags, both web-only — do not pass either unless asked:
+
+  ```bash
+  --browser <chrome|chrome-beta|chrome-dev|chrome-canary|edge|msedge|firefox|safari|chromium|webkit>
+  --headless    # no visible window
+  ```
+
+  The brand names (`chrome`, `edge`, `safari`) use the host's installed browser;
+  the bare engine names (`chromium`, `firefox`, `webkit`) use Playwright's bundled
+  builds, which may not be downloaded on the machine — if one errors with
+  "Executable doesn't exist", say so and suggest `--browser chrome` rather than
+  running `playwright install` unprompted.
+
 - **api** — the API base URL and any required env (e.g. `API_PASSWORD`). Then run
   the same `testsigma code run --input tests/<e2e-dir>/<feature>.spec.ts`.
+
+Every run type — web included — needs the local Testsigma Agent running, because
+the CLI gets its sigma converter path from the agent. If a run fails with
+"Could not reach the local agent", ask the developer to start it and retry.
 
 ### mobile — a run needs a connected device AND the app installed on it
 
