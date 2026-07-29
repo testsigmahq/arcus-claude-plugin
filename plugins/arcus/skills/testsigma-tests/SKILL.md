@@ -93,8 +93,10 @@ call you know will fail.
   testsigma list browsers --local
   ```
 
-  The default is Chrome. Two optional flags, both web-only — do not pass either
-  unless asked:
+  The default is **Chrome for Testing** (falling back to Chrome when the agent has
+  no CfT): its version is pinned by the agent, so a run does not shift when the
+  developer's Chrome auto-updates. Two optional flags, both web-only — do not pass
+  either unless asked:
 
   ```bash
   --browser <chrome|edge|safari|firefox|cft>   # cft = Chrome for Testing
