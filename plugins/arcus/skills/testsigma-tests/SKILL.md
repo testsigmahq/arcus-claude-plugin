@@ -81,23 +81,39 @@ call you know will fail.
   testsigma code run --input tests/<e2e-dir>/<feature>.spec.ts
   ```
 
-  A web run drives the developer's **own installed browser** (Chrome by default,
-  via a Playwright channel) and is **headed** — a real window opens on their
-  screen. Say so when you ask; an unexpected browser stealing focus is worse than
-  a slow test. No device, no Appium, and no browser download is involved.
+  A web run drives one of the **agent's own browsers** and is **headed** — a real
+  window opens on the developer's screen. Say so when you ask; an unexpected
+  browser stealing focus is worse than a slow test. No device and no Appium are
+  involved.
 
-  Two optional flags, both web-only — do not pass either unless asked:
+  The browser comes from the agent, exactly as devices do for mobile. To see what
+  is available:
 
   ```bash
-  --browser <chrome|chrome-beta|chrome-dev|chrome-canary|edge|msedge|firefox|safari|chromium|webkit>
-  --headless    # no visible window
+  testsigma list browsers --local
   ```
 
-  The brand names (`chrome`, `edge`, `safari`) use the host's installed browser;
-  the bare engine names (`chromium`, `firefox`, `webkit`) use Playwright's bundled
-  builds, which may not be downloaded on the machine — if one errors with
-  "Executable doesn't exist", say so and suggest `--browser chrome` rather than
-  running `playwright install` unprompted.
+  The default is Chrome. Two optional flags, both web-only — do not pass either
+  unless asked:
+
+  ```bash
+  --browser <name>   # a NAME from `list browsers --local`, e.g. Chrome, Edge,
+                     # Safari, Firefox, ChromeForTesting
+  --headless         # no visible window
+  ```
+
+  Pass a **name the agent reported**, not a Playwright engine name. Matching
+  ignores case and punctuation, and the platform's own spellings work too
+  (`GoogleChrome`, `MozillaFirefox`, `MicrosoftEdge`,
+  `GoogleChromeForTesting`). An unavailable browser fails up front and lists what
+  the agent does have — surface that list to the developer rather than guessing a
+  substitute.
+
+  Most browsers run from a real binary the agent resolved. A few (Firefox, and
+  Safari on a host with no provisioned WebKit) fall back to the runner's bundled
+  engine, which may not be installed. If a run fails with "Executable doesn't
+  exist", the CLI's remediation names the problem — relay it and offer a browser
+  from the list; do NOT run `playwright install` unprompted.
 
 - **api** — the API base URL and any required env (e.g. `API_PASSWORD`). Then run
   the same `testsigma code run --input tests/<e2e-dir>/<feature>.spec.ts`.
