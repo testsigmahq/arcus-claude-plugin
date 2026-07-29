@@ -97,17 +97,17 @@ call you know will fail.
   unless asked:
 
   ```bash
-  --browser <name>   # a NAME from `list browsers --local`, e.g. Chrome, Edge,
-                     # Safari, Firefox, ChromeForTesting
-  --headless         # no visible window
+  --browser <chrome|edge|safari|firefox|cft>   # cft = Chrome for Testing
+  --headless                                   # no visible window
   ```
 
-  Pass a **name the agent reported**, not a Playwright engine name. Matching
-  ignores case and punctuation, and the platform's own spellings work too
-  (`GoogleChrome`, `MozillaFirefox`, `MicrosoftEdge`,
-  `GoogleChromeForTesting`). An unavailable browser fails up front and lists what
-  the agent does have — surface that list to the developer rather than guessing a
-  substitute.
+  Use the short name. Matching ignores case and punctuation, so the agent's own
+  `NAME` column and the platform's longer spellings (`GoogleChrome`,
+  `MozillaFirefox`, `MicrosoftEdge`, `GoogleChromeForTesting`) resolve to the same
+  browser — there is no need to type them. What you must NOT pass is a Playwright
+  engine name (`chromium`, `webkit`): the browser is selected by name, not engine.
+  An unavailable browser fails up front and lists what the agent does have —
+  surface that list rather than guessing a substitute.
 
   Most browsers run from a real binary the agent resolved. A few (Firefox, and
   Safari on a host with no provisioned WebKit) fall back to the runner's bundled

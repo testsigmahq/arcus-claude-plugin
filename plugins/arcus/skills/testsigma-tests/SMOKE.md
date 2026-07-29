@@ -26,8 +26,8 @@ demand `--device` for every run and report no browsers.
    - Expect: a single JSON summary line with `overall` and `counts`.
 4. Confirm a deliberately wrong assertion yields `overall: "failed"` and that the
    failing step in `resultsFile` carries `errorType`, `message`, and `locator`.
-5. Confirm `--headless` suppresses the window, and that `--browser ChromeForTesting`
-   launches the agent-provisioned binary under `<rootDir>/browsers/`.
+5. Confirm `--headless` suppresses the window, and that `--browser cft` launches the
+   agent-provisioned Chrome for Testing under `<rootDir>/browsers/`.
 6. Confirm `--browser opera` (absent) fails before launching anything and lists the
    available browsers.
 7. Confirm a **mobile** spec still requires `--device` and rejects an id that is not
