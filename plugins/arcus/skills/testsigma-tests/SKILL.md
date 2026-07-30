@@ -67,62 +67,32 @@ running app, so always do it before offering to run.
 `testsigma code run` reaches a **live target**. Fully resolve what it needs
 BEFORE you call it, tell the developer exactly what you'll use, and run only on
 an explicit "yes". **Never call `code run` with empty or placeholder caps** (a
-mobile-only flag; web and api runs take no caps at all) — if
-you can't resolve the target, STOP and say what's missing instead of running a
-call you know will fail.
+mobile-only flag) — if you can't resolve the target, STOP and say what's missing
+instead of running a call you know will fail.
 
-- **web** — the target URL is **not a CLI flag**: it is whatever the spec's
-  `page.goto(...)` already points at. So "resolving the target" means confirming
-  that URL is reachable — a running dev server or a deployed site. Offer to detect
-  an obvious local dev-server port and, if the spec points somewhere else, edit the
-  spec first. Tell the developer the URL you're about to hit, then:
+- **web** — the target is **not a flag**: it is whatever the spec's `page.goto(...)`
+  points at, so confirm that URL is reachable (offer to detect a local dev-server
+  port, and edit the spec if it points elsewhere). Warn that a real browser window
+  opens — the run is headed. Then:
 
   ```bash
   testsigma code run --input tests/<e2e-dir>/<feature>.spec.ts
   ```
 
-  A web run drives one of the **agent's own browsers** and is **headed** — a real
-  window opens on the developer's screen. Say so when you ask; an unexpected
-  browser stealing focus is worse than a slow test. No device and no Appium are
-  involved.
-
-  The browser comes from the agent, exactly as devices do for mobile. To see what
-  is available:
-
-  ```bash
-  testsigma list browsers --local
-  ```
-
-  The default is **Chrome for Testing** (falling back to Chrome when the agent has
-  no CfT): its version is pinned by the agent, so a run does not shift when the
-  developer's Chrome auto-updates. Two optional flags, both web-only — do not pass
-  either unless asked:
-
-  ```bash
-  --browser <chrome|edge|safari|firefox|cft>   # cft = Chrome for Testing
-  --headless                                   # no visible window
-  ```
-
-  Use the short name. Matching ignores case and punctuation, so the agent's own
-  `NAME` column and the platform's longer spellings (`GoogleChrome`,
-  `MozillaFirefox`, `MicrosoftEdge`, `GoogleChromeForTesting`) resolve to the same
-  browser — there is no need to type them. What you must NOT pass is a Playwright
-  engine name (`chromium`, `webkit`): the browser is selected by name, not engine.
-  An unavailable browser fails up front and lists what the agent does have —
-  surface that list rather than guessing a substitute.
-
-  Most browsers run from a real binary the agent resolved. A few (Firefox, and
-  Safari on a host with no provisioned WebKit) fall back to the runner's bundled
-  engine, which may not be installed. If a run fails with "Executable doesn't
-  exist", the CLI's remediation names the problem — relay it and offer a browser
-  from the list; do NOT run `playwright install` unprompted.
+  The browser comes from the agent, as devices do for mobile — `testsigma list
+  browsers --local` shows them. Chrome for Testing is the default (agent-pinned, so
+  a Chrome auto-update cannot shift a run). Two web-only flags, neither passed
+  unless asked: `--browser <name>` (short names work: `chrome`, `edge`, `safari`,
+  `firefox`, `cft`) and `--headless`. An unknown browser fails up front listing what
+  the agent has — offer from that list rather than substituting. If a launch fails
+  with "Executable doesn't exist", relay the CLI's remediation; never run
+  `playwright install` unprompted.
 
 - **api** — the API base URL and any required env (e.g. `API_PASSWORD`). Then run
   the same `testsigma code run --input tests/<e2e-dir>/<feature>.spec.ts`.
 
-Every run type — web included — needs the local Testsigma Agent running, because
-the CLI gets its sigma converter path from the agent. If a run fails with
-"Could not reach the local agent", ask the developer to start it and retry.
+Every type needs the local agent running: the CLI reads its sigma converter path
+from it. On "Could not reach the local agent", ask the developer to start it.
 
 ### mobile — a run needs a connected device AND the app installed on it
 
