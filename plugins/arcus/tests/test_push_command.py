@@ -59,8 +59,7 @@ def test_command_uses_all_push_flags():
         assert flag in body, f"push.md should reference {flag}"
     # --module is mandatory, so the user must be shown the modules to pick from.
     assert "testsigma modules list" in body
-    # --test-type takes a name, so the valid ones must be discoverable too, and
-    # Functional is the default we want offered (TMP-963).
+    # --test-type takes a name, so the valid ones must be discoverable too.
     assert "testsigma test-types list" in body
     assert "Functional" in body
 
