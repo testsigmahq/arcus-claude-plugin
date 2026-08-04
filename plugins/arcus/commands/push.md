@@ -68,7 +68,18 @@ metadata the CLI needs. It does **not** read files, compile, or handle auth itse
    as `--priority <name>`. If the user doesn't care, omit the flag (the server
    defaults to `Medium`).
 
-8. **Run status** — if the tests were run this session (e.g. via `/arcus:test`, which
+8. **Test type** — list the account's test types and ask the user to pick one:
+
+   ```bash
+   testsigma test-types list
+   ```
+
+   Show the `NAME` rows. Default to **Functional** — a pushed test case is
+   functional validation, not a unit test — and pass the choice as
+   `--test-type <name>`. Omitting the flag also yields Functional, so only pass it
+   when the user picks something else.
+
+9. **Run status** — if the tests were run this session (e.g. via `/arcus:test`, which
    reports an overall `passed`/`failed`), pass the result as `--run-status Passed`
    or `--run-status Failed` so each test case records its last code-run result. It
    accepts only `Passed` or `Failed`; **omit** the flag entirely if the tests were
@@ -76,7 +87,7 @@ metadata the CLI needs. It does **not** read files, compile, or handle auth itse
 
 ## Push (only after the user has picked target + module)
 
-9. Build one command with every applicable flag. Use the sprint form:
+10. Build one command with every applicable flag. Use the sprint form:
 
    ```bash
    testsigma code push \
@@ -85,6 +96,7 @@ metadata the CLI needs. It does **not** read files, compile, or handle auth itse
      --issue <issue_key> \
      --module <module_id_or_name> \
      [--priority <High|Medium|Low>] \
+     [--test-type <name>] \
      [--run-status <Passed|Failed>]
    ```
 
@@ -96,6 +108,7 @@ metadata the CLI needs. It does **not** read files, compile, or handle auth itse
      --unmapped \
      --module <module_id_or_name> \
      [--priority <High|Medium|Low>] \
+     [--test-type <name>] \
      [--run-status <Passed|Failed>]
    ```
 

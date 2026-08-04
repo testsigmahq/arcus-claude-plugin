@@ -66,19 +66,33 @@ running app, so always do it before offering to run.
 
 `testsigma code run` reaches a **live target**. Fully resolve what it needs
 BEFORE you call it, tell the developer exactly what you'll use, and run only on
-an explicit "yes". **Never call `code run` with empty or placeholder caps** — if
-you can't resolve the target, STOP and say what's missing instead of running a
-call you know will fail.
+an explicit "yes". **Never call `code run` with empty or placeholder caps** (a
+mobile-only flag) — if you can't resolve the target, STOP and say what's missing
+instead of running a call you know will fail.
 
-- **web** — a base URL (a running dev server or a deployed site). Offer to detect
-  an obvious local dev-server port. Once the target is confirmed:
+- **web** — the target is **not a flag**: it is whatever the spec's `page.goto(...)`
+  points at, so confirm that URL is reachable (offer to detect a local dev-server
+  port, and edit the spec if it points elsewhere). Warn that a real browser window
+  opens — the run is headed. Then:
 
   ```bash
   testsigma code run --input tests/<e2e-dir>/<feature>.spec.ts
   ```
 
+  The browser comes from the agent, as devices do for mobile — `testsigma list
+  browsers --local` shows them. Chrome for Testing is the default (agent-pinned, so
+  a Chrome auto-update cannot shift a run). Two web-only flags, neither passed
+  unless asked: `--browser <name>` (short names work: `chrome`, `edge`, `safari`,
+  `firefox`, `cft`) and `--headless`. An unknown browser fails up front listing what
+  the agent has — offer from that list rather than substituting. If a launch fails
+  with "Executable doesn't exist", relay the CLI's remediation; never run
+  `playwright install` unprompted.
+
 - **api** — the API base URL and any required env (e.g. `API_PASSWORD`). Then run
   the same `testsigma code run --input tests/<e2e-dir>/<feature>.spec.ts`.
+
+Every type needs the local agent running: the CLI reads its sigma converter path
+from it. On "Could not reach the local agent", ask the developer to start it.
 
 ### mobile — a run needs a connected device AND the app installed on it
 
