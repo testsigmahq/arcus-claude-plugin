@@ -49,7 +49,7 @@ Until then hooks run as a **no-op** — nothing is sent remotely.
 | `/arcus:project current` | Show the pinned project. |
 | `/arcus:map ticket <KEY>` | Link a ticket (Jira / ADO / Linear / ClickUp / GitHub) to the session's workflow. |
 | `/arcus:test [feature]` | Author Testsigma script e2e tests for this repo, validate them, and offer to run them. |
-| `/arcus:push` | Push the test cases authored this session to Agentic Test; pick a sprint or leave unmapped (the `testsigma` CLI does the work). |
+| `/arcus:push` | Push the test cases authored this session to Arcus; pick a sprint or leave unmapped (the `testsigma` CLI does the work). |
 | `/arcus:help` | Show commands and typical flow. |
 
 **Typical flow:** `/arcus:login` → `/arcus:project list` then `/arcus:project use <id>` → work on a branch (each session auto-resolves to a workflow) → `/arcus:map ticket <KEY>` → `/arcus:test` to author tests → `/arcus:push` to push them into a sprint.

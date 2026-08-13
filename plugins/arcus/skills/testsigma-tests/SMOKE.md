@@ -2,17 +2,17 @@
 
 Prerequisite: `testsigma` CLI installed with `code reference`/`code examples`
 (Component 1), and the arcus plugin updated to >= 0.3.0. Steps 2–6 also need a CLI
-whose `code run` supports web targets and an agent serving `GET /browsers`.
+whose `test run` supports web targets and an agent serving `GET /browsers`.
 
 1. In a sample **web** repo, run `/arcus:test login`.
-   - Expect: the skill detects `web`, runs `testsigma code reference --type web`
-     and `testsigma code examples --type web`, writes `tests/testsigma/login.spec.ts`,
-     and runs `testsigma code validate --input tests/testsigma/login.spec.ts` to a
+   - Expect: the skill detects `web`, runs `testsigma test reference --type web`
+     and `testsigma test examples --type web`, writes `tests/testsigma/login.spec.ts`,
+     and runs `testsigma test validate --input tests/testsigma/login.spec.ts` to a
      clean result.
    - Expect: it then confirms the spec's `page.goto(...)` URL and warns that a
-     browser window will open, before any `testsigma code run` — it must NOT run
+     browser window will open, before any `testsigma test run` — it must NOT run
      unprompted.
-2. Confirm `testsigma list browsers --local` shows the same browsers the platform
+2. Confirm `testsigma browsers list --local` shows the same browsers the platform
    lists for this agent, each with a version and engine.
 3. On "yes" to the web run, confirm a visible window opens and it is the binary the
    agent reported: `ps -Ao command= | grep -i chrome` shows that path, without

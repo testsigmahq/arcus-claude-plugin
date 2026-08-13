@@ -19,7 +19,7 @@ def test_command_delegates_to_testsigma_cli():
     body = CMD.read_text()
     # The command is a thin doorway: it drives the testsigma CLI, not its own logic.
     assert "testsigma sprints list" in body
-    assert "testsigma code push" in body
+    assert "testsigma test push" in body
     # Both targets are offered to the user.
     assert "--sprint" in body
     assert "--unmapped" in body
@@ -44,7 +44,7 @@ def test_command_stays_thin():
 
 
 def test_command_uses_all_push_flags():
-    # /arcus:push should exercise the full `testsigma code push` surface.
+    # /arcus:push should exercise the full `testsigma test push` surface.
     body = CMD.read_text()
     for flag in (
         "--project-id",

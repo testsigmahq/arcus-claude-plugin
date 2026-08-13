@@ -35,8 +35,8 @@ or `api`. Never guess.
 Run, for the detected type `<t>`:
 
 ```bash
-testsigma code reference --type <t>
-testsigma code examples --type <t>
+testsigma test reference --type <t>
+testsigma test examples --type <t>
 ```
 
 Read both. The reference is the authoritative DSL surface for the installed CLI;
@@ -56,7 +56,7 @@ show — do not invent method names.
 ## Step 4 — Validate offline (always)
 
 ```bash
-testsigma code validate --input tests/<e2e-dir>/<feature>.spec.ts
+testsigma test validate --input tests/<e2e-dir>/<feature>.spec.ts
 ```
 
 If it reports diagnostics, fix the spec and re-validate until clean. This needs no
@@ -64,9 +64,9 @@ running app, so always do it before offering to run.
 
 ## Step 5 — Offer to run (resolve the target first, then confirm)
 
-`testsigma code run` reaches a **live target**. Fully resolve what it needs
+`testsigma test run` reaches a **live target**. Fully resolve what it needs
 BEFORE you call it, tell the developer exactly what you'll use, and run only on
-an explicit "yes". **Never call `code run` with empty or placeholder caps** (a
+an explicit "yes". **Never call `test run` with empty or placeholder caps** (a
 mobile-only flag) — if you can't resolve the target, STOP and say what's missing
 instead of running a call you know will fail.
 
@@ -76,11 +76,11 @@ instead of running a call you know will fail.
   opens — the run is headed. Then:
 
   ```bash
-  testsigma code run --input tests/<e2e-dir>/<feature>.spec.ts
+  testsigma test run --local --input tests/<e2e-dir>/<feature>.spec.ts
   ```
 
-  The browser comes from the agent, as devices do for mobile — `testsigma list
-  browsers --local` shows them. Chrome for Testing is the default (agent-pinned, so
+  The browser comes from the agent, as devices do for mobile — `testsigma
+  browsers list --local` shows them. Chrome for Testing is the default (agent-pinned, so
   a Chrome auto-update cannot shift a run). Two web-only flags, neither passed
   unless asked: `--browser <name>` (short names work: `chrome`, `edge`, `safari`,
   `firefox`, `cft`) and `--headless`. An unknown browser fails up front listing what
@@ -89,23 +89,23 @@ instead of running a call you know will fail.
   `playwright install` unprompted.
 
 - **api** — the API base URL and any required env (e.g. `API_PASSWORD`). Then run
-  the same `testsigma code run --input tests/<e2e-dir>/<feature>.spec.ts`.
+  the same `testsigma test run --local --input tests/<e2e-dir>/<feature>.spec.ts`.
 
-Every type needs the local agent running: the CLI reads its sigma converter path
-from it. On "Could not reach the local agent", ask the developer to start it.
+Every type needs the local agent running: it owns the browser and device
+inventory. On "Could not reach the local agent", ask the developer to start it.
 
 ### mobile — a run needs a connected device AND the app installed on it
 
 A mobile run cannot work without a real device and a **resolved, installed**
 app-under-test. Do NOT ask the developer to hand you caps and do NOT guess them —
 work them out yourself from the device and the repo. Complete every step below
-before calling `code run`; if any step can't be satisfied, STOP and tell the
+before calling `test run`; if any step can't be satisfied, STOP and tell the
 developer what to fix.
 
 1. **Device (required).** List connected devices:
 
    ```bash
-   testsigma list devices --local
+   testsigma devices list --local
    ```
 
    If none are listed, STOP: ask the developer to connect a device (USB, USB
@@ -149,7 +149,7 @@ developer what to fix.
    known, and the developer has confirmed:
 
    ```bash
-   testsigma code run --input tests/<e2e-dir>/<feature>.spec.ts \
+   testsigma test run --local --input tests/<e2e-dir>/<feature>.spec.ts \
      --device <id> \
      --caps '{"appium:appPackage":"<pkg>","appium:appActivity":"<activity>","appium:noReset":false}'
    ```
@@ -167,7 +167,7 @@ confirmation.
 
 ## Step 6 — Read the results
 
-Run non-interactively (as you do), `code run` keeps stdout clean and prints a
+Run non-interactively (as you do), `test run` keeps stdout clean and prints a
 single JSON summary line, writing the full per-step results to a temp file:
 
 ```json

@@ -13,7 +13,7 @@ Arcus captures Claude Code session context (prompts, tool I/O, file snapshots, s
 - `/arcus:project current` — Show pinned project.
 - `/arcus:map ticket <KEY>` — Link ticket (Jira / ADO / Linear / ClickUp / GitHub) to the workflow resolved from this session. Provider auto-detected from sprint membership.
 - `/arcus:test [feature]` — Author Testsigma script e2e tests for this repo, validate them, and offer to run them.
-- `/arcus:push` — Push the test cases authored this session to Agentic Test; pick a sprint or leave unmapped. The `testsigma` CLI does the work.
+- `/arcus:push` — Push the test cases authored this session to Arcus; pick a sprint or leave unmapped. The `testsigma` CLI does the work.
 
 ## Typical flow
 
