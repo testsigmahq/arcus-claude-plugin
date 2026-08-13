@@ -1,11 +1,11 @@
 ---
-description: Push the test cases you authored this session to Agentic Test (pick a sprint, or leave unmapped)
+description: Push the test cases you authored this session to Arcus (pick a sprint, or leave unmapped)
 ---
 
 Push the Testsigma-script test cases authored in this Claude session — the
-`*.spec.ts` files written or edited under `tests/` — into Agentic Test.
+`*.spec.ts` files written or edited under `tests/` — into Arcus.
 
-Authentication, session detection, compilation, and the Agentic Test calls all
+Authentication, session detection, compilation, and the Arcus calls all
 happen in the `testsigma` CLI. This command only helps you gather the target and
 metadata the CLI needs. It does **not** read files, compile, or handle auth itself.
 
@@ -90,7 +90,7 @@ metadata the CLI needs. It does **not** read files, compile, or handle auth itse
 10. Build one command with every applicable flag. Use the sprint form:
 
    ```bash
-   testsigma code push \
+   testsigma test push \
      --project-id <project_id> \
      --sprint <work_cycle_id> \
      --issue <issue_key> \
@@ -103,7 +103,7 @@ metadata the CLI needs. It does **not** read files, compile, or handle auth itse
    or the unmapped form:
 
    ```bash
-   testsigma code push \
+   testsigma test push \
      --project-id <project_id> \
      --unmapped \
      --module <module_id_or_name> \

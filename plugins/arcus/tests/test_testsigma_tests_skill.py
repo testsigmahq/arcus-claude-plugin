@@ -30,11 +30,14 @@ def test_skill_exists_with_name_and_triggering_description():
 def test_skill_body_covers_the_procedure():
     body = SKILL.read_text().lower()
     # Detect type, pull reference from the CLI, author, validate offline, offer to run.
-    assert "testsigma code reference" in body
-    assert "testsigma code examples" in body
-    assert "testsigma code validate" in body
-    assert "testsigma code run" in body
-    assert "testsigma list devices --local" in body
+    assert "testsigma test reference" in body
+    assert "testsigma test examples" in body
+    assert "testsigma test validate" in body
+    assert "testsigma test run" in body
+    assert "testsigma devices list --local" in body
+    # Runs must name their target: the CLI rejects `test run` without one.
+    assert "testsigma test run --local" in body
+    assert "testsigma test run --input" not in body
     # The safety gate: validate always; run only after confirmation.
     assert "run it now" in body or "explicit confirmation" in body
     # Placement convention.
