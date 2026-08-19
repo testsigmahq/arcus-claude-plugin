@@ -72,6 +72,8 @@ Per-session state lives under `$CLAUDE_PLUGIN_DATA/sessions/<session_id>/` (over
 
 ## Privacy & data controls
 
+Once you log in (`/arcus:login`), this plugin transmits your session — prompts, tool calls/inputs/outputs, and file contents it captures — to Testsigma. See the [Testsigma Privacy Policy](https://testsigma.com/privacy-policy) for what's collected and how it's handled. Until you log in, hooks are a no-op and nothing is sent.
+
 **Sensitive files are always blocked** regardless of settings — `.env*`, private keys (`*.pem`/`*.key`/`*.p12`/`*.jks`), `credentials*`, `service-account*.json`, `.netrc`, `.pgpass`, and anything under `~/.ssh`, `~/.gnupg`, `~/.aws/credentials`, `~/.gcloud/legacy_credentials`. Blocked files are sent as `{skipped: true, reason: 'sensitive_path'}`.
 
 **Noise dirs are excluded from capture** — files under dependency, build, and VCS directories are never snapshotted or sent. Built-in list:
