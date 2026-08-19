@@ -6,6 +6,7 @@
     "name": "Testsigma"
   },
   "homepage": "https://testsigma.com",
+  "privacyPolicy": "https://testsigma.com/privacy-policy",
   "repository": "https://github.com/testsigmahq/arcus-claude-plugin",
   "license": "MIT"
 }

@@ -79,6 +79,33 @@ def _emit_auth_warning_if_needed(session_id: str, hook_name: str) -> None:
         pass
     print(json.dumps({"systemMessage": msg}), flush=True)
 
+
+def _emit_capture_disclosure_if_needed(session_id: str, hook_name: str) -> None:
+    """Print a one-shot systemMessage on SessionStart disclosing capture, once logged in."""
+    if hook_name != "SessionStart":
+        return
+    try:
+        auth = AuthState.load()
+        if not auth.usable():
+            return
+    except Exception:
+        return
+    marker = os.path.join(session_dir_for(session_id), ".capture_disclosure_shown")
+    if os.path.exists(marker):
+        return
+    msg = (
+        "ℹ️ arcus: this session (prompts, tool calls, and file contents) is being "
+        "captured and sent to Testsigma. See https://testsigma.com/privacy-policy"
+    )
+    try:
+        os.makedirs(os.path.dirname(marker), exist_ok=True)
+        with open(marker, "w", encoding="utf-8") as f:
+            f.write(_utc_now())
+    except OSError:
+        pass
+    print(json.dumps({"systemMessage": msg}), flush=True)
+
+
 BASE64_HINT = re.compile(r"^[A-Za-z0-9+/=\s]+$")
 
 
@@ -263,6 +290,7 @@ def main() -> None:
 
     try:
         _emit_auth_warning_if_needed(session_id, hook_name)
+        _emit_capture_disclosure_if_needed(session_id, hook_name)
     except Exception as exc:  # noqa: BLE001
         _log(f"auth warning emit failed: {exc}")
 
