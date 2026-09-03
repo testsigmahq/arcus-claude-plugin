@@ -79,6 +79,14 @@ written. So `When I search for "A1"`, `When I search for 'A1'` and
 `When I search for <lpn>` are one Source Step asked three ways. Quoting style is
 not part of what a step means.
 
+**A parameter is sometimes a verb.** Where the parameter of a collapsed step is
+the action rather than the data, the row covers more than one action. In a
+measured suite `API send "<param>" request` occurred 80 times and its parameter
+was the HTTP method, 56 POST and 24 GET. The rule is right to collapse it, since
+the source wrote one phrasing, but the Step Map row is two rows of work wearing
+one row's clothes. Look for this whenever a parameter's distinct values are few
+and read like commands.
+
 **The rule is textual, and that has limits you should expect.** `I see <number>
 result` and `I see <number> results` normalise differently and count as two
 Source Steps, because singular and plural are different strings. That is correct
@@ -113,7 +121,10 @@ actions, one conditional among them, none of it visible from the feature file.
 
 **A helper named like a wait that is a loop.** Treat every helper whose name
 contains `wait`, `until`, `refresh` or `poll` as a loop until the source proves
-otherwise. These typically re-drive the interface on each pass, retyping a filter
+otherwise. Include the shape that reads as an assertion: a step like
+`Wait and Validate <thing> status is "<value>"` polls, and measurement of a real
+suite of this shape found 50 occurrences of that pattern against 8 of the more
+obvious `Click refresh until …`. The obvious ones are not where the volume is. These typically re-drive the interface on each pass, retyping a filter
 and clicking refresh, so flattening one into a passive wait produces a test that
 looks right and does something else. `refreshUntilRecordAppears` is this shape.
 
@@ -137,6 +148,14 @@ a Phase of its own.
 Where a locator is built at run time rather than declared, treat the element as
 unresolved and record it, rather than guessing a static equivalent.
 
+**The element vocabulary does not collapse with the step vocabulary.** A generic
+step such as `Click "<param>" on "<param>"` takes the control and the screen as
+parameters, so one Source Step occurring hundreds of times still names hundreds
+of different things to find. In a measured suite of this shape, that one step
+carried 108 distinct control-and-screen pairs across 38 screens. Estimating
+element work as a proportion of Source Steps will be badly wrong; count the
+distinct parameter values, not the steps.
+
 ## Values
 
 This format has no value language. A Gherkin value is a literal: a quoted string,
@@ -150,6 +169,32 @@ shapes rather than being read as actions.
 The Composite Step in this format therefore only ever appears in the helper
 layer, which is why `hides-sequence` matters here and `value-language` does not.
 
+## API steps
+
+A suite of this shape is usually not only UI. Measurement of a real one found that
+29 distinct Source Steps, 8% of the vocabulary, carried 511 occurrences, 19% of all
+step lines: sending a request, asserting a response code, reading a value by JSON
+path, minting an access token, setting a request body from a file.
+
+**Classify these by reading them, never by keyword.** A keyword pass over the step
+text was tried on that suite and got it wrong in both directions: it missed four
+steps carrying 40 occurrences that say "Json" rather than "response", and it
+wrongly claimed a UI step that mentioned a payload. Whether a step is API or UI is
+a judgement made while mapping it, like everything else in this document.
+
+These are the same format and a different mapping target. They have no page
+object, so there is no helper layer to open and nothing for the Composite Step to
+hide behind. They have no locators either, so this adapter's
+`carries-locators: "yes"` describes its UI steps and says nothing about these.
+Classify each distinct Source Step as UI or API before mapping it, because the
+reading that recovers a UI step's sequence does not apply and looking for a page
+object that does not exist wastes the effort that matters.
+
+What replaces the helper read for an API step is the request definition: the
+endpoint, the method, the body file, and the assertions made against the
+response. Those live in the step definition itself or in the payload files it
+names, not in a page-object layer.
+
 ## Enumeration
 
 1. Find every `.feature` file in the suite.
@@ -158,9 +203,19 @@ layer, which is why `hides-sequence` matters here and `value-language` does not.
 4. Count occurrences of each distinct result.
 5. Report the total, the distinct count, their ratio, and how many Source Steps
    occur exactly once.
+6. Report the parameterisation profile as well: how many distinct Source Steps
+   carry no parameter, how many carry one the suite only ever fills a single way,
+   and how many genuinely vary.
 
 The last number matters as much as the ratio. A Source Step occurring once
 amortises nothing, so the long tail sets the floor cost of a Migration.
+
+The parameterisation profile matters because it says which rows are expensive. In
+a measured suite of this shape, 219 of 351 Source Steps carried no parameter at
+all and another 67 carried one the suite always filled the same way, leaving 65
+that genuinely varied. A fixed phrasing is a much cheaper row than a parameterised
+one, so a schedule built on an average row will mis-order the work. The
+parameterised rows are where the Composite Steps and the judgement concentrate.
 
 ### Worked example
 
