@@ -4,7 +4,12 @@ Hooks-based capture of **Claude Code session context** for downstream systems (e
 
 ## Install
 
-This repo is **also a marketplace** (`.claude-plugin/marketplace.json` lists `arcus`).
+This repo is **also a marketplace** (`.claude-plugin/marketplace.json` lists `arcus` and
+`testsigma`). The two are installed and enabled independently:
+
+- **`arcus`** — session-context capture (this README).
+- **`testsigma`** — skills for converting an existing automation suite into Testsigma
+  format with the `testsigma` CLI. See `plugins/testsigma/`.
 
 **From GitHub (no clone):**
 
@@ -112,14 +117,32 @@ Hooks fail safe — a capture error never blocks the Claude Code session.
 ```
 arcus-claude-plugin/
 ├── .claude-plugin/marketplace.json   # marketplace manifest
-└── plugins/arcus/                    # the plugin
+├── plugins/arcus/                    # session-context capture plugin
+│   ├── .claude-plugin/plugin.json
+│   ├── commands/                     # /arcus:login, logout, map, project, help
+│   ├── hooks/hooks.json
+│   ├── scripts/                      # capture_hook, capture_sinks, auth/, map/, project/
+│   ├── tests/                        # pytest suite
+│   └── pyproject.toml
+└── plugins/testsigma/                # suite-migration plugin
     ├── .claude-plugin/plugin.json
-    ├── commands/                     # /arcus:login, logout, map, project, help
-    ├── hooks/hooks.json
-    ├── scripts/                      # capture_hook, capture_sinks, auth/, map/, project/
-    ├── tests/                        # pytest suite
+    ├── CONTEXT.md                    # domain glossary
+    ├── docs/adr/                     # architecture decision records
+    ├── tests/                        # pytest suite (document contract)
     └── pyproject.toml
 ```
+
+Each plugin's suite runs from its own directory:
+
+```bash
+cd plugins/arcus     && python3 -m pytest
+cd plugins/testsigma && python3 -m pytest
+```
+
+The `testsigma` plugin is made of documents rather than code, so its suite asserts a
+contract over those documents: that the manifest and marketplace entry agree, that
+component directories sit where Claude Code discovers them, and that the plugin's
+glossary and ADRs stay visible to version control.
 
 ## License
 
