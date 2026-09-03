@@ -20,6 +20,22 @@ CONTEXT = PLUGIN_ROOT / "CONTEXT.md"
 ADR_DIR = PLUGIN_ROOT / "docs" / "adr"
 SKILLS_DIR = PLUGIN_ROOT / "skills"
 COMMANDS_DIR = PLUGIN_ROOT / "commands"
+ADAPTERS_DIR = PLUGIN_ROOT / "adapters"
+FIXTURES_DIR = Path(__file__).resolve().parent / "fixtures"
+
+#: The three properties every Source Adapter declares. They are independent —
+#: every source shape met so far differs on them — so none may be omitted.
+THREE_PROPERTIES = ("hides-sequence", "carries-locators", "value-language")
+
+#: Section headings every adapter must carry. Presence is checked, never wording.
+REQUIRED_ADAPTER_SECTIONS = (
+    "Source Step",
+    "Normalisation",
+    "Sequence",
+    "Locators",
+    "Values",
+    "Enumeration",
+)
 
 _KEBAB = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 _FENCE = "---"
@@ -152,3 +168,69 @@ def skill_files():
 def command_files():
     """Every command document in the plugin, sorted by path."""
     return sorted(COMMANDS_DIR.rglob("*.md")) if COMMANDS_DIR.is_dir() else []
+
+
+def adapter_files():
+    """Every Source Adapter document, sorted. README.md is the format, not one."""
+    if not ADAPTERS_DIR.is_dir():
+        return []
+    return sorted(
+        path
+        for path in ADAPTERS_DIR.glob("*.md")
+        if path.name != "README.md"
+    )
+
+
+def markdown_sections(text):
+    """Map each level-two heading to the text beneath it, up to the next one.
+
+    Deeper headings stay inside their parent section, so a `###` subsection is
+    part of the `##` section that contains it.
+    """
+    sections = {}
+    heading = None
+    buffer = []
+    in_fence = False
+    for line in text.splitlines():
+        # A heading inside a fenced block is an example, not a heading. Without
+        # this, a required section could be satisfied by a line of sample text.
+        if line.lstrip().startswith("```"):
+            in_fence = not in_fence
+            if heading is not None:
+                buffer.append(line)
+            continue
+        if not in_fence and line.startswith("## ") and not line.startswith("### "):
+            if heading is not None:
+                sections[heading] = "\n".join(buffer)
+            heading = line[3:].strip()
+            buffer = []
+        elif heading is not None:
+            buffer.append(line)
+    if heading is not None:
+        sections[heading] = "\n".join(buffer)
+    return sections
+
+
+def parse_count_table(text):
+    """Read a two-column markdown table of `item` and count into a dict.
+
+    Rows look like ``| `I am signed in` | 2 |``. The item must be in backticks,
+    so a step containing a pipe cannot be mistaken for a column break, and the
+    header and separator rows are skipped because neither parses as a count.
+    """
+    table = {}
+    for line in text.splitlines():
+        line = line.strip()
+        if not line.startswith("|"):
+            continue
+        cells = [cell.strip() for cell in line.strip("|").split("|")]
+        if len(cells) != 2:
+            continue
+        item, count = cells
+        if not (item.startswith("`") and item.endswith("`")):
+            continue
+        try:
+            table[item.strip("`")] = int(count)
+        except ValueError:
+            continue
+    return table

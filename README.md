@@ -127,6 +127,7 @@ arcus-claude-plugin/
 └── plugins/testsigma/                # suite-migration plugin
     ├── .claude-plugin/plugin.json
     ├── CONTEXT.md                    # domain glossary
+    ├── adapters/                     # one document per source format
     ├── docs/adr/                     # architecture decision records
     ├── tests/                        # pytest suite (document contract)
     └── pyproject.toml

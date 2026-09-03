@@ -10,6 +10,8 @@ from support import (
     FrontmatterError,
     git_ignores,
     is_kebab_case,
+    markdown_sections,
+    parse_count_table,
     split_frontmatter,
 )
 
@@ -117,6 +119,58 @@ def test_git_ignores_refuses_a_path_that_does_not_exist():
     # without this a deleted file reads as visible.
     with pytest.raises(FileNotFoundError):
         git_ignores(PLUGIN_ROOT / "does-not-exist.md")
+
+
+# --- markdown_sections -------------------------------------------------------
+
+def test_maps_level_two_headings_to_their_bodies():
+    sections = markdown_sections("# Title\n\n## One\nalpha\n\n## Two\nbeta\n")
+    assert sections["One"].strip() == "alpha"
+    assert sections["Two"].strip() == "beta"
+
+
+def test_a_deeper_heading_stays_inside_its_parent_section():
+    sections = markdown_sections("## One\nalpha\n### Sub\nnested\n## Two\nbeta\n")
+    assert "nested" in sections["One"]
+    assert "Sub" not in sections
+
+
+def test_a_heading_inside_a_fenced_block_is_not_a_section():
+    # Otherwise a required-section check could be satisfied by sample text.
+    sections = markdown_sections(
+        "## One\nalpha\n```markdown\n## Example only\n```\nstill one\n\n## Two\nbeta\n"
+    )
+    assert sorted(sections) == ["One", "Two"]
+    assert "still one" in sections["One"]
+
+
+def test_a_fenced_block_is_kept_in_its_section_body():
+    sections = markdown_sections("## One\n```\ncode\n```\n")
+    assert "code" in sections["One"]
+
+
+def test_text_before_the_first_heading_is_not_a_section():
+    assert markdown_sections("preamble\n\n## One\nalpha\n") == {"One": "alpha"}
+
+
+# --- parse_count_table -------------------------------------------------------
+
+def test_reads_a_two_column_count_table():
+    text = "| Source Step | Occurrences |\n|---|---|\n| `a step` | 4 |\n| `another` | 1 |\n"
+    assert parse_count_table(text) == {"a step": 4, "another": 1}
+
+
+def test_skips_rows_whose_item_is_not_in_backticks():
+    assert parse_count_table("| plain | 3 |\n| `ok` | 1 |\n") == {"ok": 1}
+
+
+def test_skips_rows_whose_count_is_not_a_number():
+    assert parse_count_table("| `a` | many |\n| `b` | 2 |\n") == {"b": 2}
+
+
+def test_a_step_containing_a_pipe_is_not_split():
+    # Backticks are required precisely so this cannot happen silently.
+    assert parse_count_table("| `a | b` | 2 |\n") == {}
 
 
 # --- path constants ----------------------------------------------------------
