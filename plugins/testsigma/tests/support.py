@@ -66,7 +66,7 @@ PERMISSIVE_HEDGES = (
     "rather than a requirement",
     "rather than a rule",
     "no need to",
-    "optional",
+    "is optional",
     "if you prefer",
     "at your discretion",
     "feel free",
@@ -351,10 +351,18 @@ def hedges_in(text):
     passing. Paragraph scoping cannot see them, because the correct paragraph is
     still there.
 
-    This narrows the class rather than closing it: a walk-back written without
-    any permissive vocabulary would still pass. Granting permission is hard to
-    write without permissive words, which is what makes the check worth having,
-    and the general case is what review is for.
+    This narrows the class rather than closing it, and the residual gap has been
+    demonstrated rather than merely predicted: a review wrote a walk-back in
+    neutral procedural language — a row proceeding with its comparison "noted as
+    pending" rather than blocking — and the suite stayed green. Granting
+    permission is hard to write without permissive words, which is what makes
+    this worth having, but "does this document contradict itself" is not
+    decidable by string matching and no addition to this list makes it so.
+
+    Do not extend this list to chase a specific demonstrated bypass. Two controls
+    cover the general case: review, which is what found the one above, and the
+    behavioural evals of ticket 13, which are the higher seam because they test
+    what an agent does rather than what a document says.
     """
     flattened = " ".join(text.split()).lower()
     return sorted({hedge for hedge in PERMISSIVE_HEDGES if hedge in flattened})
