@@ -165,6 +165,17 @@ class TestTheUnreferencedElementSweep:
     def test_the_sweep_exists(self):
         assert has_paragraph_with(_section("sweep"), "element", "no step")
 
+    def test_the_sweep_is_named_as_secondary_to_call_chain_coverage(self):
+        # Measured: three element audits found one defect between them and
+        # produced two false positives; composites converted partway accounted
+        # for six. The sweep is worth running and is not the primary check.
+        assert has_paragraph_with(
+            _section("sweep"), "secondary", "call-chain coverage"
+        )
+        assert has_paragraph_with(
+            _section("sweep"), "do not mistake it for the check"
+        ), "presenting a sweep as the primary check misplaces the effort"
+
     def test_an_unreferenced_element_is_read_as_a_dropped_step(self):
         assert has_paragraph_with(_section("sweep"), "dropped step")
 

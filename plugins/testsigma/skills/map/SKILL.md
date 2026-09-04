@@ -79,25 +79,24 @@ The adapter's own Sequence section states where the sequence lives for this
 format and which traps recur in it. Follow it. Four shapes recur across every
 source format met so far, and all four produce a test that runs and passes:
 
-**A helper that does less than its line implies.** The line reads as a choice
-being committed; the method only sends text, and no caller ever clicks the submit
-control. Converting the implied action invents a step the source never performed.
+**A helper that does less than its line implies** — the line reads as a choice
+committed, the method only sends text, and converting the implied action invents a
+step the source never performed.
 
-**A helper that does more than its line implies.** The line reads as one action;
-the method tests visibility, clicks an expand control conditionally, clears,
-types and presses a key. None of that is visible from the source line.
+**A helper that does more than its line implies** — the line reads as one action
+and the method tests visibility, expands conditionally, clears, types and presses
+a key.
 
 **A helper named like a wait that is a loop.** Treat every helper whose name
 contains `wait`, `until`, `refresh` or `poll` as a loop until the source shows
-otherwise. Include the shape that reads as an assertion, which is where the
-volume actually is rather than in the obvious spellings. These re-drive the
-interface on each pass, so flattening one into a passive wait produces a test
-that looks right and does something else.
+otherwise, including the shape that reads as an assertion, which is where the
+volume is. These re-drive the interface each pass, so flattening one into a
+passive wait produces a test that looks right and does something else.
 
-**A helper that delegates.** When a method calls another method, follow it: the
-sequence is the flattened sequence of the leaves. Stopping at the first method
-the source names is the most natural way to get this wrong, because that method
-looks complete.
+**A helper that delegates.** When a method calls another, follow it: the sequence
+is the flattened sequence of the leaves. Stopping at the first method the source
+names is the most natural way to get this wrong, because that method looks
+complete.
 
 Report what the helper actually does, in the Operator's terms, whenever it
 differs from what the line implies. A difference found and not said is a
@@ -178,6 +177,15 @@ run is recorded as, are in
 runs and passes while testing something weaker or different. Compile, tenant
 preflight and a round trip caught none of the six; this comparison caught five in
 about fifteen minutes.
+
+**Start with coverage of the call chain, because that is where the defects were.**
+Enumerate every call the step definition makes, transitively through the helpers it
+delegates to, and require each to map to at least one step in the expression.
+Report the calls that map to none. A composite converted partway was the largest
+single class of defect in the conversion this plugin came from, and it produces a
+row that reads correctly and is simply short. The same walk settles which locator
+each step reaches, which is the only thing that catches an element lifted from the
+wrong place in a source that genuinely contains it.
 
 Compare on three points: whether the expression performs the same actions in the
 same order, whether it asserts the same thing, and whether anything the helper

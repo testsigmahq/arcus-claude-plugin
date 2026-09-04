@@ -59,6 +59,56 @@ source literal. An argument that does not pass through unchanged is a conversion
 hazard, and the transformation is often the only thing that makes a barcode, a
 lookup or an identifier work at all — somebody wrote that `replace` for a reason.
 
+## A composite step definition converted partway
+
+**The largest single class in the measured pass — six of twenty-one defects — and
+the reason call-chain coverage is the primary check rather than any sweep.**
+
+One source line resolves to a method that makes several calls. The conversion took
+the first and stopped. Measured instances: a navigation step that calls three
+methods, of which one was converted and about twenty target steps are missing; a
+profile step that sets four lookup fields, of which three were converted; a
+selection step that is two clicks, converted as one text entry; a search helper
+that ends with a card click, dropped.
+
+Every one of those produced a converted step that reads correctly, compiles, and
+is accepted. Nothing about the row is wrong; the row is simply short.
+
+**The check is coverage, and it is mechanical.** Enumerate every call the step
+definition makes, transitively through the helpers it delegates to, and require
+each call to map to at least one target step. Report the calls that map to none.
+That is the check; a row is not reviewed until it has run.
+
+No whole-suite sweep finds this class. In the measured pass three separate element
+audits found one defect between them and produced two false positives, while this
+class alone accounted for six. Sweeps are worth running and they are secondary.
+
+## An element bound from the corpus rather than from the call site
+
+Four further defects were a locator that genuinely exists in the source, lifted
+from the wrong place in it.
+
+The measured instances are worth reading as a set, because they defeat different
+naive checks:
+
+- **wrong class** — a field of the right name taken from a page class the step's
+  call chain never reaches
+- **same name, different xpath** — one field name declared in two classes with
+  genuinely different locators
+- **right class, wrong field** — `byExpandILPNfield1` taken where
+  `byExpandILPNfield` was called
+- **lifted from commented-out source** — a locator named by a Gherkin line that
+  is commented out, where the live step uses a different one
+
+**A provenance check passes on all four.** "Does this locator exist in the
+source?" is the wrong question, and answering it yes is how these shipped. The
+right question is whether this is the locator *this step's call chain reaches*,
+which is the same call-chain walk the class above requires.
+
+One cheap rule falls out: a `byFoo1` or `byFooNew` sitting beside `byFoo` means
+both are live, and choosing between them by name similarity is a coin toss. Follow
+the call.
+
 ## A non-default argument lost to a platform default
 
 The hardest of these to see, because nothing looks wrong. The step is present,
@@ -312,6 +362,26 @@ from an earlier finding before relying on it, and separate a finding's verdict
 from its cause: the verdict can be right while the cause is wrong, and the cause
 is the half the fix is built on.
 
+## Defensive code in the source is a map of the application's rough edges
+
+The most useful thing to read for what it *predicts* rather than for what it says.
+
+Unconditional sleeps, retries, try/catch fallbacks, duplicate locators for one
+control, and an attribute read where reading the text would have done — each of
+those is a place where somebody hit a problem in the application and worked around
+it. Together they predict exactly where the converted test will be fragile, before
+it has ever run.
+
+The measured example is precise: a helper reads a status cell's `title` attribute,
+with a twenty-second wait, rather than reading the cell's text. That is strong
+evidence that the cell's text is not where anyone would expect it to be — which is
+a warning about that cell, and it arrived free, from source nobody had to run.
+
+So when reading a helper for its sequence, note its defences separately. They are
+not noise to be translated past; they are the previous team's findings about the
+application under test, and they are the best available prediction of which
+converted steps will need attention first.
+
 ## A verdict given without the implementation
 
 Not a fault in a conversion but a fault in checking one, and it invalidates work
@@ -424,6 +494,15 @@ finding became a mechanical rule the moment the verb's behaviour was known: ever
 clear in the source is a required clear in the target. Sweep the whole suite for
 it at once rather than rediscovering it site by site, which is how it came to be
 missing at four sites and present at four others.
+
+Two measured premises are worth stating outright because they are mechanically
+checkable rather than matters of judgement. A step timeout above 120 seconds
+**silently disables** the presence wait it was meant to lengthen — the helper
+returns nothing outside 1..120 — so a timeout raised past that limit is worse than
+one left at the default, and a Migration can refuse it outright. And the text
+comparison verb reads an element's inner markup, not its value, so on a text area
+— where the live content is the value — it compares against something that does
+not change when a person types.
 
 **Read what the platform says about its own verbs.** The readiness gap above was
 discoverable from the target side alone, with no access to the source: that

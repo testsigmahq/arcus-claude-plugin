@@ -109,8 +109,15 @@ parentage, and order is not parentage.
 
 ## Step 5: Sweep for elements nothing references
 
-Cheap, and it earns its place. After assembling, list every element the Migration
-has created or reused and find the ones no step refers to.
+Cheap, and it earns its place — as a secondary check. The primary one is
+call-chain coverage during mapping, and the difference is measured: in the
+conversion this plugin came from, three separate element audits found one defect
+between them and produced two false positives, while composites converted partway
+accounted for six. Run this sweep, and do not mistake it for the check that finds
+missing work.
+
+After assembling, list every element the Migration has created or reused and find
+the ones no step refers to.
 
 An element that was lifted from the source but is referenced by nothing usually
 means a **dropped step**: the reading found the element, and the step that used it

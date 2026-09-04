@@ -277,6 +277,18 @@ class TestTheComparisonGatesTheRow:
     def test_the_comparison_is_the_exit_condition_of_the_stage(self):
         assert has_paragraph_with(_section("compare"), "exit condition")
 
+    def test_the_comparison_starts_with_call_chain_coverage(self):
+        # Six of twenty-one measured defects were a composite converted
+        # partway, so coverage of the call chain is the primary check and the
+        # skill must lead with it rather than only cite the catalogue.
+        section = _section("compare")
+        assert has_paragraph_with(
+            section, "coverage of the call chain", "transitively"
+        ), "the largest class of defect is found by walking the calls"
+        assert has_paragraph_with(
+            section, "map to none"
+        ), "the unmapped calls are the finding"
+
     def test_it_says_why_running_the_test_cannot_replace_the_comparison(self):
         # Every fault in the class produces a test that runs and passes.
         assert has_paragraph_with(_section("compare"), "runs and passes")
@@ -592,6 +604,57 @@ class TestTheFaultClassCatalogue:
         assert has_paragraph_with(
             section, "verdict can be right while the cause is wrong"
         ), "and the cause is the half the fix is built on"
+
+    def test_a_composite_converted_partway_is_the_largest_class(self):
+        # Six of twenty-one defects. One source line resolves to a method
+        # making several calls; the conversion took the first and stopped.
+        section = _fault_section("converted partway")
+        assert has_paragraph_with(section, "transitively", "at least one target step")
+        assert has_paragraph_with(
+            section, "report the calls that map to none"
+        ), "the check is coverage, and it is mechanical"
+        assert has_paragraph_with(
+            section, "no whole-suite sweep", "secondary"
+        ), "three element audits found one defect and two false positives"
+
+    def test_an_element_is_bound_from_the_call_site_not_the_corpus(self):
+        # Four defects were a locator that genuinely exists in the source,
+        # lifted from the wrong place in it.
+        section = _fault_section("rather than from the call site")
+        assert has_paragraph_with(
+            section, "provenance check passes on all four"
+        ), "does this locator exist in the source is the wrong question"
+        assert has_paragraph_with(section, "call chain reaches")
+        assert has_paragraph_with(
+            section, "coin toss"
+        ), "a byFoo1 beside byFoo means both are live"
+
+    def test_a_timeout_above_the_limit_silently_disables_the_wait(self):
+        # Mechanically checkable, not a matter of judgement: the helper
+        # returns nothing outside 1..120.
+        section = _fault_section("verb semantics")
+        assert has_paragraph_with(section, "silently disables", "120")
+        assert has_paragraph_with(
+            section, "worse than", "default"
+        ), "raising a timeout past the limit is worse than leaving it alone"
+
+    def test_the_text_verb_reads_markup_rather_than_value(self):
+        section = _fault_section("verb semantics")
+        assert has_paragraph_with(
+            section, "text area", "value"
+        ), "on a text area the live content is the value, not the markup"
+
+    def test_defensive_source_code_is_read_as_a_prediction(self):
+        # Sleeps, retries, fallbacks and duplicate locators mark where somebody
+        # hit a problem in the application and worked around it.
+        section = _fault_section("rough edges")
+        assert has_paragraph_with(section, "predict", "fragile")
+        assert has_paragraph_with(
+            section, "note its defences separately"
+        ), "they are the previous team's findings about the application"
+        assert has_paragraph_with(
+            section, "title", "twenty-second wait"
+        ), "the measured example is what makes this concrete"
 
     def test_every_entry_says_it_already_happened(self):
         # A catalogue of imagined faults would grow without limit. These are
