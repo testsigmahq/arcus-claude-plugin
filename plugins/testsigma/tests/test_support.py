@@ -205,3 +205,35 @@ def test_paths_point_where_they_claim():
     assert (PLUGIN_ROOT / ".claude-plugin" / "plugin.json").is_file()
     assert (REPO_ROOT / ".claude-plugin" / "marketplace.json").is_file()
     assert ADR_DIR.is_dir()
+
+class TestParseCountTableHandlesAPipeInACell:
+    """A real Tosca module is named `M&T Org Search | CHIP`.
+
+    The helper's docstring used to claim backticks protected such a cell from
+    being read as a column break. They do not: the row parsed as three cells and
+    was dropped from the table silently, so the counts were short by that row
+    with nothing said.
+    """
+
+    TABLE = (
+        "| Source Step | Occurrences |\n"
+        "|---|---|\n"
+        "| `M&T Inventory` | 4 |\n"
+        "| `M&T Org Search \\| CHIP` | 2 |\n"
+    )
+
+    def test_an_escaped_pipe_keeps_the_row(self):
+        table = parse_count_table(self.TABLE)
+        assert table == {"M&T Inventory": 4, "M&T Org Search | CHIP": 2}
+
+    def test_the_pipe_survives_in_the_parsed_name(self):
+        assert "M&T Org Search | CHIP" in parse_count_table(self.TABLE)
+
+    def test_an_unescaped_pipe_still_drops_the_row_rather_than_guessing(self):
+        # Loud by absence is not ideal, but splitting a cell in two and
+        # inventing a count would be worse. The adapter contract's
+        # worked-example test is what notices a short table.
+        table = parse_count_table(
+            "| `M&T Inventory` | 4 |\n| `M&T Org Search | CHIP` | 2 |\n"
+        )
+        assert table == {"M&T Inventory": 4}

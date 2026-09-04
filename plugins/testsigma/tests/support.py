@@ -282,19 +282,32 @@ def preamble(text):
     return "\n".join(lines)
 
 
+#: Stands in for an escaped pipe while a table row is split on unescaped ones.
+_ESCAPED_PIPE = "\x00pipe\x00"
+
+
 def parse_count_table(text):
     """Read a two-column markdown table of `item` and count into a dict.
 
-    Rows look like ``| `I am signed in` | 2 |``. The item must be in backticks,
-    so a step containing a pipe cannot be mistaken for a column break, and the
-    header and separator rows are skipped because neither parses as a count.
+    Rows look like ``| `I am signed in` | 2 |``.
+
+    An escaped pipe inside a cell is honoured. Backticks do not protect one:
+    this used to claim they did, and a real Tosca module named
+    ``M&T Org Search | CHIP`` produced three cells and was dropped from the
+    parsed table without a word — the row was simply absent from the counts.
+    A silently short table is worse than a parse error, so the escape is
+    handled and an unescaped pipe still fails the row loudly by cell count.
     """
     table = {}
     for line in text.splitlines():
         line = line.strip()
         if not line.startswith("|"):
             continue
-        cells = [cell.strip() for cell in line.strip("|").split("|")]
+        line = line.replace("\\|", _ESCAPED_PIPE)
+        cells = [
+            cell.strip().replace(_ESCAPED_PIPE, "|")
+            for cell in line.strip("|").split("|")
+        ]
         if len(cells) != 2:
             continue
         item, count = cells
