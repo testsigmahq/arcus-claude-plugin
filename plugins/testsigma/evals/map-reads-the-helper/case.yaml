@@ -1,0 +1,10 @@
+schema_version: "1.1"
+name: map-reads-the-helper
+context:
+  # Relative to this case directory. Whether the runner resolves add_dirs from
+  # here or from the plugin root is not documented; ../../tests/test_evals.py
+  # asserts the path exists relative to the case directory, and evals/README.md
+  # records the uncertainty so the first real run can settle it.
+  add_dirs:
+    - ../fixtures/migration-part-done
+    - ../../tests/fixtures/cucumber-java

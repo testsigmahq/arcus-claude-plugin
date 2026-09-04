@@ -22,6 +22,16 @@ dist/
 build/
 docs/
 
+# ...but a plugin's own hand-written ADRs must be tracked. The broad `docs/`
+# above targets generated output and matches at any depth, so it caught them.
+# Re-including a directory un-ignores everything inside it, hence the middle
+# line: re-exclude the contents, then carve out only the ADRs. A generated
+# `docs/_build/` under any plugin therefore stays ignored.
+!plugins/*/docs/
+plugins/*/docs/*
+!plugins/*/docs/adr/
+!plugins/*/docs/adr/**
+
 # OS / editor
 .DS_Store
 Thumbs.db

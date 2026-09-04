@@ -3,12 +3,17 @@
   "owner": {
     "name": "Testsigma"
   },
-  "description": "Local marketplace for the Arcus Claude Code plugin.",
+  "description": "Local marketplace for the Testsigma Claude Code plugins.",
   "plugins": [
     {
       "name": "arcus",
       "source": "./plugins/arcus",
       "description": "Capture Claude Code session context for Testsigma — SSO auth, project pinning, ticket mapping, and automatic grouping signals (branch, repo, tickets)."
+    },
+    {
+      "name": "testsigma",
+      "source": "./plugins/testsigma",
+      "description": "Convert an existing automation suite into Testsigma format with the testsigma CLI — surveys the source suite, converts test by test, and verifies every file compiles and round-trips."
     }
   ],
   "renames": {

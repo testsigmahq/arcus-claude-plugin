@@ -1,0 +1,84 @@
+# Behavioural evals for the testsigma plugin.
+#
+# Deliberately NOT on every commit: these cost money and are slow. They run on
+# demand, and on changes to the plugin's own documents — which are the only
+# thing that can change an agent's behaviour, since the plugin is instructions.
+name: testsigma evals
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'plugins/testsigma/skills/**'
+      - 'plugins/testsigma/commands/**'
+      - 'plugins/testsigma/adapters/**'
+      - 'plugins/testsigma/references/**'
+      - 'plugins/testsigma/CONTEXT.md'
+      - 'plugins/testsigma/evals/**'
+      - '.github/workflows/testsigma-evals.yml'
+
+jobs:
+  # Always runs, needs no entitlement: the cases are files, and a file that will
+  # not parse the day the gate opens is worth catching now.
+  well-formed:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install pyyaml pytest
+      - name: Check the eval cases are well-formed
+        working-directory: plugins/testsigma
+        run: python3 -m pytest tests/test_evals.py -q
+
+  # `claude plugin eval` is gated on early access. While the account is not
+  # enrolled this job is SKIPPED rather than passing, because a check that could
+  # not run must never read as a pass — the plugin's own ADR-0001 applied to the
+  # plugin's own CI. A skipped job shows as skipped, not green.
+  #
+  # To turn it on once enrolled: set the repository variable
+  # PLUGIN_EVAL_ENROLLED to 'true'. Do not try to enable the gate itself by
+  # editing a settings file; there is no such setting.
+  evals:
+    needs: well-formed
+    if: vars.PLUGIN_EVAL_ENROLLED == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run the eval cases with and without the plugin
+        working-directory: plugins/testsigma
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        # Ablation is the default and is the point: the delta between the arms
+        # is the only honest measure of whether an instruction earns its place.
+        # Exit 0 means every case met the threshold, 1 means one did not, and 2
+        # means the cost ceiling aborted the run.
+        run: |
+          claude plugin eval . \
+            --max-cost-usd 5 \
+            --threshold 0.8 \
+            --no-publish \
+            --report evals/results/report.html
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: eval-report
+          path: plugins/testsigma/evals/results/
+
+  # Says out loud that the evals did not run, so a green pull request is not
+  # mistaken for a checked one.
+  not-checked:
+    needs: well-formed
+    if: vars.PLUGIN_EVAL_ENROLLED != 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Record that the behavioural evals were not checked
+        run: |
+          {
+            echo "### testsigma evals: NOT CHECKED"
+            echo ""
+            echo "\`claude plugin eval\` is in early access and this account is not enrolled."
+            echo "The cases were checked for well-formedness only. Behaviour was not checked,"
+            echo "and is not to be read as passing."
+          } >> "$GITHUB_STEP_SUMMARY"
