@@ -21,10 +21,22 @@ build in use and the checks that build supports, and the enumeration summary
 parameterisation profile). Written once by survey and amended only when one of
 those facts changes.
 
+It gains an **Element Resolution** section when, and only when, a source with no
+locators has had its elements resolved. Survey never writes it, so its absence is
+how a later session knows that Phase is still open. Where the adapter carries
+locators the section never appears, because there is no such Phase to finish.
+
 **`step-map.md`** — the reviewed mapping from every Source Step to its expression.
 The largest artifact and the one most read, so it is a table. A row carries the
 source text, its occurrence count, its parameter shapes, the proposed expression,
 and a status. One Source Step may map to several steps.
+
+A row's status is one of `unreviewed`, `reviewed` or `residue`. A row is
+`unreviewed` from the moment it is written until a person has looked at it;
+nothing else may set it to `reviewed`. `residue` means the row has an entry in
+`residue.md` and is not waiting on review. The vocabulary is fixed here because
+resume counts the rows in each state and a private fourth value would be counted
+as neither.
 
 **`open-questions.md`** — questions put to the Operator that have not been
 answered. Added to at the moment a question arises, and cleared only by an answer.

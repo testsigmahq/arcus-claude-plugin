@@ -307,7 +307,10 @@ def has_paragraph_with(text, *terms, absent=()):
     wanted = [t.lower() for t in terms]
     forbidden = [t.lower() for t in absent]
     for block in paragraphs(text):
-        lowered = block.lower()
+        # Whitespace-normalised, because a markdown line wrap is not semantic.
+        # Without this a phrase straddling a wrap silently fails to match, and
+        # the fix looks like reflowing prose to please a test.
+        lowered = " ".join(block.split()).lower()
         if all(term in lowered for term in wanted) and not any(
             term in lowered for term in forbidden
         ):

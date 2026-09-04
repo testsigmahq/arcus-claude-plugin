@@ -128,6 +128,9 @@ arcus-claude-plugin/
     ├── .claude-plugin/plugin.json
     ├── CONTEXT.md                    # domain glossary
     ├── adapters/                     # one document per source format
+    ├── commands/                     # /testsigma:resume — the session entry point
+    ├── skills/                       # survey, and the later migration stages
+    ├── references/                   # shared procedures the skills point at
     ├── docs/adr/                     # architecture decision records
     ├── tests/                        # pytest suite (document contract)
     └── pyproject.toml
