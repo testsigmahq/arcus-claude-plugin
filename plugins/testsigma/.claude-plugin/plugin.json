@@ -1,7 +1,7 @@
 {
   "name": "testsigma",
-  "description": "Convert an existing automation suite into Testsigma format with the testsigma CLI — surveys the source suite, converts test by test, and verifies every file compiles and round-trips.",
-  "version": "0.1.0",
+  "description": "Convert an existing automation suite into Testsigma format with the testsigma CLI \u2014 surveys the source suite, converts test by test, and verifies every file compiles and round-trips.",
+  "version": "0.2.0",
   "author": {
     "name": "Testsigma"
   },

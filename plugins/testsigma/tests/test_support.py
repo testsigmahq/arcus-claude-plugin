@@ -10,7 +10,9 @@ from support import (
     FrontmatterError,
     git_ignores,
     is_kebab_case,
+    has_paragraph_with,
     markdown_sections,
+    paragraphs,
     parse_count_table,
     split_frontmatter,
 )
@@ -171,6 +173,30 @@ def test_skips_rows_whose_count_is_not_a_number():
 def test_a_step_containing_a_pipe_is_not_split():
     # Backticks are required precisely so this cannot happen silently.
     assert parse_count_table("| `a | b` | 2 |\n") == {}
+
+
+# --- paragraphs / has_paragraph_with -----------------------------------------
+
+def test_splits_on_blank_lines():
+    assert paragraphs("one\ntwo\n\nthree\n") == ["one\ntwo", "three"]
+
+
+def test_a_blank_line_inside_a_fenced_block_does_not_split_it():
+    # Otherwise a genuine instruction inside an example becomes invisible to
+    # every co-occurrence assertion, failing loudly for no reason.
+    doc = "```bash\ngit rev-parse\n\necho refuse\n```\n"
+    assert len(paragraphs(doc)) == 1
+    assert has_paragraph_with(doc, "rev-parse", "refuse")
+
+
+def test_co_occurrence_is_within_one_paragraph_not_the_whole_text():
+    doc = "names version control here\n\nand refuses somewhere else\n"
+    assert not has_paragraph_with(doc, "version control", "refuse")
+    assert has_paragraph_with("version control, and refuse\n", "version control", "refuse")
+
+
+def test_co_occurrence_ignores_case():
+    assert has_paragraph_with("Version Control and REFUSE\n", "version control", "refuse")
 
 
 # --- path constants ----------------------------------------------------------

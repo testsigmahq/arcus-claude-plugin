@@ -21,6 +21,22 @@ ADR_DIR = PLUGIN_ROOT / "docs" / "adr"
 SKILLS_DIR = PLUGIN_ROOT / "skills"
 COMMANDS_DIR = PLUGIN_ROOT / "commands"
 ADAPTERS_DIR = PLUGIN_ROOT / "adapters"
+REFERENCES_DIR = PLUGIN_ROOT / "references"
+
+#: Where a Migration keeps its state, inside the source suite (ADR-0002).
+MIGRATION_DIRECTORY = ".testsigma/migration/"
+
+#: One file per concern, each readable and diffable on its own, because a person
+#: reviews them and they land in the source repository's diffs.
+MIGRATION_DIRECTORY_FILES = (
+    "migration.md",
+    "step-map.md",
+    "open-questions.md",
+    "platform-facts.md",
+    "application-facts.md",
+    "residue.md",
+    "check-record.md",
+)
 FIXTURES_DIR = Path(__file__).resolve().parent / "fixtures"
 
 #: The three properties every Source Adapter declares. They are independent —
@@ -191,6 +207,7 @@ def markdown_sections(text):
     heading = None
     buffer = []
     in_fence = False
+    seen = []
     for line in text.splitlines():
         # A heading inside a fenced block is an example, not a heading. Without
         # this, a required section could be satisfied by a line of sample text.
@@ -203,6 +220,13 @@ def markdown_sections(text):
             if heading is not None:
                 sections[heading] = "\n".join(buffer)
             heading = line[3:].strip()
+            # A duplicate heading used to overwrite the first silently, so a
+            # gutted section plus a verbatim copy further down passed every
+            # check scoped to that heading. That is a worse false green than
+            # the one section-scoping was introduced to fix.
+            if heading in seen:
+                raise ValueError(f"duplicate '## {heading}' heading")
+            seen.append(heading)
             buffer = []
         elif heading is not None:
             buffer.append(line)
@@ -234,3 +258,65 @@ def parse_count_table(text):
         except ValueError:
             continue
     return table
+
+
+def paragraphs(text):
+    """Split text into blank-line-separated blocks.
+
+    Used for co-occurrence assertions. Checking that two words appear somewhere
+    in a long document proves almost nothing, because common words appear all
+    over it. Checking that they appear in the same paragraph is a claim about a
+    specific instruction rather than about vocabulary.
+
+    Fenced blocks are atomic: a blank line inside one is part of the example.
+
+    Known limit: a requirement written as bullets separated by blank lines is
+    several paragraphs, so a co-occurrence assertion across them fails. That
+    fails loudly rather than silently, so it is a nuisance and not a hazard —
+    write the requirement as one block, or assert over a section instead.
+    """
+    blocks, current = [], []
+    in_fence = False
+    for line in text.splitlines():
+        if line.lstrip().startswith("```"):
+            in_fence = not in_fence
+            current.append(line)
+            continue
+        # A blank line inside a fenced block is part of the example, not a
+        # paragraph break. Splitting there would hide a genuine instruction
+        # from every co-occurrence assertion and fail loudly for no reason.
+        if line.strip() or in_fence:
+            current.append(line)
+        elif current:
+            blocks.append("\n".join(current))
+            current = []
+    if current:
+        blocks.append("\n".join(current))
+    return blocks
+
+
+def has_paragraph_with(text, *terms, absent=()):
+    """True when one paragraph holds every term and none of `absent`.
+
+    Case-insensitive. `absent` exists because co-occurrence cannot read polarity:
+    "do not refuse" contains "refuse", so an instruction can be inverted while
+    keeping every word a test looks for. Naming the known inversions closes the
+    cheap ones. It does not close the general case, and no string test will —
+    that is what review is for.
+    """
+    wanted = [t.lower() for t in terms]
+    forbidden = [t.lower() for t in absent]
+    for block in paragraphs(text):
+        lowered = block.lower()
+        if all(term in lowered for term in wanted) and not any(
+            term in lowered for term in forbidden
+        ):
+            return True
+    return False
+
+
+def declared_files(reference_text):
+    """The filenames a reference document declares, as `**`name.md`**` leads."""
+    import re as _re
+
+    return set(_re.findall(r"\*\*`([^`]+\.md)`\*\*", reference_text))
