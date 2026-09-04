@@ -255,6 +255,18 @@ class TestSurveySkill:
     def test_it_records_the_branch_and_handles_a_detached_head(self):
         assert has_paragraph_with(_body(SURVEY), "branch", "detached head")
 
+    def test_it_screens_for_unconvertible_scenarios_before_quoting_a_size(self):
+        # Measured: six of seven web-only scenarios seeded data by rewriting a
+        # spreadsheet and importing it, which the platform cannot do.
+        body = _body(SURVEY)
+        assert has_paragraph_with(
+            body, "screen for what is unconvertible", "before quoting a size"
+        )
+        assert has_paragraph_with(body, "spreadsheet", "out of scope")
+        assert has_paragraph_with(
+            body, "step-definition names", "text of a line"
+        ), "a classifier on free text excluded a web test for containing Mobile"
+
     def test_it_gives_a_threshold_for_the_near_one_warning(self):
         # "Near 1.0" with no number fires on whim.
         assert has_paragraph_with(_body(SURVEY), "collapse ratio", "1.0", "1.5")

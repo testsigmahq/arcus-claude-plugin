@@ -166,6 +166,20 @@ nothing and the Migration will cost about what rewriting the suite by hand would
 That is a decision for the Operator, not a number to file. Put it to them, record
 the question in `open-questions.md` immediately, and clear it only when they answer.
 
+**Screen for what is unconvertible before quoting a size.** A scenario can be
+pure web and still impossible: in a measured estate, six of seven web-only
+scenarios seeded their data by rewriting a spreadsheet and importing it through the
+application, which Testsigma cannot do — it can attach an upload, not edit a file
+mid-test. Screen the source for spreadsheet and CSV handling, data-loader or import
+steps, and database, shell or version-control steps, and report those scenarios as
+out of scope rather than counting them in the total.
+
+Anchor any such classifier to step-definition names rather than to the text of a
+line. A first attempt at this matched a scenario as native because a step read
+"Navigate to WM Mobile" and the rule tested for a trailing "Mobile"; the scenario
+was a web test throughout, and excluding it would have dropped the very case the
+rest of this plugin was built from.
+
 Two other numbers change how the work should be ordered, so report them as findings
 rather than statistics. Source Steps occurring once amortise nothing, so a long tail
 sets the floor cost. And rows are not equal: the ones that genuinely vary carry most

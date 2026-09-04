@@ -44,6 +44,13 @@ Group them by screen before starting. An Operator asked for elements one at a ti
 across forty screens is being asked to navigate forty times; the same list grouped by
 screen is one pass through the application.
 
+The three places an element comes from, in order, and what happens when none of
+them answers, are defined in
+[../../references/element-resolution.md](../../references/element-resolution.md).
+Mapping runs the same procedure inline where the source carries locators; this
+Phase runs it where the source carries none. Follow the reference rather than
+either skill's paraphrase of it.
+
 ## Step 2: Match the existing Testsigma project, by name
 
 Before creating any screen or element, look for one already in the project that

@@ -63,6 +63,12 @@ the parameter value, which is what that column is for.
 
 ## Step 3: Build the test
 
+The rules the validator and the push enforce — which templates a new step may
+use, how environment names and layout must be written, what to do after the first
+push of a new entity kind, and how to mark a region left unconverted on purpose —
+are in [../../references/authoring.md](../../references/authoring.md). Follow it;
+most of those constraints only surface at push time, and by then the work is done.
+
 Express each step from its reviewed row, in the source's own sequence. Where a
 row maps one Source Step to several Testsigma steps, emit all of them, in the
 row's order.

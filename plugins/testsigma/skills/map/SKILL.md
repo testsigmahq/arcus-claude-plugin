@@ -37,6 +37,29 @@ If it is present, read it before working. `migration.md` names the adapter and
 the pinned snapshot; `step-map.md` holds the rows already decided. Run the resume
 command if you need the state in full.
 
+## Step 0: Resolve everything before authoring anything
+
+The order of this stage is measured, not a preference. Of two conversions of
+comparable size, the one that authored each row and audited afterwards produced
+twenty-one defects, every one found after the target code existed; the one that
+resolved first and authored second produced five, four caught before any target
+code was written.
+
+So do two things across the whole scenario **before proposing any expression**.
+
+**Expand every call chain**: resolve each step definition and follow every call it
+makes, transitively, to the leaves. That yields the complete list of actions the
+scenario performs, and it exists before there is anything to compare against.
+
+**Inventory the elements, bound to their call sites**: every element the expanded
+chains actually reach, taken from the class the chain reaches rather than from
+anywhere in the source declaring that name, each name checked for uniqueness
+across the workspace.
+
+Those two passes caught three wrong-class locators and a format-string trap before
+authoring — the two categories that cost the audited conversion the most. The
+per-row comparison below still gates each row; this is what makes it cheap.
+
 ## Step 1: Take one distinct Source Step at a time
 
 Work the distinct Source Steps from the enumeration, not the suite's lines. Each
@@ -79,24 +102,14 @@ The adapter's own Sequence section states where the sequence lives for this
 format and which traps recur in it. Follow it. Four shapes recur across every
 source format met so far, and all four produce a test that runs and passes:
 
-**A helper that does less than its line implies** — the line reads as a choice
-committed, the method only sends text, and converting the implied action invents a
-step the source never performed.
-
-**A helper that does more than its line implies** — the line reads as one action
-and the method tests visibility, expands conditionally, clears, types and presses
-a key.
-
-**A helper named like a wait that is a loop.** Treat every helper whose name
-contains `wait`, `until`, `refresh` or `poll` as a loop until the source shows
-otherwise, including the shape that reads as an assertion, which is where the
-volume is. These re-drive the interface each pass, so flattening one into a
-passive wait produces a test that looks right and does something else.
-
-**A helper that delegates.** When a method calls another, follow it: the sequence
-is the flattened sequence of the leaves. Stopping at the first method the source
-names is the most natural way to get this wrong, because that method looks
-complete.
+**A helper that does less than its line implies**, so converting the implied
+action invents a step the source never performed. **One that does more**, where a
+line reading as one action expands to four. **One named like a wait that is a
+loop**: treat every helper whose name contains `wait`, `until`, `refresh` or
+`poll` as a loop until the source shows otherwise, including the shape that reads
+as an assertion, which is where the volume is. And **one that delegates**: follow it,
+because the sequence is the flattened sequence of the leaves, and stopping at the
+first method the source names is the natural way to get it wrong.
 
 Report what the helper actually does, in the Operator's terms, whenever it
 differs from what the line implies. A difference found and not said is a
@@ -123,44 +136,12 @@ becomes a Phase of its own after mapping, and this step does not apply. Whether
 element resolution is a Phase is a property of the source rather than of the
 Migration.
 
-Try three places, in this order, and stop at the first that answers:
-
-**The source, first.** What you lifted in Step 3 resolves most elements without
-anyone being asked anything. This is the whole reason the two questions share one
-reading.
-
-**The existing Testsigma project, by name.** Before creating any screen or
-element, look for one already there whose name matches, and reuse it. The
-Operator maintains those screens, and a Migration that duplicates them hands back
-a project with two of everything and no way to tell which is live.
-
-**Operator capture, last resort.** Ask only when neither the source nor the
-existing project can supply the element. Their time is the last resort and not
-the first, and an element they are asked to capture unnecessarily is time spent
-on something the code already described.
-
-When nothing resolves an element, record it in `residue.md` as an unresolved
-element. That cause is distinct from an unexpressible step and the two are never
-merged: one means the format has no spelling for the intent, the other means the
-intent is expressible and the thing to act on cannot be found.
-
-An unresolved element blocks assembly of every test that references it. Never
-substitute a placeholder and never assemble around it. A test that looks finished
-and cannot run is worse than a test that is visibly absent, because the absent
-one is on a list and the placeholder is in a suite.
-
-Record the block at the element's granularity, not the row's. The Residue entry
-names the parameter value that identifies the element, so what is blocked is the
-occurrences that reference that element rather than every occurrence of the
-Source Step. A row whose other elements all resolved is not blocked by one that
-did not.
-
-**Count elements, not steps.** Element work is not a proportion of Source Steps.
-A generic step that takes a control and a screen as parameters occupies one row
-in the Step Map and still names as many things to find as it has parameter
-values, which can be orders of magnitude more. The adapter's Locators section
-carries a measured example for this format. Estimate from the distinct parameter
-values.
+The procedure — the three places to look, in order, and what happens when none of
+them answers — is defined in
+[../../references/element-resolution.md](../../references/element-resolution.md).
+It is shared with the resolve-elements skill, which runs the same procedure as a
+Phase of its own where the source carries no locators, so there is one definition
+of it rather than two that drift.
 
 ## Step 5: Compare the expression against the source before finishing
 

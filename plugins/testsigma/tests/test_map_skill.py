@@ -179,7 +179,7 @@ class TestResolvingAnElement:
         # Structural. "source" and "first" co-occur in the capture paragraph too
         # ("their time is the last resort and not the first"), which passed this
         # with the source demoted to "one option among three".
-        leads = _bold_leads(_section("element"))
+        leads = _bold_leads(_element_section())
         found = {}
         for index, lead in enumerate(leads):
             for place in ("source", "existing", "capture"):
@@ -196,11 +196,11 @@ class TestResolvingAnElement:
         )
 
     def test_it_stops_at_the_first_place_that_answers(self):
-        assert has_paragraph_with(_section("element"), "stop at the first")
+        assert has_paragraph_with(_element_section(), "stop at the first")
 
     def test_existing_screens_are_reused_by_name_before_anything_is_created(self):
         assert has_paragraph_with(
-            _section("element"),
+            _element_section(),
             "by name",
             "before",
             absent=("after creating",),
@@ -210,7 +210,7 @@ class TestResolvingAnElement:
         # "last resort" appears twice in this section, so the old assertion
         # passed with the condition on asking deleted.
         assert has_paragraph_with(
-            _section("element"), "capture", "only when", "neither"
+            _element_section(), "capture", "only when", "neither"
         ), "the Operator's time must be the last resort, not the first"
 
     def test_an_unresolved_element_becomes_residue_with_that_cause(self):
@@ -218,16 +218,27 @@ class TestResolvingAnElement:
         # paragraph ("108 distinct control-and-screen pairs"), which passed this
         # with the two causes explicitly merged.
         assert has_paragraph_with(
-            _section("element"), "residue.md", "unresolved element", "distinct"
+            _element_section(), "residue.md", "unresolved element", "distinct"
         ), "an unresolved element and an unexpressible step are distinct causes"
 
     def test_an_unresolved_element_blocks_assembly_rather_than_placeholding(self):
         # A test that looks finished and cannot run is worse than an absent one.
         assert has_paragraph_with(
-            _section("element"),
+            _element_section(),
             "block",
             "placeholder",
             absent=("assemble it anyway",),
+        )
+
+    def test_the_skill_points_at_the_shared_procedure(self):
+        assert "references/element-resolution.md" in _body(), (
+            "the procedure is shared with resolve-elements; point at it"
+        )
+
+    def test_the_shared_procedure_disambiguates_a_colliding_name(self):
+        # Element references are unqualified, so a workspace has one namespace.
+        assert has_paragraph_with(
+            _element_section("naming"), "owning source class", "number"
         )
 
     def test_it_runs_here_only_where_the_source_carries_locators(self):
@@ -241,7 +252,7 @@ class TestResolvingAnElement:
         # resolved perfectly well. Review found this stated as an absolute rule
         # with no data model able to express it.
         assert has_paragraph_with(
-            _section("element"), "granularity", "parameter value"
+            _element_section(), "granularity", "parameter value"
         ), "an unresolved element must not block the occurrences that resolved"
 
     def test_the_format_specific_measurement_stays_in_the_adapter(self):
@@ -261,7 +272,7 @@ class TestResolvingAnElement:
         # different things to find. A measured suite had 108 control-and-screen
         # pairs behind a single Source Step.
         assert has_paragraph_with(
-            _section("element"), "distinct", "parameter values"
+            _element_section(), "distinct", "parameter values"
         ), "estimating element work as a proportion of Source Steps is badly wrong"
 
 
@@ -276,6 +287,19 @@ class TestTheComparisonGatesTheRow:
 
     def test_the_comparison_is_the_exit_condition_of_the_stage(self):
         assert has_paragraph_with(_section("compare"), "exit condition")
+
+    def test_resolution_precedes_authoring_and_the_result_is_measured(self):
+        # 21 defects when each row was authored then audited; 5 when the call
+        # chains and element inventory came first, 4 caught before authoring.
+        section = _section("resolve everything")
+        assert has_paragraph_with(section, "measured", "not a preference")
+        assert has_paragraph_with(
+            section, "before proposing any expression"
+        ), "the ordering is the finding"
+        assert has_paragraph_with(section, "expand every call chain", "transitively")
+        assert has_paragraph_with(
+            section, "bound to their call sites", "uniqueness"
+        )
 
     def test_the_comparison_starts_with_call_chain_coverage(self):
         # Six of twenty-one measured defects were a composite converted
@@ -349,6 +373,26 @@ class TestItWiresIntoTheRest:
 # go wrong. The catalogue lives in a reference because the skill body is bounded.
 
 FAULT_CLASSES = REFERENCES_DIR / "fault-classes.md"
+
+
+ELEMENT_RESOLUTION = REFERENCES_DIR / "element-resolution.md"
+
+
+def _element_section(needle=None):
+    """The shared element-resolution procedure.
+
+    It moved out of the skill when the skill hit its word budget, and it was
+    duplicated with the resolve-elements skill anyway. The assertions follow the
+    content; what stays asserted against the skill is the carries-locators gate
+    and the pointer.
+    """
+    text = ELEMENT_RESOLUTION.read_text(encoding="utf-8")
+    if needle is None:
+        return text
+    sections = markdown_sections(text)
+    matching = [v for k, v in sections.items() if needle in k.lower()]
+    assert len(matching) == 1, f"expected one section for {needle!r}: {list(sections)}"
+    return matching[0]
 
 
 def _fault_section(needle):
@@ -655,6 +699,39 @@ class TestTheFaultClassCatalogue:
         assert has_paragraph_with(
             section, "title", "twenty-second wait"
         ), "the measured example is what makes this concrete"
+
+    def test_correct_syntax_pointed_at_the_wrong_thing_has_an_entry(self):
+        # The class that survives every mechanical check: a well-formed
+        # assertion whose element matched a heading, not the identifier.
+        section = _fault_section("wrong thing")
+        assert has_paragraph_with(section, "counts confirm structure")
+        assert has_paragraph_with(
+            section, "human-style read", "greps do not reach it"
+        ), "reading each assertion is the only thing that finds it"
+
+    def test_the_regex_collision_runs_both_ways(self):
+        section = _fault_section("heuristic script")
+        assert has_paragraph_with(section, "/*", "inside")
+        assert has_paragraph_with(
+            section, "equal number of newlines"
+        ), "substituting a block comment away shifts every later line number"
+        assert has_paragraph_with(
+            section, "never trust an absence result"
+        ), "the answer this tooling gives most confidently and least reliably"
+
+    def test_a_pattern_of_varying_rendered_length_is_named(self):
+        section = _fault_section("format string")
+        assert has_paragraph_with(section, "fixed", "rendered length")
+
+    def test_a_credential_in_the_source_is_routed_not_copied(self):
+        section = _fault_section("credential")
+        assert has_paragraph_with(section, "environment variable", "platform-facts.md")
+        assert has_paragraph_with(
+            section, "never copy the value"
+        ), "not into a question, a commit message or a report"
+        assert has_paragraph_with(
+            section, "theirs to act on"
+        ), "the credential in their history is a finding they need"
 
     def test_every_entry_says_it_already_happened(self):
         # A catalogue of imagined faults would grow without limit. These are

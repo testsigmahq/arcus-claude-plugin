@@ -259,6 +259,11 @@ class TestTheResolveElementsSkill:
             self._text(), "element resolution", "migration.md", "absence"
         ), "the Phase must write the marker a later session reads"
 
+    def test_it_points_at_the_shared_resolution_procedure(self):
+        # Mapping runs the same three places inline where the source carries
+        # locators. One definition, not two paraphrases.
+        assert "references/element-resolution.md" in self._text()
+
     def test_it_points_at_the_shared_references(self):
         text = self._text()
         assert "references/migration-directory.md" in text

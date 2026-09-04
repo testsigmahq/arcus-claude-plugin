@@ -33,9 +33,17 @@ output.** That applies to date and time patterns, number formats, and regular
 expressions alike — anything where a short string is interpreted by a library
 rather than used as a value.
 
-The cheap mechanical check, which is what caught this one: render a sample on both
+A second measured instance is worse, because its length is not even stable: a
+pattern of seconds-plus-fraction rendered three characters in the source's library
+and three to five in the target's, unpadded, so the converted identifier varied in
+length between runs. The fix was to choose a pattern with a **fixed** rendered
+length matching the source's, accepting a different distribution of values, rather
+than to match the pattern text.
+
+The cheap mechanical check, which is what caught both: render a sample on both
 sides and diff the length and the character classes. Two patterns that produce
-different lengths are not the same pattern, whatever they look like.
+different lengths are not the same pattern, whatever they look like — and one
+whose length varies is not usable as an identifier at all.
 
 ## A value transformed on its way to the browser
 
@@ -108,6 +116,26 @@ which is the same call-chain walk the class above requires.
 One cheap rule falls out: a `byFoo1` or `byFooNew` sitting beside `byFoo` means
 both are live, and choosing between them by name similarity is a coin toss. Follow
 the call.
+
+## Correct syntax pointed at the wrong thing
+
+The class that survives every mechanical check, and the one that justifies reading
+each assertion rather than only counting them.
+
+The measured case: an assertion verifying text across matched elements, correctly
+formed, with a real element and a real expected value — and the element matched a
+page's *heading* rather than the identifier the assertion was about. It compiled,
+it was accepted, and the check it performed was unrelated to the check the source
+performed.
+
+Coverage counts confirm structure. They cannot see that a well-formed step points
+somewhere wrong, because nothing about it is missing or malformed. In the forward
+conversion this was the one defect the mechanical passes missed, and it was found
+by reading the assertions one at a time and asking what each actually asserts.
+
+So verification includes a human-style read of every assertion in the scenario:
+what does this compare, against what, and is that the thing the source compared.
+Greps do not reach it.
 
 ## A non-default argument lost to a platform default
 
@@ -311,9 +339,24 @@ came from targeted greps at the row that needed them. A false finding costs more
 than the manual check it replaced, because it has to be investigated and then
 retracted.
 
-So analyse source with a parser, or with a rule that cannot mistake an XPath's
-leading slashes for a comment, and prefer a targeted check at each row over one
-broad sweep across everything. Where a sweep is worth running, treat what it
+The collision is genuine and it runs both ways. `//` opens a line comment and
+also begins an XPath. `/*` opens a block comment and also occurs *inside* XPaths —
+`//*[text()='ASN Details']` contains it — so a block-comment substitution swallows
+the file from that point on. And substituting a block comment away collapses its
+newlines, shifting every line number after it.
+
+Six failures came out of that in one exercise: eight phantom duplicate step
+definitions, all inside block comments; one phantom locator collision from a
+commented-out field; a reassuring all-clear from the stripper that had deleted
+every XPath; seventeen fields reported missing that all existed; and a batch of
+wrong line numbers.
+
+So analyse source with a parser. Where a regex is unavoidable: strip only lines
+whose **first** non-whitespace characters are `//`, replace a block comment with
+an equal number of newlines so line numbers survive, and **never trust an absence
+result** — a sweep reporting that something is not there is the one answer this
+class of tooling produces most confidently and least reliably. Prefer a targeted
+check at each row over one broad sweep across everything. Where a sweep is worth running, treat what it
 reports as a question rather than a finding until a direct reading confirms it.
 
 ## A converter's positional heuristic drops and invents at once
@@ -381,6 +424,24 @@ So when reading a helper for its sequence, note its defences separately. They ar
 not noise to be translated past; they are the previous team's findings about the
 application under test, and they are the best available prediction of which
 converted steps will need attention first.
+
+## A credential inlined from the source
+
+A real suite carried a hardcoded authentication header and an encoded password,
+both committed to its version control.
+
+A conversion that copies such a value forward has done two harmful things: put a
+secret in a second place, and made the tenant's copy the thing that has to be
+rotated too. So route it to an environment variable — the name in the working
+copy, the value in the tenant — and record in `platform-facts.md` that the value
+came from the source rather than from the Operator.
+
+Then say so. That the credential sits in their repository's history is a finding
+about their suite and theirs to act on, and a Migration that silently works around
+it has withheld something they need. `authoring.md` carries the handling rule.
+
+Never copy the value itself into the Migration Directory, a question, a commit
+message or a report.
 
 ## A verdict given without the implementation
 
