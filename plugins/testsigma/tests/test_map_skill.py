@@ -7,6 +7,8 @@ asserted here is that the skill requires opening that helper and requires the
 comparison before a row can be called finished.
 """
 
+import re
+
 import pytest
 
 from support import (
@@ -31,7 +33,7 @@ LOOP_NAMES = ("wait", "until", "refresh", "poll")
 
 #: Sections stating absolute rules. A paragraph granting an exception anywhere
 #: in one of these guts the rule while leaving its sentence intact.
-LOAD_BEARING = ("one distinct source step", "helper", "compare", "residue")
+LOAD_BEARING = ("one distinct source step", "helper", "element", "compare", "residue")
 
 
 def _body():
@@ -41,6 +43,17 @@ def _body():
 
 def _sections():
     return markdown_sections(_body())
+
+
+def _bold_leads(text):
+    """The bold lead-ins of a section, in document order.
+
+    The three places an element is looked for are bold-led list items, so their
+    order is structural rather than a matter of phrasing. Asserting the order
+    this way survives rewording and cannot be satisfied by a coincidence in a
+    neighbouring paragraph, which is how three assertions here were defeated.
+    """
+    return re.findall(r"\*\*(.+?)\*\*", text, re.S)
 
 
 def _section(needle):
@@ -136,6 +149,119 @@ class TestOpeningTheHelper:
         # The traps are per-format and live in the adapter's Sequence section.
         assert "sequence" in _section("helper").lower()
         assert "adapter" in _section("helper").lower()
+
+
+class TestOneReadingAsksBothQuestions:
+    """Locators and sequence come out of the same files, in one pass.
+
+    This is not an optimisation. On the first conversion all forty-six locators
+    came out of the Java page objects, and those were the same files that had to
+    be opened for sequence. They were opened for locators, the question of what
+    the code actually did was never asked, and that is how four of the six
+    faults got through. Separating the two readings is the bug.
+    """
+
+    def test_locators_are_read_in_the_same_pass_as_sequence(self):
+        assert has_paragraph_with(_section("helper"), "same file", "one reading")
+
+    def test_the_locator_question_is_asked_of_the_helper_section_itself(self):
+        # If this instruction migrates to a section of its own, the two readings
+        # have been separated again, which is the fault.
+        assert "locator" in _section("helper").lower()
+
+    def test_it_says_why_separating_the_readings_is_the_fault(self):
+        assert has_paragraph_with(_section("helper"), "separat", "reading")
+
+
+class TestResolvingAnElement:
+    def test_the_three_places_are_tried_in_order(self):
+        # Structural. "source" and "first" co-occur in the capture paragraph too
+        # ("their time is the last resort and not the first"), which passed this
+        # with the source demoted to "one option among three".
+        leads = _bold_leads(_section("element"))
+        found = {}
+        for index, lead in enumerate(leads):
+            for place in ("source", "existing", "capture"):
+                if place in lead.lower() and place not in found:
+                    found[place] = index
+        assert set(found) == {"source", "existing", "capture"}, (
+            f"the three places an element comes from are not all named: {leads}"
+        )
+        assert found["source"] < found["existing"] < found["capture"], (
+            f"the three places are out of order: {leads}"
+        )
+        assert "first" in leads[found["source"]].lower(), (
+            "the source must be named as the first place tried, not merely as one of them"
+        )
+
+    def test_it_stops_at_the_first_place_that_answers(self):
+        assert has_paragraph_with(_section("element"), "stop at the first")
+
+    def test_existing_screens_are_reused_by_name_before_anything_is_created(self):
+        assert has_paragraph_with(
+            _section("element"),
+            "by name",
+            "before",
+            absent=("after creating",),
+        ), "a Migration must not duplicate screens the Operator already maintains"
+
+    def test_operator_capture_happens_only_when_nothing_else_can_supply_it(self):
+        # "last resort" appears twice in this section, so the old assertion
+        # passed with the condition on asking deleted.
+        assert has_paragraph_with(
+            _section("element"), "capture", "only when", "neither"
+        ), "the Operator's time must be the last resort, not the first"
+
+    def test_an_unresolved_element_becomes_residue_with_that_cause(self):
+        # Paragraph-scoped: "distinct" also appears in the estimation
+        # paragraph ("108 distinct control-and-screen pairs"), which passed this
+        # with the two causes explicitly merged.
+        assert has_paragraph_with(
+            _section("element"), "residue.md", "unresolved element", "distinct"
+        ), "an unresolved element and an unexpressible step are distinct causes"
+
+    def test_an_unresolved_element_blocks_assembly_rather_than_placeholding(self):
+        # A test that looks finished and cannot run is worse than an absent one.
+        assert has_paragraph_with(
+            _section("element"),
+            "block",
+            "placeholder",
+            absent=("assemble it anyway",),
+        )
+
+    def test_it_runs_here_only_where_the_source_carries_locators(self):
+        # Whether this is a Phase of its own is a property of the source, not of
+        # the Migration.
+        assert has_paragraph_with(_section("element"), "carries-locators", "phase")
+
+    def test_the_block_is_recorded_at_the_elements_granularity(self):
+        # A generic step can carry far more parameter values than rows, so
+        # marking the whole row residue would block every occurrence that
+        # resolved perfectly well. Review found this stated as an absolute rule
+        # with no data model able to express it.
+        assert has_paragraph_with(
+            _section("element"), "granularity", "parameter value"
+        ), "an unresolved element must not block the occurrences that resolved"
+
+    def test_the_format_specific_measurement_stays_in_the_adapter(self):
+        # The adapter is the only part of a Migration that knows the format.
+        # A measured figure copied into this skill is a second copy that can
+        # drift, and nothing would compare them.
+        body = _body()
+        assert "108" not in body, (
+            "a format-specific measurement belongs in the adapter's own section"
+        )
+        assert "locators section" in body.lower(), (
+            "point at the adapter's measurement rather than restating it"
+        )
+
+    def test_element_count_is_not_estimated_from_the_step_count(self):
+        # One generic step occurring hundreds of times still names hundreds of
+        # different things to find. A measured suite had 108 control-and-screen
+        # pairs behind a single Source Step.
+        assert has_paragraph_with(
+            _section("element"), "distinct", "parameter values"
+        ), "estimating element work as a proportion of Source Steps is badly wrong"
 
 
 class TestTheComparisonGatesTheRow:

@@ -1,6 +1,6 @@
 ---
 name: map
-description: Use when mapping a surveyed suite's Source Steps into Testsigma expressions — building or continuing the Step Map, deciding how a Gherkin phrasing or Tosca module should be expressed, or working through unreviewed rows. Opens the helper behind each source line to recover what it really does, compares every proposed expression against that implementation before a row can be called reviewed, and records anything the format cannot express as Residue with its cause.
+description: Use when mapping a surveyed suite's Source Steps into Testsigma expressions — building or continuing the Step Map, deciding how a Gherkin phrasing or Tosca module should be expressed, or working through unreviewed rows. Opens the helper behind each source line to recover what it really does, compares every proposed expression against that implementation before a row can be called reviewed, and resolves the elements each row needs from the source itself where the source carries them, and records anything the format cannot express as Residue with its cause.
 ---
 
 # Map: build the Step Map
@@ -103,7 +103,67 @@ Report what the helper actually does, in the Operator's terms, whenever it
 differs from what the line implies. A difference found and not said is a
 difference that reaches the converted suite.
 
-## Step 4: Compare the expression against the source before finishing
+**Ask the locator question in this same reading.** Where the source carries
+locators they are in the same file you have just opened for sequence, so it is
+one reading with two questions rather than two readings. Lift the locators as
+they are declared; do not reinvent them. The adapter's Locators section says
+where they live in this format.
+
+Separating the two readings is the fault, not an inefficiency. On the conversion
+that produced this plugin every locator came out of the page objects, those files
+were opened, they were read for locators, and nobody asked what the code did.
+That is how four of the six faults got through. A pass that collects locators and
+defers the sequence question has already lost the thing that was expensive to
+recover.
+
+## Step 4: Resolve the elements a row references
+
+This step runs here only where the adapter declares `carries-locators: yes` or
+`sometimes`. Where it declares `no` the source has nothing to read, resolution
+becomes a Phase of its own after mapping, and this step does not apply. Whether
+element resolution is a Phase is a property of the source rather than of the
+Migration.
+
+Try three places, in this order, and stop at the first that answers:
+
+**The source, first.** What you lifted in Step 3 resolves most elements without
+anyone being asked anything. This is the whole reason the two questions share one
+reading.
+
+**The existing Testsigma project, by name.** Before creating any screen or
+element, look for one already there whose name matches, and reuse it. The
+Operator maintains those screens, and a Migration that duplicates them hands back
+a project with two of everything and no way to tell which is live.
+
+**Operator capture, last resort.** Ask only when neither the source nor the
+existing project can supply the element. Their time is the last resort and not
+the first, and an element they are asked to capture unnecessarily is time spent
+on something the code already described.
+
+When nothing resolves an element, record it in `residue.md` as an unresolved
+element. That cause is distinct from an unexpressible step and the two are never
+merged: one means the format has no spelling for the intent, the other means the
+intent is expressible and the thing to act on cannot be found.
+
+An unresolved element blocks assembly of every test that references it. Never
+substitute a placeholder and never assemble around it. A test that looks finished
+and cannot run is worse than a test that is visibly absent, because the absent
+one is on a list and the placeholder is in a suite.
+
+Record the block at the element's granularity, not the row's. The Residue entry
+names the parameter value that identifies the element, so what is blocked is the
+occurrences that reference that element rather than every occurrence of the
+Source Step. A row whose other elements all resolved is not blocked by one that
+did not.
+
+**Count elements, not steps.** Element work is not a proportion of Source Steps.
+A generic step that takes a control and a screen as parameters occupies one row
+in the Step Map and still names as many things to find as it has parameter
+values, which can be orders of magnitude more. The adapter's Locators section
+carries a measured example for this format. Estimate from the distinct parameter
+values.
+
+## Step 5: Compare the expression against the source before finishing
 
 The comparison is the exit condition of this stage. A row cannot be marked
 reviewed before its proposed expression has been compared against the helper's
@@ -127,7 +187,7 @@ and writing an equally loose comparison in Testsigma propagates a weakness that
 may never have been intended. Raise a question about what the assertion is meant
 to establish, record it, and leave the row `unreviewed` until it is answered.
 
-## Step 5: Residue, for what the format cannot express
+## Step 6: Residue, for what the format cannot express
 
 When a Source Step cannot be expressed, record it in `residue.md` with a stated
 cause and the reasoning that produced the ruling. An unexpressible step and an
@@ -143,7 +203,7 @@ Divergence is work expressed and reported as done that is not equivalent to the
 source. Residue is the honest outcome; a Divergence is the one this stage exists
 to prevent.
 
-## Step 6: Record and commit
+## Step 7: Record and commit
 
 Write each decided row into `step-map.md` as you finish it, not in a batch at the
 end. Rows already written survive a session that ends early; rows held in a

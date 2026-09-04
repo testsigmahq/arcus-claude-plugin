@@ -57,6 +57,14 @@ stated cause and the reasoning that produced it. An unexpressible step and an
 unresolved element are distinct causes. No entry is final: a cause is overturned
 when the format gains a spelling, or when one is found that nobody had used.
 
+An entry is keyed by Source Step **and element**, because the two causes do not
+share a granularity. An unexpressible step blocks the whole row and leaves the
+element column empty. An unresolved element blocks only the occurrences that name
+that element, and the column carries the parameter value that identifies it — a
+generic step's parameter values can far outnumber its rows, so marking the whole
+row would block every occurrence that resolved perfectly well. Assembly reads
+this column to decide which tests are blocked.
+
 **`check-record.md`** — which checks ran against which Unit of Work. A check that
 could not run is recorded as not checked, never as a pass. When the CLI gains a
 check it did not have, the Units converted before it are marked as not checked
@@ -141,8 +149,8 @@ True of the application under test. Only someone who knows it can answer.
 
 Not final. A cause is overturned when a spelling is found or the format gains one.
 
-| Source Step | Cause | Reasoning | Revisit when |
-|---|---|---|---|
+| Source Step | Element | Cause | Reasoning | Revisit when |
+|---|---|---|---|---|
 ```
 
 `check-record.md`:

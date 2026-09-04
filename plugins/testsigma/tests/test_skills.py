@@ -100,6 +100,18 @@ def test_every_migration_directory_file_has_a_skeleton():
         )
 
 
+def test_the_residue_table_is_keyed_by_step_and_element():
+    # The two Residue causes do not share a granularity: an unexpressible step
+    # blocks a whole row, an unresolved element blocks only the occurrences
+    # naming it. A table keyed by Source Step alone cannot say which.
+    body = (REFERENCES_DIR / "migration-directory.md").read_text(encoding="utf-8")
+    header = next(
+        line for line in body.splitlines()
+        if line.startswith("| Source Step |") and "Cause" in line
+    )
+    assert "Element" in header, f"residue.md cannot key an element: {header}"
+
+
 def test_the_migration_directory_is_defined_in_one_place():
     reference = REFERENCES_DIR / "migration-directory.md"
     assert reference.is_file(), "the Migration Directory needs a single definition"
