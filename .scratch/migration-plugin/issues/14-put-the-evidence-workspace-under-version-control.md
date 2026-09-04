@@ -36,3 +36,40 @@ files were excluded by name with stated reasons and left on disk: real-looking M
 server credentials, and a session transcript carrying credential-shaped strings in
 about thirty places. What remains is off-machine durability, which is the only part of
 this ticket that still matters.
+
+**Progress, 2026-09-04.** Two criteria remain open, deliberately rather than quietly.
+
+**Off-machine backup: still open, and not mine to close.** The evidence workspace has
+no remote, and giving it one means putting a third party's automation suite on a
+hosted service. That is a decision about an agreement with them, not a technical
+step, and no amount of asking from here changes that. Another session is also
+actively committing to that path — three untracked paths appeared there during this
+session — so nothing was written to it. Recorded as unmet.
+
+**The transcript: dropped, and the record it left behind was wrong.**
+`claude-convo.txt` is a pasted terminal scrollback from the original conversion
+session — Claude Code v2.1.216, run from `~/Downloads/MAWM_SeleniumAutomation-TestSigma30`,
+invoking `/arcus:test` to convert the Selenium scripts. Its substance is already
+extracted into the glossary, the five ADRs, the collapse-ratio report and two
+adapters whose numbers were verified against the real files, so nothing further is
+needed from it. It stays gitignored where it is.
+
+This ticket recorded "~30 credential-shaped strings" in it. That was overstated, and
+the figure appears to have counted mentions rather than values. Measured: 130 lines
+mention a credential-ish word — 49 of them "login", 38 "auth", ordinary prose about
+signing in — and only **8 lines carry an actual value** after a delimiter. The
+difference matters: it is not scattered contamination but eight known lines, which
+would be tractable if anyone ever wanted the file. Nobody does.
+
+**What this ticket did close, unexpectedly.** The plugin's own commits were pushed by
+cherry-picking all fifteen onto a fresh branch off `prod`, excluding one arcus commit
+that was not ours. On that clean branch two manifest tests failed at once: the
+marketplace entry registering the `testsigma` plugin had **never been committed**. It
+had lived the entire build as a working-tree edit, so those tests passed for thirteen
+tickets on the strength of an uncommitted file, and a marketplace install would have
+failed on a missing entry. Ticket 01's note that its commits had closed exactly this
+problem was wrong — the dirty tree masked it, and only a clean checkout could show it.
+
+Fixed and committed. `feat/testsigma-migration-plugin` is pushed with sixteen
+commits, both suites green, and the plugin is now installable from the marketplace it
+claims to be listed in.
