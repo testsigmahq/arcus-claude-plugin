@@ -12,6 +12,53 @@ survived a round trip. None of them is hypothetical.
 Work through this list for each Step Map row while comparing. It is short on
 purpose.
 
+## A format string is a program, not a value
+
+The sharpest fault in the whole pass, and it survives every automated check.
+
+The source built an identifier from a pattern whose letter `S` means
+**fraction-of-second** in the date API it used. The conversion reused a
+same-looking pattern in a different date API, where `S` means **millisecond**.
+Both sides are honestly described as "prefix plus a timestamp", both are correct
+against their own library, and the converted value came out eleven characters
+longer with completely different variance. The test data itself was written in the
+first library's dialect, so copying the pattern text across was the natural
+mistake.
+
+A round trip cannot see this. Nor can a render check, nor running the test once
+successfully. Only reading which formatter class the source constructs reveals it.
+
+**So a pattern is never copied across runtimes. It is re-derived from the rendered
+output.** That applies to date and time patterns, number formats, and regular
+expressions alike — anything where a short string is interpreted by a library
+rather than used as a value.
+
+The cheap mechanical check, which is what caught this one: render a sample on both
+sides and diff the length and the character classes. Two patterns that produce
+different lengths are not the same pattern, whatever they look like.
+
+## A value transformed on its way to the browser
+
+Checking that a converted literal matches the suite's test data is a weaker check
+than it appears.
+
+The measured case: one test-data key was used twice in one scenario and needed
+**two different strings** — hyphenated for a grid assertion, de-hyphenated for a
+scan field — because a step definition three calls deep applied a
+`replace("-", "")` on the way to typing it. Both uses read the same key. The
+conversion got the grid right and typed a string into the scan field that the
+source never types.
+
+The question is never "does this literal match the test data". It is **what
+actually reaches the browser**. Any step definition is free to rewrite its
+argument on the way there, and it will not announce that it has.
+
+So for every value-carrying step, trace the argument from the step to the call
+that finally types or asserts it, and record the **expression** rather than the
+source literal. An argument that does not pass through unchanged is a conversion
+hazard, and the transformation is often the only thing that makes a barcode, a
+lookup or an identifier work at all — somebody wrote that `replace` for a reason.
+
 ## A non-default argument lost to a platform default
 
 The hardest of these to see, because nothing looks wrong. The step is present,
@@ -25,7 +72,18 @@ it came from.
 So compare the arguments, not only the actions. Read every argument the source
 passes, including the ones it passes positionally and the ones it passes by
 relying on its own defaults, and check each against what the target step actually
-declares. A default is not a match for a stated value that happens to equal it,
+declares.
+
+**Treat every numeric argument in a source helper call as a candidate.** They
+cluster on waits and retries, which is where a lost value is least visible and
+matters most. The intent often moves syntactic place entirely — the source says
+"wait longer here" as an argument, and the target says it as a step setting — so a
+reader comparing only the action and its operands normalises it away with nothing
+downstream complaining.
+
+Note also why such a default exists at all: on this platform an unstated timeout
+once meant no wait, so a default was stated precisely to stop absence meaning
+zero. A legal value is not a faithful one. A default is not a match for a stated value that happens to equal it,
 either: the next platform change moves the default and not the source.
 
 ## One target verb serving two source constructs
@@ -162,6 +220,23 @@ So where a target field is populated asynchronously, a missing wait is a
 correctness finding rather than a stability one, and it belongs with the faults
 that surface far from their cause.
 
+## A verdict given without the implementation
+
+Not a fault in a conversion but a fault in checking one, and it invalidates work
+rather than adding to it.
+
+In the measured pass, every one of the first several verdicts was given before the
+jar holding the source's generic step definitions had been opened. The verdicts
+did not change afterwards, but their standing did: reasoning about what a step
+was *for* produces a plausible mapping, and reading what it *does* produces a
+verifiable one. Those are different rungs, and only the second is a check.
+
+So obtain the implementation before starting, not partway through. Decompile the
+dependency, fetch the library, read the platform's snippet class. Where a
+comparison has already been made without it, re-open those rows rather than
+keeping them: a verdict reached from intent is provisional, and a Migration that
+records it as reviewed has recorded something it did not check.
+
 ## Names that match, behaviour that does not
 
 **The closer two constructs' names are, the less likely anyone checks them.**
@@ -244,6 +319,19 @@ explicit clear, and the assumption had already been written down as a fact and
 had to be corrected. A verb's real behaviour is settled by probing, recorded in
 `platform-facts.md` with how it was established, and corrected in place when it
 turns out to be wrong.
+
+**The authority is the implementation, and reaching it takes more than one hop.**
+On this platform the chain runs catalogue, then the seed data that maps a step
+template to its snippet class, then the snippet class itself — and only the last
+of those says what happens to the browser. The catalogue gives a sentence and
+parameter slots and settles nothing about behaviour. Follow the chain to the end
+rather than stopping at the first document that mentions the verb.
+
+**Once a semantic is settled, turn it into a sweep.** The clear-before-typing
+finding became a mechanical rule the moment the verb's behaviour was known: every
+clear in the source is a required clear in the target. Sweep the whole suite for
+it at once rather than rediscovering it site by site, which is how it came to be
+missing at four sites and present at four others.
 
 **Read what the platform says about its own verbs.** The readiness gap above was
 discoverable from the target side alone, with no access to the source: that

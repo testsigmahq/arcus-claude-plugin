@@ -183,14 +183,13 @@ Compare on three points: whether the expression performs the same actions in the
 same order, whether it asserts the same thing, and whether anything the helper
 does is missing from it or invented in it.
 
-Five further fault classes came out of a step-by-step comparison of the first
-conversion, and they are catalogued in
-[../../references/fault-classes.md](../../references/fault-classes.md): a
-non-default argument lost to a platform default, one target verb serving two
-source constructs, a difference that improves on the source, a fault that
-surfaces far from its cause, and partial absence read as omission. Work through
-that catalogue for every row; it is short, and each entry is there because it
-already got through once.
+The other fault classes are catalogued in
+[../../references/fault-classes.md](../../references/fault-classes.md), which
+came out of a step-by-step comparison of the first conversion against the source
+it was made from. Work through that catalogue for every row rather than trusting
+recall of it: every entry is there because it already reached a converted test
+that compiled, was accepted, and survived a round trip. It is not a list of
+things that might go wrong.
 
 **A wildcard or substring comparison in the source is a question, not a
 licence.** When the source matches loosely, what was being checked is unclear,

@@ -492,6 +492,57 @@ class TestTheFaultClassCatalogue:
             section, "success message warns"
         ), "a verb's own messages are Platform Facts waiting to be read"
 
+    def test_a_format_string_is_treated_as_a_program(self):
+        # The sharpest fault in the pass: the same pattern letter means
+        # fraction-of-second in one date API and millisecond in another, so
+        # copying the pattern text produced a value 11 characters longer.
+        section = _fault_section("format string")
+        assert has_paragraph_with(section, "re-derived from the rendered")
+        assert has_paragraph_with(
+            section, "render a sample", "diff the length"
+        ), "the mechanical check is what caught it"
+        assert has_paragraph_with(
+            section, "round trip cannot see this"
+        ), "no automated check reaches this class"
+
+    def test_a_value_transformed_on_its_way_to_the_browser_has_an_entry(self):
+        # One test-data key needed two different strings, because a step
+        # definition three calls deep applied a replace on the way to typing.
+        section = _fault_section("way to the browser")
+        assert has_paragraph_with(section, "what", "actually reaches the browser")
+        assert has_paragraph_with(
+            section, "expression", "rather than the source literal"
+        ), "record what is typed, not what is written"
+
+    def test_every_numeric_argument_is_a_candidate_lost_default(self):
+        section = _fault_section("non-default argument")
+        assert has_paragraph_with(section, "numeric argument", "candidate")
+        assert has_paragraph_with(
+            section, "waits and retries"
+        ), "that is where a lost value is least visible and matters most"
+        assert has_paragraph_with(
+            section, "legal value is not a faithful one"
+        )
+
+    def test_the_authority_chain_runs_to_the_implementation(self):
+        section = _fault_section("verb semantics")
+        assert has_paragraph_with(
+            section, "more than one hop", "snippet class"
+        ), "the catalogue settles nothing about behaviour"
+        assert has_paragraph_with(
+            section, "turn it into a sweep"
+        ), "a settled semantic becomes a mechanical rule for the whole suite"
+
+    def test_a_verdict_without_the_implementation_is_provisional(self):
+        # Every early verdict in the pass was given before the jar was opened.
+        section = _fault_section("without the implementation")
+        assert has_paragraph_with(
+            section, "before starting", "partway through"
+        ), "obtain the implementation first"
+        assert has_paragraph_with(
+            section, "re-open", "provisional"
+        ), "a verdict reached from intent was not a check"
+
     def test_every_entry_says_it_already_happened(self):
         # A catalogue of imagined faults would grow without limit. These are
         # bounded by what got through a real conversion.
