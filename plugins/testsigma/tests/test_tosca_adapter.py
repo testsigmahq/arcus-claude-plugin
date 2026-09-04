@@ -380,19 +380,16 @@ class TestTheStatedNumbersAgainstTheRealExport:
         assert len(export.wildcard_values()) == 41
 
     def test_the_worked_example_table_matches_the_export(self, export):
-        # The table is the top eight of nineteen, so every listed row must match
-        # and the prose remainder must account for the rest.
+        # One row per distinct Source Step, as adapters/README.md requires. It
+        # listed only the top eight until review pointed out that a partial
+        # table cannot be checked against the rule that produced it.
         stated = parse_count_table(_section("enumeration"))
-        counts = export.source_steps()
+        counts = {str(k).strip(): v for k, v in export.source_steps().items()}
         assert stated, "the worked example table did not parse"
-        for name, occurrences in stated.items():
-            matching = [v for k, v in counts.items() if k.strip() == name.strip()]
-            assert matching == [occurrences], (
-                f"the table says {name!r} occurs {occurrences} times; the export "
-                f"says {matching}"
-            )
-        assert len(counts) - len(stated) == 11
-        assert sum(counts.values()) - sum(stated.values()) == 18
+        assert {k.strip(): v for k, v in stated.items()} == counts, (
+            "the stated table and the export disagree"
+        )
+        assert sum(stated.values()) == 48 and len(stated) == 19
 
     def test_only_one_test_case_is_populated_so_the_hedge_is_accurate(self, export):
         # The adapter says file order agreeing here is a coincidence of this

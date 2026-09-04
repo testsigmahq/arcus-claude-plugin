@@ -152,7 +152,7 @@ distinct modules, a Collapse Ratio of 2.53, with 4 modules used exactly once.
 
 | Source Step (module) | Occurrences |
 |---|---|
-| `CHIP Fire Property All Tabs` | 7 |
+| `CHIP Fire Property All Tabs ` | 7 |
 | `CHIP Fire Property Inventory Page` | 4 |
 | `TBox Send Keys` | 4 |
 | `M&T Inventory` | 4 |
@@ -160,10 +160,22 @@ distinct modules, a Collapse Ratio of 2.53, with 4 modules used exactly once.
 | `CHIP Fire Property Performer Search` | 3 |
 | `M&T Overview` | 3 |
 | `M&T Org Search \| CHIP` | 2 |
+| `CHIP Org Search` | 2 |
+| `CHIP Fire Property Search Tab` | 2 |
+| `Preferred Performer Tab` | 2 |
+| `CHIP Fire Property Calendar page` | 2 |
+| `CHIP Fire Property Overview Tab` | 2 |
+| `CHIP Fire Property Lifecycle Tab` | 2 |
+| `M&T Litigation Basic Flow` | 2 |
+| `TBox Set Buffer` | 1 |
+| `M&T` | 1 |
+| `M&T CHIP Calendar` | 1 |
+| `M&T Lifecycle Basic` | 1 |
 
-The remaining 11 modules account for 18 steps between them. Note the last row: a
-module name can contain a pipe, so it is escaped here and a reader that splits a
-row on an unescaped pipe loses the name.
+All nineteen are listed, as the format requires: a partial table cannot be checked
+against a rule. Two rows carry traps the format really produces — the first module's
+name ends in a space, and one contains a pipe, escaped here because a reader that
+splits a row on an unescaped pipe loses the name.
 
 Count values separately from steps, because the element and parameter vocabulary
 does not collapse with the step vocabulary: 215 value entities sat behind those 48
