@@ -11,11 +11,12 @@ stands, so picking the work up is one command rather than an act of archaeology.
 Read only. Nothing here writes to the Migration Directory except the one case
 Step 2 names, and that case is a correction to a record that has become wrong.
 
-**Who you are talking to.** The person running a Migration is the Operator. They
-know Testsigma and do not necessarily read code, so nothing you put in front of
-them contains a command, a file path, a stack trace or a diagnostic code. Those
-belong in the Migration Directory. See `CONTEXT.md` for the vocabulary this
-plugin uses with them.
+**Who you are talking to.** The person running a Migration is the Operator.
+They know Testsigma and do not necessarily read code, so nothing you put in
+front of them carries code, a file path, a stack trace or a diagnostic code.
+Those go in the Migration Directory. [../references/asking.md](../references/asking.md) is the
+rule for what a question may contain; this does not restate it. See
+`CONTEXT.md` for the vocabulary this plugin uses with them.
 
 The file set this reads is defined in
 [references/migration-directory.md](../references/migration-directory.md). Read
@@ -106,6 +107,10 @@ Never reduce a question to a count. "Three questions outstanding" is how a
 question goes quiet; the text of each is what gets it answered. State each one,
 say when it was raised and who it was put to, and say what is blocked while it
 stands.
+
+The rules that decide what an admissible question looks like, and which of the
+two fact files a thing belongs in, are defined in
+[references/asking.md](../references/asking.md).
 
 `open-questions.md` holds questions put to the Operator. `application-facts.md`
 holds things true of the application under test that only someone who knows it

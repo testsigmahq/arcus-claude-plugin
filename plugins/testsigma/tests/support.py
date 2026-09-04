@@ -53,6 +53,29 @@ REQUIRED_ADAPTER_SECTIONS = (
     "Enumeration",
 )
 
+#: Permission-granting vocabulary. In a document whose sections state absolute
+#: rules, none of these belongs, and a rule is most often gutted by adding a
+#: paragraph that grants permission rather than by editing the rule itself.
+PERMISSIVE_HEDGES = (
+    "it is fine to",
+    "it's fine to",
+    "reasonable to",
+    "acceptable to",
+    "is acceptable",
+    "a nicety",
+    "rather than a requirement",
+    "rather than a rule",
+    "no need to",
+    "optional",
+    "if you prefer",
+    "at your discretion",
+    "feel free",
+    "should simply be shown",
+    "use your judgement",
+    "in practice either",
+    "walk it back",
+)
+
 _KEBAB = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 _FENCE = "---"
 
@@ -316,6 +339,25 @@ def has_paragraph_with(text, *terms, absent=()):
         ):
             return True
     return False
+
+
+def hedges_in(text):
+    """Permission-granting phrases found anywhere in text.
+
+    Section-wide rather than paragraph-scoped, and that is the point. Every
+    other assertion here is a positive existence check, so a rule can be gutted
+    by keeping its sentence intact and adding a second paragraph beside it that
+    grants an exception. A review demonstrated four of those at once, all
+    passing. Paragraph scoping cannot see them, because the correct paragraph is
+    still there.
+
+    This narrows the class rather than closing it: a walk-back written without
+    any permissive vocabulary would still pass. Granting permission is hard to
+    write without permissive words, which is what makes the check worth having,
+    and the general case is what review is for.
+    """
+    flattened = " ".join(text.split()).lower()
+    return sorted({hedge for hedge in PERMISSIVE_HEDGES if hedge in flattened})
 
 
 def declared_files(reference_text):

@@ -14,11 +14,12 @@ up from.
 Do this once per suite. It is the only stage that runs before there is anything
 to resume.
 
-**Who you are talking to.** The person running a Migration is the Operator. They
-know Testsigma and do not necessarily read code, so nothing you put in front of
-them contains a command, a file path, a stack trace or a diagnostic code. Those go
-in the Migration Directory. See `CONTEXT.md` for the vocabulary this plugin uses
-with them.
+**Who you are talking to.** The person running a Migration is the Operator.
+They know Testsigma and do not necessarily read code, so nothing you put in
+front of them carries code, a file path, a stack trace or a diagnostic code.
+Those go in the Migration Directory. [../../references/asking.md](../../references/asking.md) is the
+rule for what a question may contain; this does not restate it. See
+`CONTEXT.md` for the vocabulary this plugin uses with them.
 
 ## Step 0: Establish which folder is the source suite
 
@@ -188,3 +189,8 @@ a question for the Operator into `open-questions.md`, something learned about
 Testsigma into `platform-facts.md`, something only they can answer about their own
 application into `application-facts.md`. A question that exists only in this
 session's transcript is a question that will be lost.
+
+How a question is phrased, what it may never contain, and which of the two fact
+files a thing belongs in are defined in
+[references/asking.md](../../references/asking.md). Follow it rather than
+inventing a form here.
