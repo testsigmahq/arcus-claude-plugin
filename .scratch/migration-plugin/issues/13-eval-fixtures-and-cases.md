@@ -34,10 +34,74 @@ running when the gate opens. Nobody should try to enable it by editing a setting
 
 **Status:** ready-for-agent
 
-- [ ] Two fixtures exist, small, hand-built, containing no third-party or client-identifying data
-- [ ] Deterministic assertions cover skill routing, reading the helper before writing the row, writing an open question, and refusing a test with an unresolved element
-- [ ] Model-judged assertions cover reporting true sequence, asking rather than guessing, and question hygiene, with narrowly written criteria
-- [ ] Cases are configured to run with and without the plugin so the difference is reported
-- [ ] Runs are cost-capped, and the suite reports a pass or fail usable by continuous integration
-- [ ] The early-access gate is documented alongside the cases so the next person understands why they do not run yet
-- [ ] Evals run on demand and on changes to the plugin's documents, not on every commit
+- [x] Two fixtures exist, small, hand-built, containing no third-party or client-identifying data
+- [x] Deterministic assertions cover skill routing, reading the helper before writing the row, writing an open question, and refusing a test with an unresolved element
+- [x] Model-judged assertions cover reporting true sequence, asking rather than guessing, and question hygiene, with narrowly written criteria
+- [x] Cases are configured to run with and without the plugin so the difference is reported
+- [x] Runs are cost-capped, and the suite reports a pass or fail usable by continuous integration
+- [x] The early-access gate is documented alongside the cases so the next person understands why they do not run yet
+- [x] Evals run on demand and on changes to the plugin's documents, not on every commit
+
+**Done, 2026-09-04.** 591 tests pass, arcus untouched at 92. Five cases, three
+fixtures, and the repo's first CI workflow.
+
+**The gate is confirmed closed.** `claude plugin eval` prints "`plugin eval` is
+currently in early access" on 2.1.260, while `--help` prints the full option surface.
+Entitlement, not version, exactly as the ticket said. There is no offline validator,
+so the cases are checked for well-formedness by `tests/test_evals.py` and nothing
+more. Nobody should try to open the gate by editing a settings file; there is no
+setting.
+
+**Both source fixtures already existed** from tickets 3 and 11, hand-built and already
+covered by tests. Reusing them beats a second copy that can drift.
+`evals/fixtures/migration-part-done/` is new: a Migration part-way through, so the
+refusal can be checked without an eval first running a whole mapping stage.
+
+**Review found the finding that mattered most: my prompts primed the behaviour they
+measure.** Three said "Tell me what that step actually does", which instructs any
+competent agent to open the implementation. Both arms would have agreed and the delta
+— the only honest measure for a plugin that is nothing but instructions — would have
+measured nothing. The prompts now ask only for the row, and the judged criteria read
+the row the agent wrote rather than an answer nobody asked for.
+
+Review also rated the cases for discriminating power, which is worth keeping: the
+wildcard case is the strongest, and the refusal case is weaker than it looks because
+the fixture's own residue entry spells out the reasoning in prose an unprompted model
+may simply read.
+
+**The schema research earned its cost by refusing to guess.** `withOnly`, `scored`
+and `arm` turn out to exist, so the README's claim that no key was documented was half
+wrong and is corrected — but no case sets one, because the automatic behaviour for
+`tool_used: Skill` already does the job and a second statement of it can drift. Three
+things remain genuinely unconfirmed and are now written down rather than assumed:
+`add_dirs` resolution, whether several `add_dirs` are flattened or nested, and the
+nested shape of `tool_order`'s `before`/`after`. The third matters most — a wrong
+shape would make the read-before-write grader pass while checking nothing.
+
+**The CI applies this plugin's own doctrine to itself.** While unenrolled the eval job
+is skipped rather than passing, and a companion job writes "NOT CHECKED" into the run
+summary. ADR-0001 says a check that could not run must never read as a pass, and a
+green PR check on a gated eval is precisely the reassurance that ADR was written
+about.
+
+**Nineteen mutations verified, all caught. Six of my own tests were too weak**, and
+review found five of the six:
+
+- `"reviewed" in text` is also true when every row reads `unreviewed` — the opposite
+  state. Lexical containment, not inversion.
+- the cost cap and threshold were checked against the whole workflow file, so a
+  comment could satisfy them. Scoping to the `run:` block was still not enough,
+  because a commented-out flag lives inside it; shell comments are now stripped.
+- the paths filter was checked by substring, so an added exclusion pattern would
+  satisfy it while the positive glob it replaced triggered nothing.
+- the enrolment condition was checked for the variable's *name*, not its polarity. An
+  inverted condition would have run the paid job precisely when the account is not
+  enrolled, and the test could not tell.
+- the client-data scan skipped `.tsu` files, leaving the one fixture closest in shape
+  to real customer export data unscanned. It now decompresses, with a separate test
+  arming that so a broken decompression cannot read as clean.
+
+**And my mutation harness produced a false green.** Three workflow mutations silently
+failed to apply because the path was wrong relative to my working directory, and
+reported "82 passed". An unapplied mutation is indistinguishable from a caught one
+unless the harness proves the edit landed.
