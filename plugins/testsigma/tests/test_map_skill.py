@@ -543,6 +543,56 @@ class TestTheFaultClassCatalogue:
             section, "re-open", "provisional"
         ), "a verdict reached from intent was not a check"
 
+    def test_a_dropped_side_effect_is_judged_by_its_consumers(self):
+        # One captured handle nothing read: benign, proven by grepping all 42
+        # source lines. One captured document a later step read: a defect.
+        section = _fault_section("side effect")
+        assert has_paragraph_with(section, "consumers", "before judging it")
+
+    def test_a_concession_may_originate_in_an_earlier_row(self):
+        # The killer case: a later step's weaker assertion was faithful to its
+        # own line, and the fault was the capture missing several steps back.
+        section = _fault_section("side effect")
+        assert has_paragraph_with(
+            section, "originate", "earlier"
+        ), "recording a Concession where it appears legitimises the omission"
+
+    def test_a_heuristic_script_over_source_is_refused(self):
+        # Three false results in one pass, including a comment stripper that
+        # deleted every XPath because an XPath begins with two slashes.
+        section = _fault_section("heuristic script")
+        assert has_paragraph_with(section, "exact by construction")
+        assert has_paragraph_with(
+            section, "one false positive and no true positives"
+        ), "the arithmetic is the argument"
+        assert has_paragraph_with(
+            section, "targeted check", "broad sweep"
+        )
+
+    def test_a_positional_heuristic_drops_and_invents_at_once(self):
+        # Every wait before an action dropped, every wait after kept, and three
+        # invented with no source counterpart. The totals looked plausible.
+        section = _fault_section("positional heuristic")
+        assert has_paragraph_with(section, "by position", "rather than")
+        assert has_paragraph_with(
+            section, "cancel in a total"
+        ), "a dropped step and an invented one hide each other"
+
+    def test_a_smarter_target_can_create_a_new_failure_mode(self):
+        section = _fault_section("smarter")
+        assert has_paragraph_with(
+            section, "not the end of the comparison"
+        ), "an improvement meeting the source's weaknesses is a new risk"
+
+    def test_a_findings_count_and_cause_both_drift(self):
+        # Four sites became six; an element total was wrong by four for a dozen
+        # steps; an "invented locator" was really one lifted from the wrong class.
+        section = _fault_section("count and its cause")
+        assert has_paragraph_with(section, "re-count", "new sites")
+        assert has_paragraph_with(
+            section, "verdict can be right while the cause is wrong"
+        ), "and the cause is the half the fix is built on"
+
     def test_every_entry_says_it_already_happened(self):
         # A catalogue of imagined faults would grow without limit. These are
         # bounded by what got through a real conversion.

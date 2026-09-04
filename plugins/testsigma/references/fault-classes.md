@@ -220,6 +220,98 @@ So where a target field is populated asynchronously, a missing wait is a
 correctness finding rather than a stability one, and it belongs with the faults
 that surface far from their cause.
 
+## A dropped side effect is judged by its consumers, not locally
+
+A step that captures a value rather than touching the screen leaves nothing
+visible when it goes missing, and whether that matters cannot be decided where it
+happened.
+
+Two measured cases, opposite outcomes. One captured a window handle that nothing
+in the scenario ever read: proven benign, but only by grepping all forty-two
+source lines for a consumer and finding none. Another captured a parsed document
+that a later step read: a defect, and the later step had already been converted
+as a weaker assertion *because* the capture was missing.
+
+That second case is the one to internalise. **A weakness recorded at one step may
+originate at an omission several steps earlier.** The later step's substring
+comparison was faithful to its own source line; the fault was that the string it
+compared had never been captured. Recording the Concession where the weakness
+appears rather than where it originates legitimises the omission and closes the
+wrong finding.
+
+So for every dropped capture, find its consumers across the whole scenario before
+judging it, and for every Concession, ask whether its cause is local or inherited
+from an earlier row.
+
+## A heuristic script over source code produces false findings
+
+A script is legitimate where the rule it applies is exact by construction — a
+normalisation rule, a count of distinct values. It is not legitimate as a way of
+searching source code for faults, and the measured pass proves it three times.
+
+A duplicate-step-definition sweep reported phantoms. An element-collision sweep
+reported an ambiguity that was a commented-out declaration. And the attempted fix
+for that — stripping `//` line comments — **deleted every XPath in the suite**,
+because an XPath begins with `//`, producing a confident "no collisions" result
+from an empty input.
+
+The arithmetic that matters: across the whole exercise those broad scripts
+produced one false positive and no true positives, while both real element defects
+came from targeted greps at the row that needed them. A false finding costs more
+than the manual check it replaced, because it has to be investigated and then
+retracted.
+
+So analyse source with a parser, or with a rule that cannot mistake an XPath's
+leading slashes for a comment, and prefer a targeted check at each row over one
+broad sweep across everything. Where a sweep is worth running, treat what it
+reports as a question rather than a finding until a direct reading confirms it.
+
+## A converter's positional heuristic drops and invents at once
+
+Where a converter applies a rule about *where* something goes rather than *what*
+the source says, it fails in both directions simultaneously, and a count will not
+show it.
+
+The measured case: every wait that the source placed **before** an action was
+dropped, every wait **after** an action was kept, and three waits with no source
+counterpart at all were invented — one of them between two adjacent clicks that
+had no wait between them. The totals looked plausible. The positions did not.
+
+So align the converted steps against the source's steps by position and compare
+the sequences, rather than comparing how many of each kind there are. A dropped
+step and an invented one cancel in a total.
+
+## The target being smarter creates failure modes the source lacks
+
+Twice in one scenario, a target behaviour that is better in isolation produced a
+risk the source does not have.
+
+A wait that throws on timeout where the source swallowed it turns a slow page from
+a pass into a failure. And an element-resolution strategy that skips a disabled
+match to find an enabled one, combined with a source locator that matches two
+fields by substring, types a value into the wrong field and reports success —
+where the source would have typed into the disabled field and failed visibly.
+
+So "the target does this better" is not the end of the comparison. Ask what the
+improvement does when the source's own weaknesses meet it, because a smarter
+strategy applied to a sloppy locator is how a silent wrong-field write happens.
+
+## A finding's count and its cause both drift
+
+Findings are not settled when first written, and a Migration that accumulates them
+without revisiting will act on stale ones.
+
+Measured, across one pass: a fault first recorded at four sites turned out to have
+six. An element count quoted in a dozen later findings was wrong by four. And a
+defect characterised as an invented locator was re-characterised as one lifted
+from the wrong page class — the defect stood, and its cause, which is what drives
+the fix, was wrong.
+
+So re-count a systemic finding as new sites appear, re-check any number quoted
+from an earlier finding before relying on it, and separate a finding's verdict
+from its cause: the verdict can be right while the cause is wrong, and the cause
+is the half the fix is built on.
+
 ## A verdict given without the implementation
 
 Not a fault in a conversion but a fault in checking one, and it invalidates work

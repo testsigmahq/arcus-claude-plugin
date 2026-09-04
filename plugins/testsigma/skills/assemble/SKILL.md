@@ -114,18 +114,20 @@ has created or reused and find the ones no step refers to.
 
 An element that was lifted from the source but is referenced by nothing usually
 means a **dropped step**: the reading found the element, and the step that used it
-never got written. In the conversion this plugin was built from, a sweep of 46
-elements found exactly two unreferenced, and one of them was precisely that — the
-locator had been lifted, with the right target, and the step verifying the page
-was simply absent. Nothing else in the test pointed at the gap.
+never got written. In the conversion this plugin was built from, a sweep of every
+element in the workspace found exactly two unreferenced, and one of them was
+precisely that — the locator had been lifted, with the right target, and the step
+verifying the page was simply absent. Nothing else in the test pointed at the gap.
 
 Report each one and say which it is. An element belonging to a scenario nobody has
 converted yet is benign and stays. An element belonging to a scenario that was
 converted is a missing step, and the row it came from goes back to `unreviewed`.
 
-Two unreferenced out of 46 is also the finding that the omission was isolated
-rather than systematic, which is worth reporting: it tells the Operator whether to
-re-examine one test or all of them.
+Two unreferenced out of forty-two is also the finding that the omission was
+isolated rather than systematic, which is worth reporting: it tells the Operator
+whether to re-examine one test or all of them. Report the ratio, and re-derive the
+total rather than quoting an earlier one — in the measured pass that total was
+itself wrong by four for a dozen steps before anyone recounted.
 
 **The sweep only finds a dropped step that left an element behind.** A step that
 captured a value rather than touching the screen — storing a window handle, or a

@@ -177,6 +177,13 @@ class TestTheUnreferencedElementSweep:
     def test_a_missing_step_sends_its_row_back_to_unreviewed(self):
         assert has_paragraph_with(_section("sweep"), "unreviewed")
 
+    def test_the_total_is_re_derived_rather_than_quoted(self):
+        # The measured pass quoted 46 elements for a dozen steps; the real
+        # total was 42. This skill quoted it too, from the same stale source.
+        assert has_paragraph_with(
+            _section("sweep"), "re-derive the total", "quoting an earlier"
+        )
+
     def test_the_sweeps_coverage_is_stated_rather_than_implied(self):
         # It finds a dropped step only where an element was left behind. A step
         # that captured a value rather than touching the screen leaves nothing
