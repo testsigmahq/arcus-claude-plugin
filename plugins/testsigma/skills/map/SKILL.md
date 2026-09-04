@@ -183,13 +183,54 @@ Compare on three points: whether the expression performs the same actions in the
 same order, whether it asserts the same thing, and whether anything the helper
 does is missing from it or invented in it.
 
+Five further fault classes came out of a step-by-step comparison of the first
+conversion, and they are catalogued in
+[../../references/fault-classes.md](../../references/fault-classes.md): a
+non-default argument lost to a platform default, one target verb serving two
+source constructs, a difference that improves on the source, a fault that
+surfaces far from its cause, and partial absence read as omission. Work through
+that catalogue for every row; it is short, and each entry is there because it
+already got through once.
+
 **A wildcard or substring comparison in the source is a question, not a
 licence.** When the source matches loosely, what was being checked is unclear,
 and writing an equally loose comparison in Testsigma propagates a weakness that
 may never have been intended. Raise a question about what the assertion is meant
 to establish, record it, and leave the row `unreviewed` until it is answered.
 
-## Step 6: Residue, for what the format cannot express
+## Step 6: Concessions, for what the format expresses differently
+
+Most differences are neither a clean expression nor a refusal. The format has no
+verb for what the source did, the nearest spelling differs in a way you can
+state, and taking it is the right call. That is a **Concession**, and it is
+recorded rather than smoothed over.
+
+Record it in the Step Map row's Expression cell, on its own line, beginning
+`Concession:` and then what the source did, what the expression does instead, and
+when the difference would matter. The prefix is fixed so that resume can count
+and list them; the reference defines it. The
+platform limit that forced it goes in `platform-facts.md` — "no element-scoped
+Enter verb exists", "no presence verb is available in a condition" — because that
+limit is a fact about Testsigma that the next row will need and that probing, not
+asking, settles.
+
+The measured case, from the conversion this plugin came from: the source tested
+whether an element was absent from the page, and the format offers no
+presence check inside a condition at all — only enabled, disabled, visible and
+not visible. The row used "not visible", which differs exactly when an element is
+present but hidden, and said so. That is a Concession: judged, taken, recorded.
+
+A Concession does not block assembly. Residue does. Residue is work declined and
+visibly absent; a Concession is work expressed, with its difference known. Keep
+them apart, because conflating them either blocks tests that are fine or ships
+tests nobody examined.
+
+**An unrecorded Concession is a Divergence.** That is the whole difference
+between them: not the size of the gap but whether it is written down. A
+difference you noticed, judged acceptable, and did not record is indistinguishable
+afterwards from one you never saw.
+
+## Step 7: Residue, for what the format cannot express
 
 When a Source Step cannot be expressed, record it in `residue.md` with a stated
 cause and the reasoning that produced the ruling. An unexpressible step and an
@@ -205,7 +246,7 @@ Divergence is work expressed and reported as done that is not equivalent to the
 source. Residue is the honest outcome; a Divergence is the one this stage exists
 to prevent.
 
-## Step 7: Record and commit
+## Step 8: Record and commit
 
 Write each decided row into `step-map.md` as you finish it, not in a batch at the
 end. Rows already written survive a session that ends early; rows held in a

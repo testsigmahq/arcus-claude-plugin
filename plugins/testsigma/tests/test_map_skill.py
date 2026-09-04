@@ -13,6 +13,7 @@ import pytest
 
 from support import (
     PLUGIN_ROOT,
+    REFERENCES_DIR,
     has_paragraph_with,
     hedges_in,
     markdown_sections,
@@ -326,3 +327,228 @@ class TestItWiresIntoTheRest:
         assert has_paragraph_with(
             _body(), ".testsigma/migration/", "survey"
         ), "there is nothing to map into before survey has run"
+
+
+# --- learnings from the INT-26 conversion verification ------------------------
+#
+# A step-by-step static comparison of the first conversion, eleven source steps
+# deep, produced fault classes this plugin did not name. Each assertion below
+# traces to a finding in that analysis rather than to a guess about what might
+# go wrong. The catalogue lives in a reference because the skill body is bounded.
+
+FAULT_CLASSES = REFERENCES_DIR / "fault-classes.md"
+
+
+def _fault_section(needle):
+    sections = markdown_sections(FAULT_CLASSES.read_text(encoding="utf-8"))
+    matching = [v for k, v in sections.items() if needle in k.lower()]
+    assert len(matching) == 1, (
+        f"expected one section containing {needle!r}, found {len(matching)}: "
+        f"{list(sections)}"
+    )
+    return matching[0]
+
+
+class TestTheFaultClassCatalogue:
+    def test_it_exists_and_the_comparison_step_points_at_it(self):
+        assert FAULT_CLASSES.is_file()
+        # Scoped to the step that must use it. Asserted against the whole body,
+        # a stray mention anywhere would satisfy this while the comparison
+        # never worked through the catalogue.
+        assert "references/fault-classes.md" in _section("compare"), (
+            "the catalogue is worked through while comparing, so the comparison "
+            "step must point at it"
+        )
+        assert has_paragraph_with(_section("compare"), "work through", "every row")
+
+    def test_a_lost_non_default_argument_is_its_own_fault(self):
+        # Finding 2b: the source waited 60 seconds, the converted step declared
+        # no timeout and silently took the platform default of 30. The step is
+        # present and looks right; only the argument was lost.
+        section = _fault_section("non-default argument")
+        assert has_paragraph_with(section, "arguments", "not only the actions")
+
+    def test_one_verb_serving_two_source_constructs_is_counted_separately(self):
+        # The wait ledger: explicit source steps and implicit helper calls both
+        # became the same verb, so a count of eighteen said nothing about
+        # whether any particular one was dropped.
+        section = _fault_section("two source constructs")
+        assert has_paragraph_with(section, "separately", "ledgers")
+        assert has_paragraph_with(section, "dropped step", "fidelity"), (
+            "the two ledgers differ in severity as well as in origin"
+        )
+
+    def test_an_improvement_on_the_source_is_a_divergence_too(self):
+        # Finding 9b: the source's uniqueness was weaker than the conversion's.
+        section = _fault_section("improves on the source")
+        assert has_paragraph_with(section, "question", "fidelity")
+
+    def test_a_fault_is_reported_with_where_it_surfaces(self):
+        # Findings 3a and 7a: a wrong business unit passed every step and
+        # surfaced minutes later as an unrelated poll timing out.
+        section = _fault_section("surfaces far from its cause")
+        assert has_paragraph_with(section, "where it will surface", "where it is")
+
+    def test_partial_absence_is_read_as_omission(self):
+        # Finding 4a: the conversion cleared the field at four sites and not at
+        # four others. Uniform absence is a decision; partial absence is a bug.
+        section = _fault_section("partial absence")
+        assert has_paragraph_with(section, "every site", "not only")
+
+    def test_an_unrunnable_conversion_changes_the_standard_of_evidence(self):
+        # The constraint the analysis opens with: the test cannot be executed,
+        # so static comparison is the only gate.
+        section = _fault_section("cannot be run")
+        assert has_paragraph_with(section, "absence of evidence is not")
+        assert has_paragraph_with(
+            section, "fidelity", "unverifiable"
+        ), "prefer fidelity when the result cannot be observed"
+
+    def test_verb_semantics_are_platform_facts_established_before_use(self):
+        # A text-entry verb was assumed to clear the field. It appends. The
+        # assumption had already been recorded as a fact and had to be corrected.
+        section = _fault_section("verb semantics")
+        assert has_paragraph_with(section, "platform-facts.md", "probing")
+        assert has_paragraph_with(
+            section, "weaker and more brittle"
+        ), "equivalence is not a single axis"
+
+    def test_a_readiness_check_answering_the_wrong_question_has_its_own_entry(self):
+        # The analysis' largest single finding: document readiness goes true
+        # when the shell loads and says nothing about whether the view settled.
+        section = _fault_section("readiness check")
+        assert has_paragraph_with(section, "did the shell load", "did this view settle")
+        assert has_paragraph_with(
+            section, "second thing to add", "detail"
+        ), "an app-specific settling wait is a separate wait, not a refinement"
+
+    def test_a_verb_addressing_a_different_thing_has_its_own_entry(self):
+        # Distinct from what a verb does: what it does it to. The source pressed
+        # Enter against a named element; the platform's verb hits whatever has
+        # focus, and no element-scoped equivalent exists.
+        section = _fault_section("addresses a different thing")
+        assert has_paragraph_with(section, "focus", "element-scoped")
+        assert has_paragraph_with(
+            section, "three things and not one", "on failure"
+        ), "what it does, what it does it to, and what it does on failure"
+
+    def test_a_race_that_commits_a_wrong_value_is_not_filed_as_flakiness(self):
+        # Around an asynchronously populated field a missing wait passes while
+        # committing a value nobody chose.
+        section = _fault_section("commits the wrong value")
+        assert has_paragraph_with(
+            section, "correctness finding", "stability"
+        ), "a missing wait here is a correctness fault, not a flaky one"
+
+    def test_a_verb_can_be_weaker_and_more_brittle_at_once(self):
+        section = _fault_section("verb semantics")
+        assert has_paragraph_with(section, "weaker and more brittle", "both directions")
+
+    def test_name_convergence_raises_the_priority_of_opening_the_helper(self):
+        # From the session behind the analysis: the closer two constructs'
+        # names are, the less likely anyone checks them, which is why the
+        # readiness fault took eleven steps to surface.
+        section = _fault_section("names that match")
+        assert has_paragraph_with(
+            section, "name convergence", "raises the priority"
+        ), "the instinct must be inverted, not merely noted"
+        assert has_paragraph_with(section, "less likely anyone checks")
+
+    def test_a_name_that_drifted_from_its_behaviour_has_an_entry(self):
+        # A step named for waiting had both wait calls commented out and
+        # replaced by unconditional sleeps.
+        section = _fault_section("drifted from its behaviour")
+        assert has_paragraph_with(section, "commented-out code is behaviour")
+        assert has_paragraph_with(
+            section, "names are historical", "normal state"
+        ), "drift is the normal state in a mature suite, not the exception"
+
+    def test_a_sleep_is_treated_as_semantics_rather_than_a_smell(self):
+        section = _fault_section("drifted from its behaviour")
+        assert has_paragraph_with(
+            section, "refactor", "translation"
+        ), "reproduce the timing and let the owning team refactor later"
+
+    def test_every_finding_records_its_direction(self):
+        # The conversion was lossy on timing and stronger on interaction. A
+        # count of findings cannot tell a halved timeout from a better click.
+        section = _fault_section("direction of every finding")
+        assert has_paragraph_with(section, "lossy", "stronger")
+        assert has_paragraph_with(
+            section, "loss", "gain"
+        ), "a loss is a fidelity finding; a gain is a question"
+
+    def test_a_count_mismatch_is_a_question_before_it_is_a_defect(self):
+        # Five clicks against four steps: the extra one was correct, hidden in
+        # a Composite Step. Assuming the count was wrong would have deleted it.
+        section = _fault_section("count that does not match")
+        assert has_paragraph_with(section, "question", "until you have found")
+
+    def test_the_platforms_own_strings_are_a_source_of_platform_facts(self):
+        # The readiness gap was discoverable from the target side alone: the
+        # verb's success message warns that SPAs need an element wait.
+        section = _fault_section("verb semantics")
+        assert has_paragraph_with(
+            section, "success message warns"
+        ), "a verb's own messages are Platform Facts waiting to be read"
+
+    def test_every_entry_says_it_already_happened(self):
+        # A catalogue of imagined faults would grow without limit. These are
+        # bounded by what got through a real conversion.
+        body = FAULT_CLASSES.read_text(encoding="utf-8")
+        assert has_paragraph_with(body, "measured", "already")
+
+
+class TestAConcessionIsRecordedRatherThanHidden:
+    def test_the_glossary_defines_it_as_the_third_state(self):
+        from support import CONTEXT
+
+        entry = CONTEXT.read_text(encoding="utf-8")
+        assert "**Concession**" in entry, "Residue and Divergence left a gap"
+        # Whitespace-normalised: the phrase straddles a line wrap, and a
+        # markdown wrap is not semantic. has_paragraph_with does this for us;
+        # a plain `in` over a glossary entry does not.
+        block = " ".join(
+            entry.split("**Concession**")[1].split("_Avoid_")[0].split()
+        ).lower()
+        assert "residue" in block and "divergence" in block, (
+            "the term only means anything against the two it sits between"
+        )
+        assert "unrecorded concession is a divergence" in block, (
+            "an unrecorded Concession is a Divergence, and that is the only "
+            "thing separating them"
+        )
+
+    def test_the_skill_has_a_step_for_it(self):
+        sections = [h for h in markdown_sections(_body()) if "concession" in h.lower()]
+        assert len(sections) == 1, (
+            f"a mention anywhere is not a step; headings are {list(markdown_sections(_body()))}"
+        )
+
+    def test_it_is_anchored_to_a_measured_case_like_every_fault_class(self):
+        # Review: every fault-class entry cites a real instance and this did
+        # not. The condition-with-no-presence-verb case is the cleanest one.
+        assert has_paragraph_with(
+            _section("concession"), "measured case", "not visible"
+        ), "the model needs the instance it was invented to name"
+
+    def test_a_concession_is_written_with_a_marker_resume_can_find(self):
+        # The whole claim is "known and written down". Nothing made it findable
+        # until the marker existed: resume counted unreviewed rows and read the
+        # question files, and never looked at a reviewed row's content.
+        assert has_paragraph_with(
+            _section("concession"), "concession:", "resume"
+        ), "a Concession nobody can find again is a Divergence"
+
+    def test_a_concession_carries_the_platform_limit_that_forced_it(self):
+        assert has_paragraph_with(
+            _section("concession"), "platform-facts.md", "no"
+        ), "the limit that forced the concession is a Platform Fact"
+
+    def test_a_concession_does_not_block_assembly(self):
+        assert has_paragraph_with(
+            _section("concession"), "does not block assembly", "residue"
+        ), "a concession is expressed work; Residue is declined work"
+
+    def test_an_unrecorded_concession_is_a_divergence(self):
+        assert has_paragraph_with(_section("concession"), "divergence", "written down")

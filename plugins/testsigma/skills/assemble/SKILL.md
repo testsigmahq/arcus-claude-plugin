@@ -107,7 +107,33 @@ Running the test cannot replace this. The fault survives compilation, tenant
 preflight and a full round trip: the round trip rebuilds the step tree from
 parentage, and order is not parentage.
 
-## Step 5: Report what is out of place
+## Step 5: Sweep for elements nothing references
+
+Cheap, and it earns its place. After assembling, list every element the Migration
+has created or reused and find the ones no step refers to.
+
+An element that was lifted from the source but is referenced by nothing usually
+means a **dropped step**: the reading found the element, and the step that used it
+never got written. In the conversion this plugin was built from, a sweep of 46
+elements found exactly two unreferenced, and one of them was precisely that — the
+locator had been lifted, with the right target, and the step verifying the page
+was simply absent. Nothing else in the test pointed at the gap.
+
+Report each one and say which it is. An element belonging to a scenario nobody has
+converted yet is benign and stays. An element belonging to a scenario that was
+converted is a missing step, and the row it came from goes back to `unreviewed`.
+
+Two unreferenced out of 46 is also the finding that the omission was isolated
+rather than systematic, which is worth reporting: it tells the Operator whether to
+re-examine one test or all of them.
+
+**The sweep only finds a dropped step that left an element behind.** A step that
+captured a value rather than touching the screen — storing a window handle, or a
+identifier for a later step to read — leaves nothing for this to notice. Those are
+caught by the comparison in mapping or not at all, so do not report a clean sweep
+as evidence that no step was dropped.
+
+## Step 6: Report what is out of place
 
 When the check fails, report which steps are out of place and the window each
 one had to fall inside. A report saying only that a test is wrong cannot be acted
@@ -121,7 +147,7 @@ pass. An unchecked step reading as clean is the failure mode ADR-0001 exists to
 prevent: three checks that cannot see the fault class are worse than none,
 because they read as reassurance.
 
-## Step 6: Record the check and commit
+## Step 7: Record the check and commit
 
 Write what ran into `check-record.md`, per test, naming the CLI build in use.
 The five checks, the order they run in, and what a check that could not run is

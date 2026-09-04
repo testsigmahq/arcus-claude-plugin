@@ -79,6 +79,27 @@ class TestResumeCommand:
     # The four things it must report. Each is scoped to the section that
     # reports it, because these words recur across the whole document.
 
+    # --- Concessions ---------------------------------------------------------
+    #
+    # A Concession is reviewed work carrying a known difference from the source.
+    # Review found resume could not see one: it counts unreviewed rows and reads
+    # the two question files, and never looked inside a reviewed row. The model
+    # claimed "known and written down" while nothing made it found.
+
+    def test_it_counts_the_concessions(self):
+        assert has_paragraph_with(
+            self._section("unreviewed"), "count the concessions"
+        ), "resume must report concessions, not only unreviewed rows"
+
+    def test_it_says_why_an_unfindable_concession_is_a_divergence(self):
+        assert has_paragraph_with(self._section("unreviewed"), "divergence")
+
+    def test_it_reads_the_platform_limits_that_forced_them(self):
+        # A limit since lifted turns a Concession back into a row worth redoing.
+        assert has_paragraph_with(
+            self._section("unreviewed"), "platform-facts.md", "lifted"
+        )
+
     def test_it_reports_the_active_phase(self):
         assert has_paragraph_with(self._section("phase"), "active phase")
 

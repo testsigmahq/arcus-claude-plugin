@@ -16,6 +16,7 @@ from gherkin import distinct_source_steps, total_step_occurrences
 from support import (
     ADAPTERS_DIR,
     FIXTURES_DIR,
+    has_paragraph_with,
     markdown_sections,
     parse_count_table,
     read_frontmatter,
@@ -109,3 +110,45 @@ def test_the_documented_textual_limit_is_real(feature_texts):
     counts = distinct_source_steps(feature_texts)
     assert "I see <number> result" in counts
     assert "I see <number> results" in counts
+
+
+class TestARuntimeBuiltLocatorIsJudgedRatherThanRefused:
+    """A verification pass contradicted the rule this adapter first stated.
+
+    It said a runtime-built locator always means an unresolved element.
+    Materialising one turned out to be correct where the source names a single
+    value, and refusing it would have blocked a test that had everything it
+    needed.
+    """
+
+    def _locators(self):
+        _, body = read_frontmatter(ADAPTERS_DIR / "cucumber-java.md")
+        return markdown_sections(body)["Locators"]
+
+    def test_the_decision_turns_on_whether_the_values_are_enumerable(self):
+        assert has_paragraph_with(self._locators(), "enumerable", "call sites")
+
+    def test_an_enumerable_value_is_materialised_rather_than_refused(self):
+        assert has_paragraph_with(
+            self._locators(),
+            "materialise",
+            "right call",
+            absent=("always treat", "never materialise"),
+        ), "refusing a fully determined element blocks a test that is fine"
+
+    def test_enumerability_decides_it_rather_than_the_call_site_count(self):
+        # Review: the analysis only examined a single-site, single-literal case,
+        # so making the count the deciding factor was an extrapolation. Many
+        # sites each passing a known literal are still enumerable.
+        assert has_paragraph_with(
+            self._locators(), "enumerability is what decides it"
+        )
+        assert has_paragraph_with(
+            self._locators(), "many call sites", "still enumerable"
+        )
+
+    def test_a_value_the_source_computes_at_run_time_stays_unresolved(self):
+        assert has_paragraph_with(self._locators(), "computed at run time", "unresolved")
+
+    def test_the_judgement_is_reported_so_it_can_be_corrected(self):
+        assert has_paragraph_with(self._locators(), "say which", "call sites")

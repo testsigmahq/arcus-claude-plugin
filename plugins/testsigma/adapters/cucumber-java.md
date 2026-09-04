@@ -145,8 +145,24 @@ sequence faults: the files were opened for locators and the sequence question wa
 never asked. Element Resolution is therefore part of mapping for this source, not
 a Phase of its own.
 
-Where a locator is built at run time rather than declared, treat the element as
-unresolved and record it, rather than guessing a static equivalent.
+Where a locator is built at run time rather than declared, the test is whether
+the values are enumerable from the source. Walk the call sites and list the
+values each passes; that walk is how you check enumerability, and enumerability
+is what decides it. Many call sites each passing one known literal are still
+enumerable, and one call site passing a value the source computes is not.
+
+Where the values are enumerable from the source — a template like
+`//ion-label[text()='{menulabel}']` used at one site with one literal — materialise
+it as a static element per value. That is the right call, not a shortcut: the
+element is fully determined, and recording it as unresolved would block a test
+that has everything it needs.
+
+Where the values are computed at run time, or the set cannot be closed by
+reading, treat the element as unresolved and record it. Do not guess a static equivalent for a locator whose value the source itself
+does not know until it runs.
+
+Say which of the two you concluded and which call sites you walked, because the
+judgement is the part an Operator can correct.
 
 **The element vocabulary does not collapse with the step vocabulary.** A generic
 step such as `Click "<param>" on "<param>"` takes the control and the screen as

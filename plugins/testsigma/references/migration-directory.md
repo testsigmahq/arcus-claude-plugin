@@ -31,6 +31,14 @@ The largest artifact and the one most read, so it is a table. A row carries the
 source text, its occurrence count, its parameter shapes, the proposed expression,
 and a status. One Source Step may map to several steps.
 
+A row whose expression differs from the source in a way that was judged and
+accepted carries a **Concession** — see `CONTEXT.md` — and records it in the
+Expression cell, on its own line, beginning `Concession:` and then what differs
+and when it would matter. The marker is a fixed prefix rather than prose so that
+concessions can be counted and listed: a Concession nobody can find is a
+Divergence, which is the one thing the term exists to prevent. The platform limit
+that forced it goes in `platform-facts.md`.
+
 A row's status is one of `unreviewed`, `reviewed` or `residue`. A row is
 `unreviewed` from the moment it is written until a person has looked at it;
 nothing else may set it to `reviewed`. `residue` means the row has an entry in

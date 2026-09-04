@@ -20,7 +20,7 @@ from support import (
 ASSEMBLE = PLUGIN_ROOT / "skills" / "assemble" / "SKILL.md"
 SCRIPT = PLUGIN_ROOT / "scripts" / "check_step_order.py"
 
-LOAD_BEARING = ("reviewed", "unresolved element", "nesting", "out of place")
+LOAD_BEARING = ("reviewed", "unresolved element", "nesting", "sweep", "out of place")
 
 
 def _body():
@@ -152,3 +152,43 @@ class TestItWiresIntoTheRest:
         # The arithmetic has one implementation. A skill restating it is a
         # second copy with nothing comparing them.
         assert "pre-order" not in _body().lower() or "check_step_order.py" in _body()
+
+
+class TestTheUnreferencedElementSweep:
+    """A cheap check the verification pass ran and that found a real dropped step.
+
+    46 elements, two unreferenced, one of them a locator that had been lifted
+    correctly while the step using it was never written. Nothing else in the
+    converted test pointed at the gap.
+    """
+
+    def test_the_sweep_exists(self):
+        assert has_paragraph_with(_section("sweep"), "element", "no step")
+
+    def test_an_unreferenced_element_is_read_as_a_dropped_step(self):
+        assert has_paragraph_with(_section("sweep"), "dropped step")
+
+    def test_the_benign_case_is_distinguished_from_the_fault(self):
+        # An element for a scenario nobody has converted yet is not a fault.
+        assert has_paragraph_with(
+            _section("sweep"), "benign", "converted"
+        ), "reporting every unreferenced element as a fault makes the sweep noise"
+
+    def test_a_missing_step_sends_its_row_back_to_unreviewed(self):
+        assert has_paragraph_with(_section("sweep"), "unreviewed")
+
+    def test_the_sweeps_coverage_is_stated_rather_than_implied(self):
+        # It finds a dropped step only where an element was left behind. A step
+        # that captured a value rather than touching the screen leaves nothing
+        # for it to notice, so a clean sweep is not evidence of no omission.
+        assert has_paragraph_with(
+            self_section := _section("sweep"), "only finds", "element behind"
+        )
+        assert has_paragraph_with(
+            self_section, "clean sweep", "no step was dropped"
+        ), "a clean sweep must not be reported as proof"
+
+    def test_the_ratio_says_whether_the_omission_was_systematic(self):
+        assert has_paragraph_with(
+            _section("sweep"), "isolated", "systematic"
+        ), "one missing step and a pattern of them need different responses"

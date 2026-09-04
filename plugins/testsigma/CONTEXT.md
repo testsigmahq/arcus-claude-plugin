@@ -99,6 +99,15 @@ A converted step that is valid but not equivalent. Distinct from Residue: a
 Divergence was expressed and reported as done, wrongly.
 _Avoid_: bug, mistranslation, regression
 
+**Concession**:
+A divergence chosen deliberately, because the format has no closer spelling, and
+recorded with the platform limit that forced it. The third state between Residue
+and Divergence, and in practice the commonest: Residue is work declined, a
+Divergence is work whose difference nobody noticed, and a Concession is work
+whose difference is known and written down. An unrecorded Concession is a
+Divergence; that is the only thing separating them.
+_Avoid_: workaround, compromise, approximation
+
 **Unit of Work**:
 What a check runs against: a distinct Source Step while mapping, an assembled
 test while assembling. The two differ because the faults they can carry differ —

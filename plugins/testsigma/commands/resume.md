@@ -95,6 +95,14 @@ reads `unreviewed`, and name the first few by their source text so they can find
 where reviewing resumes. If the count is large, say how many rather than listing
 them all.
 
+**Count the Concessions too, and list them.** A row marked `Concession:` in
+`step-map.md` is reviewed work carrying a known, accepted difference from the
+source. Report the count every session and name them on request, because a
+Concession that nobody can find again is a Divergence — the whole difference
+between the two is whether the difference stays visible. Read
+`platform-facts.md` alongside them for the limits that forced them, since a limit
+that has since been lifted turns a Concession back into a row worth redoing.
+
 Rows are not equal, so report the unreviewed ones that genuinely vary separately
 from the rest. Those carry most of the judgement, and a plan built on an average
 row front-loads the wrong work.
