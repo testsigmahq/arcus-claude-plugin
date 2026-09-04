@@ -7,6 +7,7 @@ the ticket requires that instruction to exist, never because of how it reads.
 import pytest
 
 from support import (
+    CONTEXT,
     MIGRATION_DIRECTORY,
     MIGRATION_DIRECTORY_FILES,
     PLUGIN_ROOT,
@@ -87,6 +88,25 @@ def test_the_cli_probe_procedure_is_defined_in_one_place():
     assert "not covered" in body, "an absent check must be recorded as not covered"
     assert "attach" in body and "sprints" in body, (
         "it must say how to tell the two programs called testsigma apart"
+    )
+    # Two documents depend on this procedure to decide a check was gained, and
+    # the worked example is invisible in the help surface, so the procedure
+    # must say so rather than let them assume it is detectable.
+    assert "cannot show a new rule inside an existing command" in body, (
+        "the probe must state what its help-surface comparison cannot see"
+    )
+
+
+def test_the_glossary_keeps_validity_and_tenant_acceptance_apart():
+    # These are two of ADR-0001's five checks, ordered apart because they see
+    # different things and need different resources. The glossary defined
+    # Validity as both, so the plugin's vocabulary and its check order
+    # disagreed about what the word meant.
+    body = CONTEXT.read_text(encoding="utf-8")
+    entry = body.split("**Validity**:")[1].split("_Avoid_")[0].lower()
+    assert "legal in the format" in entry
+    assert "separate" in entry, (
+        "Validity must not absorb tenant acceptance; they are two checks"
     )
 
 

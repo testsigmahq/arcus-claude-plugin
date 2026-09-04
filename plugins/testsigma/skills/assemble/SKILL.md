@@ -124,7 +124,10 @@ because they read as reassurance.
 ## Step 6: Record the check and commit
 
 Write what ran into `check-record.md`, per test, naming the CLI build in use.
-A check that could not run is recorded as not checked.
+The five checks, the order they run in, and what a check that could not run is
+recorded as are defined in
+[../../references/checks.md](../../references/checks.md). Follow it rather than
+deciding here what counts as checked.
 
 Commit the Migration Directory as tests are assembled, scoped to that directory.
 Put anything unresolved where it belongs before finishing: a question for the

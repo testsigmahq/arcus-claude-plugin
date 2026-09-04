@@ -83,8 +83,10 @@ _Avoid_: gaps, failures, unsupported
 ### Verification
 
 **Validity**:
-The property that a working copy is legal in the format and the tenant accepts
-it. Machine-decidable.
+The property that a working copy is legal in the format. Machine-decidable, and
+decidable offline. Tenant acceptance is a separate check rather than part of
+this one: ADR-0001 orders the five checks by what each can see, and these two
+see different things and need different resources. See `references/checks.md`.
 _Avoid_: verification, correctness
 
 **Equivalence**:

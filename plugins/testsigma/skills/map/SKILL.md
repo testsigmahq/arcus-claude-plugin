@@ -172,7 +172,9 @@ and not when the session is ending. A row that has not been compared stays
 `unreviewed`, which is what the status is for.
 
 This is second in the check order by ADR-0001 rather than last, and it is not
-replaceable by running anything. Every fault in this class produces a test that
+replaceable by running anything. The full order, and what a check that could not
+run is recorded as, are in
+[../../references/checks.md](../../references/checks.md). Every fault in this class produces a test that
 runs and passes while testing something weaker or different. Compile, tenant
 preflight and a round trip caught none of the six; this comparison caught five in
 about fifteen minutes.
@@ -208,6 +210,12 @@ to prevent.
 Write each decided row into `step-map.md` as you finish it, not in a batch at the
 end. Rows already written survive a session that ends early; rows held in a
 session do not.
+
+Record the comparison in `check-record.md` as each row is reviewed. A reviewed
+row is a Unit of Work that has been checked, and a record covering only assembled
+tests would leave the stage with the strongest evidence of finding faults absent
+from it. Name the CLI build it ran under; `../../references/checks.md` says what
+a check that could not run is recorded as.
 
 Commit the Migration Directory as rows accumulate, scoped to that directory. Put
 anything unresolved where it belongs before finishing: a question for the

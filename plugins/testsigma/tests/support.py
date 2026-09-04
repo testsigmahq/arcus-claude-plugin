@@ -258,6 +258,30 @@ def markdown_sections(text):
     return sections
 
 
+def preamble(text):
+    """The text before the first level-two heading.
+
+    markdown_sections only starts buffering once it has seen a heading, so
+    everything above the first `##` is invisible to every section-scoped
+    assertion. A review put a carve-out there — a stale tenant result being
+    logged against a later session — that gutted two load-bearing rules while
+    the whole suite stayed green. This is what lets the preamble be checked too.
+
+    Fence-aware, so a `##` inside an example does not end the preamble.
+    """
+    lines = []
+    in_fence = False
+    for line in text.splitlines():
+        if line.lstrip().startswith("```"):
+            in_fence = not in_fence
+            lines.append(line)
+            continue
+        if not in_fence and line.startswith("## "):
+            break
+        lines.append(line)
+    return "\n".join(lines)
+
+
 def parse_count_table(text):
     """Read a two-column markdown table of `item` and count into a dict.
 
@@ -363,6 +387,14 @@ def hedges_in(text):
     cover the general case: review, which is what found the one above, and the
     behavioural evals of ticket 13, which are the higher seam because they test
     what an agent does rather than what a document says.
+
+    Applied to whole sections and, via `preamble`, to the text above the first
+    heading, which was invisible to every assertion until a review hid a
+    carve-out there. Not applied to whole documents: that version failed the
+    survey skill on "a guideline rather than a rule", which is a deliberate
+    design decision about a threshold. The scanner cannot tell an intended
+    guideline from a walk-back, so applied everywhere it would pressure honest
+    prose rather than catch anything.
     """
     flattened = " ".join(text.split()).lower()
     return sorted({hedge for hedge in PERMISSIVE_HEDGES if hedge in flattened})

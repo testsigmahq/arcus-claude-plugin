@@ -57,6 +57,17 @@ Read specific flags as evidence of specific checks:
 | `pull … --adopt-id` | Identity bindings can be adopted without rewriting a file |
 | `validate` | Working copies can be compiled and checked offline |
 
+**The help surface cannot show a new rule inside an existing command.** A check
+often arrives that way rather than as a new flag — the fault class below became a
+stricter `validate`, and `validate` was in the help before and after. Recording
+the help verbatim lets a later session diff it, which catches a new command or
+flag and nothing else. So the identity of the build, not its help surface, is
+what says a check may have been gained: if the build differs, treat every
+capability as possibly new and mark earlier work as not checked against it.
+Record any diagnostic a build emits that was not seen before, in
+`platform-facts.md`, since that is the only direct evidence of a rule that
+tightened.
+
 **A flag that is absent means the check is absent.** A stage that relies on it
 records that check as **not covered** rather than as passing. This is the whole
 point of probing: the dangerous failure is not a missing feature, it is a report
