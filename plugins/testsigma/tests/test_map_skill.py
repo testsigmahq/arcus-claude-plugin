@@ -7,8 +7,6 @@ asserted here is that the skill requires opening that helper and requires the
 comparison before a row can be called finished.
 """
 
-import re
-
 import pytest
 
 from support import (
@@ -44,17 +42,6 @@ def _body():
 
 def _sections():
     return markdown_sections(_body())
-
-
-def _bold_leads(text):
-    """The bold lead-ins of a section, in document order.
-
-    The three places an element is looked for are bold-led list items, so their
-    order is structural rather than a matter of phrasing. Asserting the order
-    this way survives rewording and cannot be satisfied by a coincidence in a
-    neighbouring paragraph, which is how three assertions here were defeated.
-    """
-    return re.findall(r"\*\*(.+?)\*\*", text, re.S)
 
 
 def _section(needle):
@@ -175,89 +162,29 @@ class TestOneReadingAsksBothQuestions:
 
 
 class TestResolvingAnElement:
-    def test_the_three_places_are_tried_in_order(self):
-        # Structural. "source" and "first" co-occur in the capture paragraph too
-        # ("their time is the last resort and not the first"), which passed this
-        # with the source demoted to "one option among three".
-        leads = _bold_leads(_element_section())
-        found = {}
-        for index, lead in enumerate(leads):
-            for place in ("source", "existing", "capture"):
-                if place in lead.lower() and place not in found:
-                    found[place] = index
-        assert set(found) == {"source", "existing", "capture"}, (
-            f"the three places an element comes from are not all named: {leads}"
-        )
-        assert found["source"] < found["existing"] < found["capture"], (
-            f"the three places are out of order: {leads}"
-        )
-        assert "first" in leads[found["source"]].lower(), (
-            "the source must be named as the first place tried, not merely as one of them"
-        )
+    """What map owns about elements. The procedure itself is not map's.
 
-    def test_it_stops_at_the_first_place_that_answers(self):
-        assert has_paragraph_with(_element_section(), "stop at the first")
-
-    def test_existing_screens_are_reused_by_name_before_anything_is_created(self):
-        assert has_paragraph_with(
-            _element_section(),
-            "by name",
-            "before",
-            absent=("after creating",),
-        ), "a Migration must not duplicate screens the Operator already maintains"
-
-    def test_operator_capture_happens_only_when_nothing_else_can_supply_it(self):
-        # "last resort" appears twice in this section, so the old assertion
-        # passed with the condition on asking deleted.
-        assert has_paragraph_with(
-            _element_section(), "capture", "only when", "neither"
-        ), "the Operator's time must be the last resort, not the first"
-
-    def test_an_unresolved_element_becomes_residue_with_that_cause(self):
-        # Paragraph-scoped: "distinct" also appears in the estimation
-        # paragraph ("108 distinct control-and-screen pairs"), which passed this
-        # with the two causes explicitly merged.
-        assert has_paragraph_with(
-            _element_section(), "residue.md", "unresolved element", "distinct"
-        ), "an unresolved element and an unexpressible step are distinct causes"
-
-    def test_an_unresolved_element_blocks_assembly_rather_than_placeholding(self):
-        # A test that looks finished and cannot run is worse than an absent one.
-        assert has_paragraph_with(
-            _element_section(),
-            "block",
-            "placeholder",
-            absent=("assemble it anyway",),
-        )
+    The ten assertions that were here ran against
+    references/element-resolution.md — a reference, under the name of one of
+    its callers, which is why its own guarantees were hard to find and why both
+    skills could restate them unnoticed. They live in
+    tests/test_element_resolution.py now, with the control that keeps a caller
+    from restating them.
+    """
 
     def test_the_skill_points_at_the_shared_procedure(self):
         assert "references/element-resolution.md" in _body(), (
             "the procedure is shared with resolve-elements; point at it"
         )
 
-    def test_the_shared_procedure_disambiguates_a_colliding_name(self):
-        # Element references are unqualified, so a workspace has one namespace.
-        assert has_paragraph_with(
-            _element_section("naming"), "owning source class", "number"
-        )
-
     def test_it_runs_here_only_where_the_source_carries_locators(self):
-        # Whether this is a Phase of its own is a property of the source, not of
-        # the Migration.
+        # Whether this is a Phase of its own is a property of the source, not
+        # of the Migration.
         assert has_paragraph_with(_section("element"), "carries-locators", "phase")
 
-    def test_the_block_is_recorded_at_the_elements_granularity(self):
-        # A generic step can carry far more parameter values than rows, so
-        # marking the whole row residue would block every occurrence that
-        # resolved perfectly well. Review found this stated as an absolute rule
-        # with no data model able to express it.
-        assert has_paragraph_with(
-            _element_section(), "granularity", "parameter value"
-        ), "an unresolved element must not block the occurrences that resolved"
-
     def test_the_format_specific_measurement_stays_in_the_adapter(self):
-        # The adapter is the only part of a Migration that knows the format.
-        # A measured figure copied into this skill is a second copy that can
+        # The adapter is the only part of a Migration that knows the format. A
+        # measured figure copied into this skill is a second copy that can
         # drift, and nothing would compare them.
         body = _body()
         assert "108" not in body, (
@@ -266,14 +193,6 @@ class TestResolvingAnElement:
         assert "locators section" in body.lower(), (
             "point at the adapter's measurement rather than restating it"
         )
-
-    def test_element_count_is_not_estimated_from_the_step_count(self):
-        # One generic step occurring hundreds of times still names hundreds of
-        # different things to find. A measured suite had 108 control-and-screen
-        # pairs behind a single Source Step.
-        assert has_paragraph_with(
-            _element_section(), "distinct", "parameter values"
-        ), "estimating element work as a proportion of Source Steps is badly wrong"
 
 
 class TestTheComparisonGatesTheRow:
@@ -373,26 +292,6 @@ class TestItWiresIntoTheRest:
 # go wrong. The catalogue lives in a reference because the skill body is bounded.
 
 FAULT_CLASSES = REFERENCES_DIR / "fault-classes.md"
-
-
-ELEMENT_RESOLUTION = REFERENCES_DIR / "element-resolution.md"
-
-
-def _element_section(needle=None):
-    """The shared element-resolution procedure.
-
-    It moved out of the skill when the skill hit its word budget, and it was
-    duplicated with the resolve-elements skill anyway. The assertions follow the
-    content; what stays asserted against the skill is the carries-locators gate
-    and the pointer.
-    """
-    text = ELEMENT_RESOLUTION.read_text(encoding="utf-8")
-    if needle is None:
-        return text
-    sections = markdown_sections(text)
-    matching = [v for k, v in sections.items() if needle in k.lower()]
-    assert len(matching) == 1, f"expected one section for {needle!r}: {list(sections)}"
-    return matching[0]
 
 
 def _fault_section(needle):

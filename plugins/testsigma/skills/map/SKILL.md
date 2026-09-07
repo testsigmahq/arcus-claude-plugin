@@ -139,9 +139,8 @@ Migration.
 The procedure — the three places to look, in order, and what happens when none of
 them answers — is defined in
 [../../references/element-resolution.md](../../references/element-resolution.md).
-It is shared with the resolve-elements skill, which runs the same procedure as a
-Phase of its own where the source carries no locators, so there is one definition
-of it rather than two that drift.
+It is shared with the resolve-elements skill, which runs it as a Phase of its own
+where the source carries no locators.
 
 ## Step 5: Compare the expression against the source before finishing
 

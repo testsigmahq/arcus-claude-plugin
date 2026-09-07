@@ -20,85 +20,59 @@ It runs after mapping, not before and not during. Mapping is what produces the l
 of elements that actually need resolving, and resolving elements that no reviewed row
 references is work spent on a guess.
 
+**The procedure itself is not here.** Where an element comes from, in what order, and
+what happens when nothing supplies it are defined in
+[../../references/element-resolution.md](../../references/element-resolution.md).
+This skill is the Phase around it: which elements to work on, how to put a question
+to a person, and what to report.
+
 **Who you are talking to.** The person running a Migration is the Operator.
 They know Testsigma and do not necessarily read code, so nothing you put in front of
 them carries code, a file path, a stack trace or a diagnostic code. Those go in the
 Migration Directory. [../../references/asking.md](../../references/asking.md) is the
-rule for what a question may contain; this does not restate it. See `CONTEXT.md` for
-the vocabulary this plugin uses with them.
+rule for what a question may contain. See `CONTEXT.md` for the vocabulary this plugin
+uses with them.
 
 The files this reads and writes are defined in
 [../../references/migration-directory.md](../../references/migration-directory.md).
 
-## Step 1: Take the elements the Step Map names
+## Step 1: Collect the elements this Phase owes
 
 Read `step-map.md` and collect every element its reviewed rows reference. That list,
 and not the source, is the work of this Phase.
 
-Count the distinct parameter values rather than the rows. A generic row that takes a
-control and a screen as parameters names as many things to find as it has parameter
-values, so the element count is not a proportion of the row count and an estimate
-built from rows will be badly wrong.
+Count the elements rather than the rows. A generic row taking a control and a screen
+as parameters names as many things to find as it has parameter values, so an estimate
+built from the row count will be badly wrong — the reference says how to count, and
+the adapter's Locators section carries a measured example for the format in hand.
 
-Group them by screen before starting. An Operator asked for elements one at a time
-across forty screens is being asked to navigate forty times; the same list grouped by
-screen is one pass through the application.
+Group the list by screen before starting. An Operator asked for elements one at a
+time across forty screens is being asked to navigate forty times; the same list
+grouped by screen is one pass through the application.
 
-The three places an element comes from, in order, and what happens when none of
-them answers, are defined in
-[../../references/element-resolution.md](../../references/element-resolution.md).
-Mapping runs the same procedure inline where the source carries locators; this
-Phase runs it where the source carries none. Follow the reference rather than
-either skill's paraphrase of it.
+## Step 2: Work the list, and conduct the asking
 
-## Step 2: Match the existing Testsigma project, by name
+Follow the procedure in
+[../../references/element-resolution.md](../../references/element-resolution.md) for
+each element. What this Phase adds is how the parts involving a person are conducted.
 
-Before creating any screen or element, look for one already in the project that
-matches by name, and reuse it. The Operator maintains those screens. A Migration that
-duplicates them hands back a project with two of everything and no way to tell which
-one is live.
-
-Report what matched and what did not, as counts by screen. A match rate is the number
-that tells the Operator how much of this Phase is left.
-
-Where a name nearly matches, do not decide quietly. Say which existing element you
-think is meant and let the Operator confirm, because a wrong reuse is worse than a
+**Where a name nearly matches, do not decide quietly.** Say which existing element
+you think is meant and let the Operator confirm. A wrong reuse is worse than a
 duplicate: it points a converted test at a control that was never the one the source
-used.
+used, and it does it invisibly.
 
-## Step 3: Ask the Operator to capture what is left
-
-Ask for a capture only when the existing project cannot supply the element, since
-the source already cannot. Their time is the last resort and not the first.
-
-Ask by screen, with the whole list for that screen at once, and say what each element
+**Ask by screen, with that screen's whole list at once**, and say what each element
 is for in the test's terms. A request to capture one control with no context is a
 request the Operator has to reconstruct before they can act on it.
 
-Record each capture in `platform-facts.md` as it is established, not at the end of
-the Phase. This Phase can span sessions, and an element captured but unrecorded is a
-capture the Operator will be asked for twice.
+**Record each capture in `platform-facts.md` as it is established**, not at the end
+of the Phase. This Phase can span sessions, and an element captured but unrecorded is
+a capture the Operator will be asked for twice.
 
-## Step 4: What nothing resolves becomes Residue
+Report what matched and what did not as counts by screen, as you go. A match rate is
+the number that tells the Operator how much of this Phase is left.
 
-When neither the existing project nor the Operator can supply an element, record it
-in `residue.md` as an unresolved element, naming the parameter value that identifies
-it. That cause is distinct from an unexpressible step and the two are never merged.
-
-Record its **Standing**. An element nobody has captured yet is a `gap` and closes
-the day someone captures it; one the application has no way to expose is a
-`refusal` and no capture will bring it. Where you cannot tell, write `gap`. The
-distinction is what decides whether a later session looks again.
-
-An unresolved element blocks assembly of every test that references it. Never
-substitute a placeholder and never assemble around it. A test that looks finished and
-cannot run is worse than one that is visibly absent, because the absent test is on a
-list and the placeholder is in a suite where it reads as coverage.
-
-Record the block at the element's granularity, not the row's. A row whose other
-elements all resolved is not blocked by one that did not.
-
-## Step 5: Report and commit
+## Step 3: Report and commit
 
 **Write an `Element Resolution` section into `migration.md` when the Phase is
 done** — every element matched, captured, or recorded as Residue — with the counts

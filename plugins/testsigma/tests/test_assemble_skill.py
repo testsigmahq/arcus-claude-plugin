@@ -66,12 +66,16 @@ class TestOnlyReviewedRowsReachATest:
 
 
 class TestAnUnresolvedElementRefusesTheTest:
-    def test_the_test_is_refused_rather_than_placeheld(self):
-        assert has_paragraph_with(
-            _section("unresolved element"),
-            "refuse",
-            "placeholder",
-            absent=("assemble it anyway",),
+    def test_the_test_is_refused_and_the_reason_is_deferred_to(self):
+        # It used to restate why refusing beats placeholding, in the same words
+        # as references/element-resolution.md and skills/resolve-elements.
+        # Three copies of one safety rule is two that can soften unnoticed, so
+        # the rule moved to the reference and this asserts the refusal plus the
+        # deferral rather than the prose.
+        section = _section("unresolved element")
+        assert has_paragraph_with(section, "refuse", absent=("assemble it anyway",))
+        assert "references/element-resolution.md" in section, (
+            "the refusal must point at what owns the reason for it"
         )
 
     def test_it_reads_the_block_at_the_elements_granularity(self):

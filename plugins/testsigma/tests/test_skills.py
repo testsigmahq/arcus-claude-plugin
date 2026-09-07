@@ -442,14 +442,10 @@ def test_the_probe_does_not_undercount_the_cli_surface():
         assert f"`{command}`" in body, f"the probe never mentions {command}"
 
 
-def test_resolve_elements_records_the_standing_of_what_it_writes_off():
-    # An element nobody has captured yet is a gap; one the application cannot
-    # expose is a refusal. The two are not revisited by the same thing.
-    skill = PLUGIN_ROOT / "skills" / "resolve-elements" / "SKILL.md"
-    body = _body(skill)
-    assert has_paragraph_with(body, "standing", "gap"), (
-        "resolve-elements writes the residue row and leaves its standing empty"
-    )
+# The Standing of an unresolved element was asserted here, against the skill,
+# and separately against map — two callers, and not the document that owns what
+# happens when nothing resolves. It moved to references/element-resolution.md
+# and is asserted in tests/test_element_resolution.py.
 
 
 def test_the_glossary_has_a_term_for_a_value_kind():

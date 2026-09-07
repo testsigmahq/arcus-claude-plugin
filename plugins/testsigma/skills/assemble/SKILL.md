@@ -53,10 +53,11 @@ element names the parameter value that identifies it rather than blocking a
 whole row. Refuse to assemble any test that references an element recorded there
 as unresolved.
 
-Refuse it; never substitute a placeholder and never assemble around it. A test
-that looks finished and cannot run is worse than one that is visibly absent,
-because the absent test is on a list and the placeholder is in a suite where it
-will be read as coverage.
+Why refusing beats standing in something is stated once, in
+[../../references/element-resolution.md](../../references/element-resolution.md),
+which owns what an unresolved element makes of a test. Read it there. It is the
+reason this step is a refusal rather than a warning, and it is not restated here
+because a safety rule kept in two places is one that softens in one of them.
 
 A row whose other elements all resolved is not blocked. Decide per element, at
 the parameter value, which is what that column is for.

@@ -27,6 +27,12 @@ element. That cause is distinct from an unexpressible step and the two are never
 merged: one means the format has no spelling, the other that the thing to act on
 cannot be found.
 
+Record its **Standing**, which says whether the cause can close. An element
+nobody has captured yet is a `gap` and closes the day someone captures it; one
+the application has no way to expose is a `refusal`, and no capture will bring
+it. Where you cannot tell, write `gap`, because that is the reading a later
+session looks at again.
+
 An unresolved element blocks assembly of every test that references it. Never
 substitute a placeholder and never assemble around it. A test that looks finished
 and cannot run is worse than a test that is visibly absent, because the absent

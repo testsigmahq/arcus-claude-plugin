@@ -239,16 +239,23 @@ class TestTheResolveElementsSkill:
     def test_it_takes_the_element_names_the_step_map_references(self):
         assert has_paragraph_with(self._text(), "step map", "element")
 
-    def test_it_reuses_existing_screens_by_name_before_creating_any(self):
-        assert has_paragraph_with(self._text(), "by name", "before")
+    # The three places an element comes from, capture as the last resort, and
+    # what an unresolved element makes of a test were asserted here, against
+    # the skill. That is what obliged the skill to restate the reference, and
+    # tests/test_element_resolution.py now asserts them against the document
+    # that owns them. What is left here is what this skill owns for a
+    # no-locator source like Tosca: the conduct of the Phase.
 
-    def test_operator_capture_is_the_last_resort(self):
-        assert has_paragraph_with(self._text(), "capture", "only when")
+    def test_it_groups_the_asking_by_screen(self):
+        # Tosca is the measured no-locator source, and its element count is
+        # what makes one-at-a-time asking untenable.
+        assert has_paragraph_with(self._text(), "group", "screen")
 
-    def test_an_unresolved_element_becomes_residue_and_blocks_assembly(self):
-        text = self._text()
-        assert has_paragraph_with(text, "residue.md", "unresolved element")
-        assert has_paragraph_with(text, "block", "placeholder")
+    def test_it_confirms_a_near_match_rather_than_deciding_quietly(self):
+        assert has_paragraph_with(self._text(), "nearly matches", "confirm")
+
+    def test_it_records_a_capture_as_it_lands(self):
+        assert has_paragraph_with(self._text(), "platform-facts.md", "twice")
 
     def test_it_writes_the_marker_that_says_the_phase_is_done(self):
         # migration-directory.md and resume.md both depend on migration.md
