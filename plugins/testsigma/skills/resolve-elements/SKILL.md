@@ -22,19 +22,19 @@ references is work spent on a guess.
 
 **The procedure itself is not here.** Where an element comes from, in what order, and
 what happens when nothing supplies it are defined in
-[../../references/element-resolution.md](../../references/element-resolution.md).
+`${CLAUDE_PLUGIN_ROOT}/references/element-resolution.md`.
 This skill is the Phase around it: which elements to work on, how to put a question
 to a person, and what to report.
 
-**Who you are talking to.** The person running a Migration is the Operator.
-They know Testsigma and do not necessarily read code, so nothing you put in front of
-them carries code, a file path, a stack trace or a diagnostic code. Those go in the
-Migration Directory. [../../references/asking.md](../../references/asking.md) is the
-rule for what a question may contain. See `CONTEXT.md` for the vocabulary this plugin
-uses with them.
+**Who you are talking to.** The person running a Migration is the Operator. They
+know Testsigma and do not necessarily read code, so nothing you put in front of them
+carries code, a file path, a stack trace or a diagnostic code. Those go in the
+Migration Directory. `${CLAUDE_PLUGIN_ROOT}/references/asking.md` is the rule for
+what a question may contain. See `${CLAUDE_PLUGIN_ROOT}/CONTEXT.md` for the
+vocabulary this plugin uses with them.
 
 The files this reads and writes are defined in
-[../../references/migration-directory.md](../../references/migration-directory.md).
+`${CLAUDE_PLUGIN_ROOT}/references/migration-directory.md`.
 
 ## Step 1: Collect the elements this Phase owes
 
@@ -53,7 +53,7 @@ grouped by screen is one pass through the application.
 ## Step 2: Work the list, and conduct the asking
 
 Follow the procedure in
-[../../references/element-resolution.md](../../references/element-resolution.md) for
+`${CLAUDE_PLUGIN_ROOT}/references/element-resolution.md` for
 each element. What this Phase adds is how the parts involving a person are conducted.
 
 **Where a name nearly matches, do not decide quietly.** Say which existing element

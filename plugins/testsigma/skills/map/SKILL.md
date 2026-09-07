@@ -16,16 +16,15 @@ something else, and comparing against the implementation is the only thing that
 found them. By ADR-0005 that check has no skill of its own: it is the exit
 condition of this one.
 
-**Who you are talking to.** The person running a Migration is the Operator.
-They know Testsigma and do not necessarily read code, so nothing you put in
-front of them carries code, a file path, a stack trace or a diagnostic code.
-Those go in the Migration Directory.
-[../../references/asking.md](../../references/asking.md) is the rule for what a
-question may contain; this does not restate it. See `CONTEXT.md` for the
-vocabulary this plugin uses with them.
+**Who you are talking to.** The person running a Migration is the Operator. They
+know Testsigma and do not necessarily read code, so nothing you put in front of them
+carries code, a file path, a stack trace or a diagnostic code. Those go in the
+Migration Directory. `${CLAUDE_PLUGIN_ROOT}/references/asking.md` is the rule for
+what a question may contain; this does not restate it. See
+`${CLAUDE_PLUGIN_ROOT}/CONTEXT.md` for the vocabulary this plugin uses with them.
 
 The files this reads and writes are defined in
-[../../references/migration-directory.md](../../references/migration-directory.md).
+`${CLAUDE_PLUGIN_ROOT}/references/migration-directory.md`.
 
 ## Before anything: there must be a Migration to map into
 
@@ -138,7 +137,7 @@ Migration.
 
 The procedure — the three places to look, in order, and what happens when none of
 them answers — is defined in
-[../../references/element-resolution.md](../../references/element-resolution.md).
+`${CLAUDE_PLUGIN_ROOT}/references/element-resolution.md`.
 It is shared with the resolve-elements skill, which runs it as a Phase of its own
 where the source carries no locators.
 
@@ -151,12 +150,11 @@ and not when the session is ending. A row that has not been compared stays
 `unreviewed`, which is what the status is for.
 
 This is second in the check order by ADR-0001 rather than last, and it is not
-replaceable by running anything. The full order, and what a check that could not
-run is recorded as, are in
-[../../references/checks.md](../../references/checks.md). Every fault in this class produces a test that
-runs and passes while testing something weaker or different. Compile, tenant
-preflight and a round trip caught none of the six; this comparison caught five in
-about fifteen minutes.
+replaceable by running anything. The full order, and what a check that could not run
+is recorded as, are in `${CLAUDE_PLUGIN_ROOT}/references/checks.md`. Every fault in
+this class produces a test that runs and passes while testing something weaker or
+different. Compile, tenant preflight and a round trip caught none of the six; this
+comparison caught five in about fifteen minutes.
 
 **Start with coverage of the call chain, because that is where the defects were.**
 Enumerate every call the step definition makes, transitively through the helpers it
@@ -172,7 +170,7 @@ same order, whether it asserts the same thing, and whether anything the helper
 does is missing from it or invented in it.
 
 The other fault classes are catalogued in
-[../../references/fault-classes.md](../../references/fault-classes.md), which
+`${CLAUDE_PLUGIN_ROOT}/references/fault-classes.md`, which
 came out of a step-by-step comparison of the first conversion against the source
 it was made from. Work through that catalogue for every row rather than trusting
 recall of it: every entry is there because it already reached a converted test
@@ -222,13 +220,14 @@ afterwards from one you never saw.
 Naming the right verb does not make a row legal. A slot declares which **value
 kinds** it will hold, and a value of any other kind is refused there however
 sensible it reads, so where a source value comes from is part of choosing the
-expression. `references/authoring.md` carries the kinds and how to ask the build
-what a slot accepts. Never settle a mismatch with a raw literal: freezing a
-generated or captured value into a constant passes every check and is a
-Divergence.
+expression. `${CLAUDE_PLUGIN_ROOT}/references/authoring.md` carries the kinds and
+how to ask the build what a slot accepts. Never settle a mismatch with a raw
+literal: freezing a generated or captured value into a constant passes every check
+and is a Divergence.
 
 Where a row's value is not a raw literal, record a `Kind:` line in its Expression
-cell naming the kinds it uses, as `references/migration-directory.md` defines.
+cell naming the kinds it uses, as
+`${CLAUDE_PLUGIN_ROOT}/references/migration-directory.md` defines.
 
 ## Step 7: Residue, for what the format cannot express
 
@@ -258,11 +257,11 @@ Write each decided row into `step-map.md` as you finish it, not in a batch at th
 end. Rows already written survive a session that ends early; rows held in a
 session do not.
 
-Record the comparison in `check-record.md` as each row is reviewed. A reviewed
-row is a Unit of Work that has been checked, and a record covering only assembled
-tests would leave the stage with the strongest evidence of finding faults absent
-from it. Name the CLI build it ran under; `../../references/checks.md` says what
-a check that could not run is recorded as.
+Record the comparison in `check-record.md` as each row is reviewed. A reviewed row
+is a Unit of Work that has been checked, and a record covering only assembled tests
+would leave the stage with the strongest evidence of finding faults absent from it.
+Name the CLI build it ran under; `${CLAUDE_PLUGIN_ROOT}/references/checks.md` says
+what a check that could not run is recorded as.
 
 Commit the Migration Directory as rows accumulate, scoped to that directory. Put
 anything unresolved where it belongs before finishing: a question for the

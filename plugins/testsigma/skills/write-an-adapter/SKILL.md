@@ -11,19 +11,19 @@ is why this is a skill an Operator's own team can run without us.
 
 The format the document must satisfy — the frontmatter, the three properties, the six
 required sections and the worked example — is defined in
-[../../adapters/README.md](../../adapters/README.md). Read it first and follow it
+`${CLAUDE_PLUGIN_ROOT}/adapters/README.md`. Read it first and follow it
 there rather than from anything restated here, so there is one definition of the
 contract.
 
 **An adapter is finished when the adapter suite passes against it**, not when it
-reads well. Run `python3 -m pytest tests/test_adapters.py` from the plugin root; the
+reads well. Run `python3 -m pytest ${CLAUDE_PLUGIN_ROOT}/tests/test_adapters.py`; the
 suite parses the document, insists on all three properties and all six sections, and
 checks the stated worked example against the fixture using the document's own
 normalisation rule. A document whose rule and counts disagree fails.
 
 **Who you are talking to.** Whoever is writing an adapter may be a developer, but a
 question that reaches the Operator still follows
-[../../references/asking.md](../../references/asking.md). Do not put source code or a
+`${CLAUDE_PLUGIN_ROOT}/references/asking.md`. Do not put source code or a
 diagnostic in front of them.
 
 ## Before anything: distrust the documentation
@@ -159,4 +159,4 @@ on it.
 Anything you could not settle from the export goes into the Migration Directory
 rather than into a guess in the document: a question for the Operator, or a Platform
 Fact if probing would answer it. Its files are defined in
-[../../references/migration-directory.md](../../references/migration-directory.md).
+`${CLAUDE_PLUGIN_ROOT}/references/migration-directory.md`.

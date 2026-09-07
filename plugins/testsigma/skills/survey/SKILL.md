@@ -17,9 +17,9 @@ to resume.
 **Who you are talking to.** The person running a Migration is the Operator.
 They know Testsigma and do not necessarily read code, so nothing you put in
 front of them carries code, a file path, a stack trace or a diagnostic code.
-Those go in the Migration Directory. [../../references/asking.md](../../references/asking.md) is the
+Those go in the Migration Directory. `${CLAUDE_PLUGIN_ROOT}/references/asking.md` is the
 rule for what a question may contain; this does not restate it. See
-`CONTEXT.md` for the vocabulary this plugin uses with them.
+`${CLAUDE_PLUGIN_ROOT}/CONTEXT.md` for the vocabulary this plugin uses with them.
 
 ## Step 0: Establish which folder is the source suite
 
@@ -46,10 +46,10 @@ overwrite it. Say what is already recorded there and resume instead.
 
 **The CLI must be installed, and be the right one.** Run `testsigma --version` and
 read its help. Two different programs are called `testsigma` and only one can run a
-Migration; `references/cli-probe.md` says how to tell them apart. If it is absent
-or it is the wrong one, stop. Tell the Operator that the Testsigma command-line
-tool this needs is not available on this machine, so nothing produced here could be
-checked, and ask them to install it or say who can.
+Migration; `${CLAUDE_PLUGIN_ROOT}/references/cli-probe.md` says how to tell them
+apart. If it is absent or it is the wrong one, stop. Tell the Operator that the
+Testsigma command-line tool this needs is not available on this machine, so nothing
+produced here could be checked, and ask them to install it or say who can.
 
 **The source suite must be under version control.** Confirm it sits in a work tree
 and that the branch has at least one commit, with `git rev-parse --is-inside-work-tree`
@@ -94,10 +94,10 @@ is weak evidence of the platform it drives — the same driver spelling appears 
 both — and the target application is a thing in their tenant, so this is an
 Application Fact and they are the only ones who can settle it.
 
-Which platforms have a catalogue is a property of the installed build and it
-grows; `references/cli-probe.md` says how to read it, and the answer is recorded
-in `platform-facts.md` with how it was established. So this stop turns on what
-the probe found, and never on the pair named above: if this build converts
+Which platforms have a catalogue is a property of the installed build and it grows;
+`${CLAUDE_PLUGIN_ROOT}/references/cli-probe.md` says how to read it, and the answer
+is recorded in `platform-facts.md` with how it was established. So this stop turns
+on what the probe found, and never on the pair named above: if this build converts
 something the plugin does not list, the list is what is out of date.
 
 ## Step 1: Choose the Source Adapter, and say why
@@ -137,9 +137,9 @@ smooth over.
 
 ## Step 3: Probe the CLI and record what it checks
 
-Follow `references/cli-probe.md`. It says which program to confirm you are talking
-to, what to record as the build, and how to read the help surface as evidence of
-which checks this build performs.
+Follow `${CLAUDE_PLUGIN_ROOT}/references/cli-probe.md`. It says which program to
+confirm you are talking to, what to record as the build, and how to read the help
+surface as evidence of which checks this build performs.
 
 Never assume a check exists. A later stage relying on a diagnostic the installed
 build does not produce must record that check as not covered rather than as
@@ -155,7 +155,7 @@ now also means the next step has somewhere to put a question.
 
 Create `.testsigma/migration/` at the suite root and write its files, one per
 concern. The file set, what each holds, and a skeleton for each are defined in
-[references/migration-directory.md](../../references/migration-directory.md). Do
+`${CLAUDE_PLUGIN_ROOT}/references/migration-directory.md`. Do
 not restate the list here or invent a file that is not in it.
 
 Write `migration.md` with what Steps 0 to 3 established. Create the other six from
@@ -236,5 +236,5 @@ session's transcript is a question that will be lost.
 
 How a question is phrased, what it may never contain, and which of the two fact
 files a thing belongs in are defined in
-[references/asking.md](../../references/asking.md). Follow it rather than
+`${CLAUDE_PLUGIN_ROOT}/references/asking.md`. Follow it rather than
 inventing a form here.

@@ -14,12 +14,12 @@ Step 2 names, and that case is a correction to a record that has become wrong.
 **Who you are talking to.** The person running a Migration is the Operator.
 They know Testsigma and do not necessarily read code, so nothing you put in
 front of them carries code, a file path, a stack trace or a diagnostic code.
-Those go in the Migration Directory. [../references/asking.md](../references/asking.md) is the
+Those go in the Migration Directory. `${CLAUDE_PLUGIN_ROOT}/references/asking.md` is the
 rule for what a question may contain; this does not restate it. See
-`CONTEXT.md` for the vocabulary this plugin uses with them.
+`${CLAUDE_PLUGIN_ROOT}/CONTEXT.md` for the vocabulary this plugin uses with them.
 
 The file set this reads is defined in
-[references/migration-directory.md](../references/migration-directory.md). Read
+`${CLAUDE_PLUGIN_ROOT}/references/migration-directory.md`. Read
 it there rather than assuming a shape.
 
 ## Before anything: is there a Migration here?
@@ -39,9 +39,9 @@ around the gap would report a state that was never true.
 Do this first, before reading any of the work, because a check whose meaning has
 changed silently is worse than a check that is missing.
 
-Follow `references/cli-probe.md`, which says which program to confirm you are
-talking to and what counts as the build's identity. Compare what you find against
-the build recorded in `migration.md`.
+Follow `${CLAUDE_PLUGIN_ROOT}/references/cli-probe.md`, which says which program to
+confirm you are talking to and what counts as the build's identity. Compare what you
+find against the build recorded in `migration.md`.
 
 If the installed build differs from the recorded one, report that change before
 anything else in this session. Say it in consequences rather than as two
@@ -53,7 +53,7 @@ of Work in `check-record.md` that was checked under the old build is marked as
 not checked against any capability the new build has gained. It does not inherit
 a pass it never earned. Amend `migration.md` with the new build and the date.
 
-[../references/checks.md](../references/checks.md) defines the five checks and
+`${CLAUDE_PLUGIN_ROOT}/references/checks.md` defines the five checks and
 this rule. Report the count of Units now not checked against the new capability,
 so re-checking is the Operator's costed decision rather than an oversight.
 
@@ -122,7 +122,7 @@ stands.
 
 The rules that decide what an admissible question looks like, and which of the
 two fact files a thing belongs in, are defined in
-[references/asking.md](../references/asking.md).
+`${CLAUDE_PLUGIN_ROOT}/references/asking.md`.
 
 `open-questions.md` holds questions put to the Operator. `application-facts.md`
 holds things true of the application under test that only someone who knows it

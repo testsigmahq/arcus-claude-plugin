@@ -12,16 +12,15 @@ mapping stage, and reopening one here would mean deciding it twice, differently.
 This stage owns the document-order and block-nesting check. By ADR-0005 that
 check has no skill of its own; it is the exit condition of this one.
 
-**Who you are talking to.** The person running a Migration is the Operator.
-They know Testsigma and do not necessarily read code, so nothing you put in
-front of them carries code, a file path, a stack trace or a diagnostic code.
-Those go in the Migration Directory.
-[../../references/asking.md](../../references/asking.md) is the rule for what a
-question may contain; this does not restate it. See `CONTEXT.md` for the
-vocabulary this plugin uses with them.
+**Who you are talking to.** The person running a Migration is the Operator. They
+know Testsigma and do not necessarily read code, so nothing you put in front of them
+carries code, a file path, a stack trace or a diagnostic code. Those go in the
+Migration Directory. `${CLAUDE_PLUGIN_ROOT}/references/asking.md` is the rule for
+what a question may contain; this does not restate it. See
+`${CLAUDE_PLUGIN_ROOT}/CONTEXT.md` for the vocabulary this plugin uses with them.
 
 The files this reads and writes are defined in
-[../../references/migration-directory.md](../../references/migration-directory.md).
+`${CLAUDE_PLUGIN_ROOT}/references/migration-directory.md`.
 
 ## Before anything: mapping must have produced something
 
@@ -54,7 +53,7 @@ whole row. Refuse to assemble any test that references an element recorded there
 as unresolved.
 
 Why refusing beats standing in something is stated once, in
-[../../references/element-resolution.md](../../references/element-resolution.md),
+`${CLAUDE_PLUGIN_ROOT}/references/element-resolution.md`,
 which owns what an unresolved element makes of a test. Read it there. It is the
 reason this step is a refusal rather than a warning, and it is not restated here
 because a safety rule kept in two places is one that softens in one of them.
@@ -67,7 +66,7 @@ the parameter value, which is what that column is for.
 The rules the validator and the push enforce — which templates a new step may
 use, how environment names and layout must be written, what to do after the first
 push of a new entity kind, and how to mark a region left unconverted on purpose —
-are in [../../references/authoring.md](../../references/authoring.md). Follow it;
+are in `${CLAUDE_PLUGIN_ROOT}/references/authoring.md`. Follow it;
 most of those constraints only surface at push time, and by then the work is done.
 
 Express each step from its reviewed row, in the source's own sequence. Where a
@@ -168,7 +167,7 @@ because they read as reassurance.
 Write what ran into `check-record.md`, per test, naming the CLI build in use.
 The five checks, the order they run in, and what a check that could not run is
 recorded as are defined in
-[../../references/checks.md](../../references/checks.md). Follow it rather than
+`${CLAUDE_PLUGIN_ROOT}/references/checks.md`. Follow it rather than
 deciding here what counts as checked.
 
 Commit the Migration Directory as tests are assembled, scoped to that directory.
