@@ -3,9 +3,20 @@
 Everything else in `references/` is about reading a source. This is about writing
 Testsigma correctly, and about the constraints that only appear when you try.
 
-Each rule below was established by authoring a real conversion and pushing it to a
-tenant, not from documentation. Diagnostic codes are recorded here and are never
-spoken to the Operator (`asking.md`).
+The rules below have two provenances, and they are not re-established the same
+way. Some say what the target can **express** — which verbs exist, whether one is
+deprecated, which kinds of value a slot will hold. Those the build itself will
+answer, and ADR-0006 says the plugin holds none of them: the section on asking
+the build is how each is established. The rest say what an expression **does**
+once it runs — that a wait for an absent element succeeds, that a write count is
+not evidence of a push — and no catalogue contains those. They were bought by
+authoring a real conversion and pushing it to a tenant, and only another push
+can revise one.
+
+So neither kind is documentation, and neither is permanent. A fact about what is
+expressible is re-established by asking the installed build; a fact about
+behaviour is re-established by pushing again. Diagnostic codes are recorded here
+and are never spoken to the Operator (`asking.md`).
 
 **These are observations of one CLI build against one tenant.** Re-probe rather
 than assuming they still hold — `cli-probe.md` says how, and ADR-0003 says why.
@@ -21,13 +32,19 @@ So treat a deprecated template as an authoring error at the moment a row propose
 it, not as something to discover at push time, and keep a replacement for every
 one you have met.
 
-**Read the field rather than meeting the refusal.** `deprecated` is a boolean on
-the template, in the build's own catalogue, and 158 of the 473 web verbs carry
-it — a third of the surface, so meeting it by pushing is a choice and not a
-necessity. It is readable before a row is written, from the schema the build
-compiles in and that its language server drives completion and hover from. This
-rule was learned the expensive way, from a push that refused a create, and
-nothing required it to be learned that way.
+**Ask before authoring, rather than meeting the refusal.** `deprecated` is a
+field on the verb, and a third of the web surface carries it, so meeting it by
+pushing is a choice and not a necessity. Compile the verb and read the answer:
+the build reports a deprecated verb as **`TSF2008`**, with its template id in the
+message. The section below says how to compile one question.
+
+**The offline check is weaker than the tenant here, which is the trap.**
+`TSF2008` is a **warning**. It does not fail a validate, and the tenant refuses
+the create anyway. So a session that compiles, sees a warning, and reads the exit
+code as the answer will carry the row all the way to a push that refuses it. Read
+the diagnostic, not the exit code. This is the inverse of the assumption
+ADR-0001's check order rests on — usually the offline check is the strict one —
+and it is the only case met so far where it runs the other way.
 
 The measured case is worth recording because the replacement was *better* than
 the deprecated verb it replaced: where a source clicked an element
@@ -42,6 +59,56 @@ click an outer wrapper that also contains the text.
 is OCR-based: it screenshots, extracts text, and clicks a coordinate. It is not an
 XPath match, and nothing in the name says so. Resolve the verb to its
 implementation before using it (`fault-classes.md`).
+
+## Asking the build: one question, one compile
+
+Per ADR-0006 the plugin holds no catalogue, so every fact about what is
+expressible is established here. The build has no command that lists verbs and
+no schema to read — what it has is a compiler that names what it refuses.
+
+**Build a scratch workspace.** `validate` reads a workspace, and a workspace is
+three marker files. Write them by hand; the ids are arbitrary because nothing
+offline checks them:
+
+```
+project.sigma       project [id = 1] { }
+application.sigma   application [id = 2] { }
+version.sigma       version "v1.0" [id = 3] { }
+```
+
+An absent `applicationType` on the application marker means web, which is the
+server's own default. For unified, write `applicationType = "unified"` inside
+the application block — the catalogues do not overlap, so the wrong marker
+answers a question about a different platform and looks like an answer.
+
+**Build it outside the suite**, in a scratch directory, and never inside the
+source suite or anywhere a working copy lives. The fabricated ids are the whole
+trick and they are also the hazard: they name project, application and version
+coordinates that exist on no tenant, and a `push` from inside this workspace
+would aim them at a real one. This workspace is never pushed, never committed and
+never kept.
+
+**Then ask one question.** Write the smallest file that puts the verb and the
+value in question into a step, and run `testsigma validate --json`. The
+diagnostics answer directly:
+
+| Code | What the message tells you |
+|---|---|
+| `TSF2012` | the slot refused this kind of value, **and names every kind it accepts** |
+| `TSF2016` | the slot takes one of an enumerated set, and names the set |
+| `TSF2008` | the verb is deprecated, with its template id |
+| `TSF2001` | there is no such verb, with the nearest name it knows |
+
+It is one question per compile and there is no way to ask for a list. A stage
+that wants "every verb for this category" cannot have it from an install, and
+must not read the silence as an absence — `TSF2001` naming a near miss is not
+evidence that nothing else exists.
+
+**Record the answer, then delete the workspace.** The answer is a Platform Fact
+and goes in `platform-facts.md` with the build identity beside it; the workspace
+is a question that has been asked and is worth nothing afterwards. Per ADR-0003,
+record at survey which of these codes the installed build produces, so a check
+that leans on an absent one is recorded as not covered rather than as passing.
 
 ## A value kind, and which slots will take one
 
@@ -70,7 +137,7 @@ This is why a mapping can be correct about the verb and still illegal. A source
 value that has to come from somewhere other than the test — a timestamp, an
 address, a value an earlier step captured — is expressible only where that slot
 allows the kind that carries it. Establish the slot's kinds before proposing the
-row, the same way and from the same place as `deprecated`.
+row, by asking the build — the section above is how.
 
 Where no allowed kind can carry the value, the row is Residue, and its standing
 is which of the two the slot's refusal is: a gap where the format may gain the
@@ -82,9 +149,9 @@ every time, which is the one thing the source did not do.
 The data generators behind the `function` kind are a generated catalogue inside
 the CLI build — 125 of them in 22 groups when this was measured, against one
 build, so treat the figure as dated rather than as a fact about the installed
-one. Read them from the build — the language server drives completion and hover
-from the same schema — rather than copying any part of them here, which is the
-staleness `README.md` in `adapters/` warns about.
+one. Establish the one you need by compiling it, the same way as any other
+catalogue fact, rather than copying any part of the list here — which is the
+staleness `README.md` in `adapters/` warns about, and which ADR-0006 refuses.
 
 ## Values, names and layout the validator enforces
 

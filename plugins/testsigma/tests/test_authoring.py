@@ -220,14 +220,20 @@ class TestValueKinds:
         ), "the generators are being copied into the plugin"
 
 
-def test_deprecation_is_readable_before_a_row_is_proposed():
-    # It was learned from a failed push. It is a boolean on the templates, and
-    # 158 of the 473 web verbs carry it, so discovering it at push time is a
-    # choice rather than a necessity.
+def test_deprecation_is_established_before_a_row_is_proposed():
+    # It was learned from a failed push, and a third of the web surface carries
+    # it, so discovering it at push time is a choice rather than a necessity.
+    # This test previously asserted the field was "readable" from the schema.
+    # It is not, from an installed build: the mechanism is a compile and a named
+    # diagnostic, per ADR-0006.
     section = _section("deprecated")
-    assert has_paragraph_with(section, "before", "read"), (
+    assert has_paragraph_with(section, "before authoring", "compile"), (
         "the rule says treat it as an authoring error, but never how to know"
     )
-    assert "158" in section or "473" in section, (
-        "the scale is what makes this worth checking mechanically"
+    assert "TSF2008" in section, (
+        "ADR-0003 requires the code a check leans on to be named where the "
+        "rule is stated"
+    )
+    assert "third" in section or "158" in section, (
+        "the scale is what makes this worth establishing rather than meeting"
     )

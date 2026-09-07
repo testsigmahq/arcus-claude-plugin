@@ -138,6 +138,12 @@ path. Each slot declares the kinds it will hold, so a kind is what makes an
 expression legal in a given slot rather than a property of the value on its own.
 _Avoid_: data type, variable, test data
 
+**Verb**:
+One step a Catalogue declares: the sentence a tester reads, the slots it takes,
+and whether it is deprecated. What a working copy names when it expresses a step,
+and the unit the plugin asks the build about rather than writing down.
+_Avoid_: template, step template, NLP, action
+
 **Catalogue**:
 The set of steps Testsigma can express for one kind of application. Each platform
 has its own and they do not overlap, so a suite driving an application whose

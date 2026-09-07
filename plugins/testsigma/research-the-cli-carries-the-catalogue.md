@@ -142,11 +142,21 @@ it through the CLI or the language server (`packages/language-server`, which
 drives completion and hover from it) rather than from a file in the source
 suite.
 
-**Partly addressed.** The probe now reads the schema for two specific things —
-which platforms have a catalogue, and a slot's value kinds — through the CLI or
-the language server, as the paragraph above says it must. It still does not diff
-the schema across builds, which is what would turn "this build differs" into a
-list of what actually changed. That is the remaining work here.
+**Addressed, and the mechanism above is wrong.** The language server is not
+reachable from an installed CLI: its package is private, it is absent from the
+published `files`, and its own build resolves `@testsigma/code` externally, so it
+runs only inside a checkout of this monorepo. Nor is there any command that
+prints the schema. What an install offers is the compiler as an oracle —
+`validate --json` against a hand-built scratch workspace, where `TSF2012` names a
+slot's full accepted-kind list and `TSF2008` reports a deprecated verb with its
+template id. ADR-0006 records the decision and `references/authoring.md` the
+procedure.
+
+So the plugin now establishes a catalogue fact one question at a time and cannot
+enumerate at all. Enumeration exists only by regex over the minified `dist`,
+which was rejected: it fails by matching nothing, and nothing is
+indistinguishable from a verb that does not exist. Diffing the schema across
+builds remains undone and is now known to need that same unsupported route.
 
 ## Out of scope, recorded so it is not re-found
 

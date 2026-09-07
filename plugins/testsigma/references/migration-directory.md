@@ -31,6 +31,15 @@ The largest artifact and the one most read, so it is a table. A row carries the
 source text, its occurrence count, its parameter shapes, the proposed expression,
 and a status. One Source Step may map to several steps.
 
+A row whose expression uses a value that does not come from the test itself
+carries a **`Kind:`** line in its Expression cell, naming the Value Kinds it
+uses — `Kind: runtime, function`. Rows using nothing but raw literals carry none,
+because there is nothing about them to check. The prefix is fixed for the same
+reason a Concession's is: a reviewer's question is "show me every row whose value
+comes from somewhere else", and a fixed prefix is what makes that a sweep rather
+than a reading. Whether the slot accepts that kind is established by asking the
+build, per `authoring.md`.
+
 A row whose expression differs from the source in a way that was judged and
 accepted carries a **Concession** — see `CONTEXT.md` — and records it in the
 Expression cell, on its own line, beginning `Concession:` and then what differs

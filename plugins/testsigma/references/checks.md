@@ -39,6 +39,13 @@ the class: executing it cannot find them. One retroactive pass of source
 comparison found five of the six in about fifteen minutes, and it only ran
 because someone asked what was left. The three automated checks found none.
 
+**Validity needs a workspace, and a workspace needs no tenant.** It is worth
+saying because the first half sounds like it contradicts the second: `validate`
+reads a working copy inside a workspace, and a workspace is three marker files
+carrying coordinates. Those markers can be written by hand offline, which is what
+`authoring.md` does to ask the build a question, so Validity genuinely needs
+nothing but the working copy.
+
 **Compare-to-source needs no tenant and no network.** Neither does Validity. So
 cheapest-first was not even buying what it appeared to buy, while it did reliably
 push the one check with a record of finding faults to the end of the queue, where

@@ -223,9 +223,13 @@ afterwards from one you never saw.
 Naming the right verb does not make a row legal. A slot declares which **value
 kinds** it will hold, and a value of any other kind is refused there however
 sensible it reads, so where a source value comes from is part of choosing the
-expression. `references/authoring.md` carries the kinds and where to read a
-slot's own list. Never settle a mismatch with a raw literal: freezing a generated
-or captured value into a constant passes every check and is a Divergence.
+expression. `references/authoring.md` carries the kinds and how to ask the build
+what a slot accepts. Never settle a mismatch with a raw literal: freezing a
+generated or captured value into a constant passes every check and is a
+Divergence.
+
+Where a row's value is not a raw literal, record a `Kind:` line in its Expression
+cell naming the kinds it uses, as `references/migration-directory.md` defines.
 
 ## Step 7: Residue, for what the format cannot express
 
