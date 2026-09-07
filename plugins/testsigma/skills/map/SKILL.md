@@ -77,12 +77,13 @@ nothing and can wait, but they set the floor cost and none can be skipped.
 
 ## Step 2: What a row carries
 
-A row records the source text, its occurrence count, its parameter shapes, the
-proposed expression, and a status. Those five exist so that reviewing a row does
-not mean going back to the source, which is the difference between a review that
-happens and one that is deferred.
+The row's columns are defined in
+`${CLAUDE_PLUGIN_ROOT}/references/migration-directory.md`. They exist so that
+reviewing a row does not mean going back to the source, which is the difference
+between a review that happens and one that is deferred.
 
-One Source Step may map to several Testsigma steps. A source line that really
+Two things about a row are this stage's rather than the schema's. **One Source
+Step may map to several Testsigma steps.** A source line that really
 performs three actions is expressed as three, and forcing it into one is how a
 Composite Step becomes a converted test. The row holds the whole sequence.
 
@@ -99,16 +100,13 @@ wrong four times out of six.
 
 The adapter's own Sequence section states where the sequence lives for this
 format and which traps recur in it. Follow it. Four shapes recur across every
-source format met so far, and all four produce a test that runs and passes:
+source format met so far, and all four produce a test that runs and passes;
+`${CLAUDE_PLUGIN_ROOT}/references/fault-classes.md` describes them.
 
-**A helper that does less than its line implies**, so converting the implied
-action invents a step the source never performed. **One that does more**, where a
-line reading as one action expands to four. **One named like a wait that is a
-loop**: treat every helper whose name contains `wait`, `until`, `refresh` or
-`poll` as a loop until the source shows otherwise, including the shape that reads
-as an assertion, which is where the volume is. And **one that delegates**: follow it,
-because the sequence is the flattened sequence of the leaves, and stopping at the
-first method the source names is the natural way to get it wrong.
+One of the four is an instruction rather than a description, so it is here:
+**treat every helper whose name contains `wait`, `until`, `refresh` or `poll` as
+a loop until the source shows otherwise**, including the shape that reads as an
+assertion, which is where the volume is.
 
 Report what the helper actually does, in the Operator's terms, whenever it
 differs from what the line implies. A difference found and not said is a
@@ -199,21 +197,15 @@ Enter verb exists", "no presence verb is available in a condition" — because t
 limit is a fact about Testsigma that the next row will need and that probing, not
 asking, settles.
 
-The measured case, from the conversion this plugin came from: the source tested
-whether an element was absent from the page, and the format offers no
-presence check inside a condition at all — only enabled, disabled, visible and
-not visible. The row used "not visible", which differs exactly when an element is
-present but hidden, and said so. That is a Concession: judged, taken, recorded.
+The measured case: the source tested whether an element was absent, and the
+format offers no presence check inside a condition — only enabled, disabled,
+visible and not visible. The row used "not visible", which differs exactly when
+an element is present but hidden, and said so.
 
-A Concession does not block assembly. Residue does. Residue is work declined and
-visibly absent; a Concession is work expressed, with its difference known. Keep
-them apart, because conflating them either blocks tests that are fine or ships
-tests nobody examined.
-
-**An unrecorded Concession is a Divergence.** That is the whole difference
-between them: not the size of the gap but whether it is written down. A
-difference you noticed, judged acceptable, and did not record is indistinguishable
-afterwards from one you never saw.
+A Concession is expressed work and does not block assembly; Residue is declined
+work and does. `${CLAUDE_PLUGIN_ROOT}/CONTEXT.md` carries what separates the two
+from a Divergence, and it is worth reading before deciding a row is one rather
+than another.
 
 ## Before a row is proposed: the slot decides the value
 
@@ -235,21 +227,13 @@ When a Source Step cannot be expressed, record it in `residue.md` with a stated
 cause and the reasoning that produced the ruling. An unexpressible step and an
 unresolved element are distinct causes and are never merged.
 
-Record its **Standing** too, which is `gap` or `refusal`: a capability the format
-does not have yet, against a construct it declines on purpose. Both stop the row
-and only one is temporary, so they are not revisited by the same thing — a build
-change can close a gap and can never close a refusal. Where you cannot tell,
-write `gap`, because that is the reading that gets looked at again.
+Record its **Standing** too, `gap` or `refusal`. Where you cannot tell, write
+`gap`, because that is the reading that gets looked at again.
 
-No entry is final. The reasoning is recorded so a ruling can be overturned rather
-than hardening into a fact: an entry is revisited when the format gains a
-spelling, or when someone finds one nobody had used. One case already believed
-unexpressible turned out to have a spelling that existed all along.
-
-Residue is not Divergence. Residue is work declined, visibly, with a reason. A
-Divergence is work expressed and reported as done that is not equivalent to the
-source. Residue is the honest outcome; a Divergence is the one this stage exists
-to prevent.
+The reasoning is what lets a ruling be overturned later, so write the reasoning
+and not just the verdict: one case already believed unexpressible turned out to
+have a spelling that existed all along. What a Standing means, and why Residue is
+not a Divergence, are in `${CLAUDE_PLUGIN_ROOT}/CONTEXT.md`.
 
 ## Step 8: Record and commit
 

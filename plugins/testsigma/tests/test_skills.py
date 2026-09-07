@@ -470,3 +470,52 @@ def test_the_two_documents_agree_on_the_standing_of_a_missing_catalogue():
         "both words must sit in one instruction, or the entry reads as one and "
         "the probe as the other"
     )
+
+
+#: The five things a Step Map row carries. Asserted against the document that
+#: defines the schema — a new column is added there, not in a caller. This
+#: parametrisation was in test_map_skill.py, which is what obliged `map` to
+#: restate the schema it points at.
+ROW_COLUMNS = ("source", "occurrence", "parameter", "expression", "status")
+
+
+@pytest.mark.parametrize("column", ROW_COLUMNS)
+def test_the_step_map_row_carries_each_of_the_five_things(column):
+    body = (REFERENCES_DIR / "migration-directory.md").read_text(encoding="utf-8")
+    section = [v for k, v in markdown_sections(body).items() if "file" in k.lower()]
+    haystack = (section[0] if len(section) == 1 else body).lower()
+    assert column in haystack, (
+        f"a row must carry {column}, so reviewing it does not mean going back "
+        f"to the source"
+    )
+
+
+#: Definitional phrases CONTEXT.md owns. A skill carrying one is restating the
+#: vocabulary rather than using it — which is how map's Steps 6 and 7 came to
+#: hold ~110 words of the glossary, with both copies asserted.
+#:
+#: Verbatim copies only: a paraphrase of the same distinction is not catchable
+#: by string matching, and this control says so rather than implying it covers
+#: more than it does.
+GLOSSARY_PHRASES = (
+    "unrecorded concession is a divergence",
+    "no entry is final",
+    "a build change can close a gap and can never close a refusal",
+)
+
+
+@pytest.mark.parametrize("phrase", GLOSSARY_PHRASES)
+def test_the_glossary_states_each_definition_it_owns(phrase):
+    assert phrase in " ".join(CONTEXT.read_text(encoding="utf-8").split()).lower(), (
+        f"the glossary is supposed to own {phrase!r} and does not state it"
+    )
+
+
+@pytest.mark.parametrize("skill", skill_files(), ids=lambda p: p.parent.name)
+@pytest.mark.parametrize("phrase", GLOSSARY_PHRASES)
+def test_no_skill_restates_a_definition_the_glossary_owns(phrase, skill):
+    body = " ".join(_body(skill).split()).lower()
+    assert phrase not in body, (
+        f"{skill.parent.name} restates {phrase!r}, which CONTEXT.md owns; a "
+        f"skill uses the vocabulary rather than defining it"
+    )

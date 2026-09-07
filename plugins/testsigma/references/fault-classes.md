@@ -67,6 +67,30 @@ source literal. An argument that does not pass through unchanged is a conversion
 hazard, and the transformation is often the only thing that makes a barcode, a
 lookup or an identifier work at all — somebody wrote that `replace` for a reason.
 
+## Four shapes a helper takes, and three of them read as one action
+
+Every source format met so far has a helper layer, and four shapes recur across
+all of them. All four produce a test that runs and passes, which is why they are
+here rather than in a linting rule.
+
+**A helper that does less than its line implies.** The line reads as an action
+the definition never performs, so converting the implied action invents a step
+the source never took. Measured: four of the six known faults in one conversion
+were a line hiding a helper that did something else.
+
+**One that does more.** A line reading as one action expands to four inside the
+definition, and a conversion that trusts the line writes one step where the
+source ran a sequence.
+
+**One that delegates.** The real sequence is the flattened sequence of the
+leaves, so following only the first method the source names is the natural way
+to get it wrong — and it is wrong silently, because the truncated version still
+compiles and still passes.
+
+The fourth is a wait that is really a loop. It is stated as an instruction with
+its trigger names rather than described here, in the mapping skill, because it
+is applied while reading a helper rather than consulted afterwards.
+
 ## A composite step definition converted partway
 
 **The largest single class in the measured pass — six of twenty-one defects — and
@@ -161,8 +185,9 @@ downstream complaining.
 
 Note also why such a default exists at all: on this platform an unstated timeout
 once meant no wait, so a default was stated precisely to stop absence meaning
-zero. A legal value is not a faithful one. A default is not a match for a stated value that happens to equal it,
-either: the next platform change moves the default and not the source.
+zero. A legal value is not a faithful one. A default is not a match for a stated
+value that happens to equal it, either: the next platform change moves the
+default and not the source.
 
 ## One target verb serving two source constructs
 
@@ -353,11 +378,12 @@ wrong line numbers.
 
 So analyse source with a parser. Where a regex is unavoidable: strip only lines
 whose **first** non-whitespace characters are `//`, replace a block comment with
-an equal number of newlines so line numbers survive, and **never trust an absence
-result** — a sweep reporting that something is not there is the one answer this
-class of tooling produces most confidently and least reliably. Prefer a targeted
-check at each row over one broad sweep across everything. Where a sweep is worth running, treat what it
-reports as a question rather than a finding until a direct reading confirms it.
+an equal number of newlines so line numbers survive, and **never trust an
+absence result** — a sweep reporting that something is not there is the one
+answer this class of tooling produces most confidently and least reliably.
+Prefer a targeted check at each row over one broad sweep across everything.
+Where a sweep is worth running, treat what it reports as a question rather than
+a finding until a direct reading confirms it.
 
 ## A converter's positional heuristic drops and invents at once
 

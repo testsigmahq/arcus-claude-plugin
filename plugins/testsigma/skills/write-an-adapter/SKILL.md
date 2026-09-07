@@ -88,9 +88,10 @@ Where anything is hidden, the section must say plainly that the helper is opened
 happened: the files were opened, they were read for locators, and what the code
 actually did was never asked.
 
-Look for all four shapes while you are in there: a helper that does less than its
-line implies, one that does more, one named like a wait that is a loop, and one that
-delegates so the real sequence is the flattened sequence of the leaves.
+Look for all four recurring shapes while you are in there.
+`${CLAUDE_PLUGIN_ROOT}/references/fault-classes.md` describes them, and a new
+adapter's Sequence section is where the format's own version of each gets
+written down.
 
 ## Step 3: State the normalisation rule
 
@@ -122,9 +123,10 @@ List every row. A partial table cannot be checked against the rule that produced
 which is a mistake the Tosca adapter made before review caught it.
 
 Keep the fixture small and make it carry the format's traps rather than its typical
-case. The shipped fixtures each hold deliberate ones — a helper that does less than
-its line says, a name ending in a space, a value spelling one action two ways — and
-each was a real shape found in a real suite, not an invented edge case.
+case. The shipped fixtures each hold deliberate ones — a helper hiding one of the
+recurring shapes, a name ending in a space, a value spelling one action two
+ways — and each was a real shape found in a real suite, not an invented edge
+case.
 
 Where the fixture is a real customer export, do not commit it. Build a synthetic one
 carrying the same shapes, and keep the checks against the real file conditional on

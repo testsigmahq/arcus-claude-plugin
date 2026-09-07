@@ -196,3 +196,4 @@ def test_no_caller_restates_a_rule_the_reference_owns(path, phrase):
         f"{path.parent.name} restates {phrase!r}, which "
         f"references/element-resolution.md owns; point at it instead"
     )
+

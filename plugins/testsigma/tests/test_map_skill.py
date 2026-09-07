@@ -21,10 +21,6 @@ from support import (
 
 MAP = PLUGIN_ROOT / "skills" / "map" / "SKILL.md"
 
-#: The five things a Step Map row carries, so that reviewing a row does not mean
-#: going back to the source.
-ROW_COLUMNS = ("source", "occurrence", "parameter", "expression", "status")
-
 #: Every helper name that is treated as a loop until the source proves
 #: otherwise. A helper that re-drives the interface looks identical to a passive
 #: wait once flattened.
@@ -87,11 +83,17 @@ class TestOneDistinctSourceStepAtATime:
             _section("one distinct source step"), "reuse", "every occurrence"
         )
 
-    @pytest.mark.parametrize("column", ROW_COLUMNS)
-    def test_a_row_carries_each_of_the_five_things(self, column):
-        assert column in _section("what a row carries").lower(), (
-            f"a row must carry {column}, so reviewing it does not mean going "
-            f"back to the source"
+    def test_it_keeps_the_two_claims_the_schema_does_not_carry(self):
+        # The five columns are migration-directory.md's schema, asserted there
+        # now — a new column would be added to the reference, not here. These
+        # two are map's own and change what it writes.
+        section = _section("what a row carries")
+        assert has_paragraph_with(section, "several", "composite step"), (
+            "one Source Step may map to several steps, and forcing it into one "
+            "is how a Composite Step becomes a converted test"
+        )
+        assert has_paragraph_with(section, "unreviewed", "written"), (
+            "a row is unreviewed from the moment it is written"
         )
 
     def test_one_source_step_may_map_to_several_steps(self):
@@ -109,11 +111,15 @@ class TestOpeningTheHelper:
     def test_it_is_read_against_the_implementation_not_the_surface(self):
         assert has_paragraph_with(_section("helper"), "implementation", "surface")
 
-    def test_a_helper_doing_less_than_its_line_implies_is_reported(self):
-        assert has_paragraph_with(_section("helper"), "less", "implies")
-
-    def test_a_helper_doing_more_than_its_line_implies_is_reported(self):
-        assert has_paragraph_with(_section("helper"), "more", "implies")
+    def test_the_recurring_shapes_are_pointed_at_rather_than_described(self):
+        # The four shapes were described here and again in write-an-adapter,
+        # and the catalogue of measured faults held none of them. It owns them
+        # now; what stays here is the one that is an instruction.
+        section = _section("helper")
+        assert "references/fault-classes.md" in section, (
+            "the shapes are measured fault classes; point at the catalogue"
+        )
+        assert has_paragraph_with(section, "four shapes", "recur")
 
     @pytest.mark.parametrize("name", LOOP_NAMES)
     def test_each_loop_shaped_helper_name_is_treated_as_a_loop(self, name):
@@ -131,7 +137,11 @@ class TestOpeningTheHelper:
     def test_it_follows_a_helper_that_delegates(self):
         # Stopping at the first method the step definition names is the most
         # natural way to get this wrong, because that method looks complete.
-        assert has_paragraph_with(_section("helper"), "delegat", "follow")
+        # The shape is described in the catalogue; the requirement that every
+        # transitive call map to a step is this stage's, in the comparison.
+        assert has_paragraph_with(
+            _section("compare"), "delegates to", "every call"
+        ), "call-chain coverage is what catches a helper that delegates"
 
     def test_it_points_at_the_adapter_rather_than_restating_the_format(self):
         # The traps are per-format and live in the adapter's Sequence section.
@@ -249,20 +259,37 @@ class TestTheComparisonGatesTheRow:
 
 
 class TestResidue:
+    """What map does about Residue. What Residue *is* belongs to CONTEXT.md.
+
+    That entry carries "no entry is final", the gap/refusal Standing and the
+    distinction from Divergence, and map restated all three. Both copies were
+    asserted — here and against the glossary — so the duplication was held in
+    place from both ends. These assertions now follow the mechanics: what map
+    writes, and where.
+    """
+
     def test_an_entry_carries_a_cause(self):
         assert has_paragraph_with(_section("residue"), "cause")
 
     def test_an_entry_carries_the_reasoning_that_produced_it(self):
         assert has_paragraph_with(_section("residue"), "reasoning")
 
-    def test_an_entry_can_be_reopened(self):
-        # One case already believed unexpressible turned out to have a spelling
-        # nobody had found.
-        assert has_paragraph_with(_section("residue"), "overturn", "revisited")
+    def test_the_two_causes_are_never_merged(self):
+        # An unexpressible step and an unresolved element block different
+        # things, so a row keyed by one cannot say the other.
+        assert has_paragraph_with(
+            _section("residue"), "unresolved element", "distinct"
+        )
 
-    def test_residue_is_distinguished_from_divergence(self):
-        # One is work declined, the other work done wrongly and reported as done.
-        assert "divergence" in _section("residue").lower()
+    def test_an_unknown_standing_defaults_to_gap(self):
+        # The one part of the Standing rule that is an instruction rather than
+        # a definition: which way to write it when you cannot tell.
+        assert has_paragraph_with(_section("residue"), "gap", "cannot tell")
+
+    def test_it_defers_to_the_glossary_for_what_residue_is(self):
+        assert "CONTEXT.md" in _body(), (
+            "map records Residue; the glossary decides what it is"
+        )
 
 
 @pytest.mark.parametrize("section", LOAD_BEARING)
@@ -686,12 +713,29 @@ class TestAConcessionIsRecordedRatherThanHidden:
         ), "the limit that forced the concession is a Platform Fact"
 
     def test_a_concession_does_not_block_assembly(self):
+        # Asserted against the glossary, which is where the three-way
+        # distinction between Residue, Divergence and Concession lives. map
+        # carried its own paraphrase of it and this test pinned the paraphrase.
+        from support import CONTEXT
+
+        entry = " ".join(
+            CONTEXT.read_text(encoding="utf-8")
+            .split("**Concession**")[1]
+            .split("_Avoid_")[0]
+            .split()
+        ).lower()
+        assert "residue is work declined" in entry, (
+            "conflating them either blocks tests that are fine or ships tests "
+            "nobody examined"
+        )
         assert has_paragraph_with(
-            _section("concession"), "does not block assembly", "residue"
+            _section("concession"), "residue"
         ), "a concession is expressed work; Residue is declined work"
 
     def test_an_unrecorded_concession_is_a_divergence(self):
-        assert has_paragraph_with(_section("concession"), "divergence", "written down")
+        # The claim itself is the glossary's, asserted above. What map owes is
+        # the recording that keeps a Concession from becoming one.
+        assert has_paragraph_with(_section("concession"), "concession:", "expression")
 
 
 def test_map_records_the_standing_of_a_residue_entry():
@@ -711,4 +755,47 @@ def test_map_establishes_the_slots_a_verb_will_accept_before_proposing_a_row():
     assert has_paragraph_with(body, "value kind", "references/authoring.md"), (
         "the mapping stage proposes expressions with values in them and never "
         "checks the kinds those slots accept"
+    )
+
+def _flattened(text):
+    """Whitespace-normalised and lowered; a markdown wrap is not semantic."""
+    return " ".join(text.split()).lower()
+
+
+# --- the recurring helper shapes --------------------------------------------
+#
+# Three of the four were described in `map` and again in `write-an-adapter`,
+# and in neither case did the catalogue of measured faults hold them. The
+# fourth is a procedural default an agent applies without looking anything up,
+# so it stays where it is applied.
+
+DESCRIBED_SHAPES = ("does less than", "does more", "one that delegates")
+
+
+@pytest.mark.parametrize("shape", DESCRIBED_SHAPES)
+def test_the_catalogue_owns_each_described_helper_shape(shape):
+    assert shape in _flattened(FAULT_CLASSES.read_text(encoding="utf-8")), (
+        f"the recurring shape {shape!r} is a measured fault class and belongs "
+        f"in the catalogue that holds them"
+    )
+
+
+def test_the_wait_loop_default_stays_where_it_is_applied():
+    # Not a description: an instruction with a named trigger set, applied while
+    # reading a helper. Moving it behind a seam means an agent must cross one to
+    # know how to treat the commonest shape there is.
+    body = _flattened(MAP.read_text(encoding="utf-8"))
+    for name in ("wait", "until", "refresh", "poll"):
+        assert name in body, f"the loop-name trigger {name!r} left the skill"
+    assert "as a loop until the source shows otherwise" in body
+
+
+@pytest.mark.parametrize(
+    "caller", (MAP, PLUGIN_ROOT / "skills" / "write-an-adapter" / "SKILL.md"),
+    ids=("map", "write-an-adapter"),
+)
+@pytest.mark.parametrize("shape", DESCRIBED_SHAPES)
+def test_no_caller_describes_a_shape_the_catalogue_owns(shape, caller):
+    assert shape not in _flattened(caller.read_text(encoding="utf-8")), (
+        f"{caller.parent.name} describes {shape!r}; point at the catalogue"
     )
