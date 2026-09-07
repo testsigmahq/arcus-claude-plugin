@@ -14,6 +14,7 @@ from pathlib import Path
 import pytest
 
 from support import (
+    document,
     ADAPTERS_DIR,
     FIXTURES_DIR,
     REQUIRED_ADAPTER_SECTIONS,
@@ -39,24 +40,19 @@ TOSCA = ADAPTERS_DIR / "tosca-subset-export.md"
 LOAD_BEARING = ("sequence", "locators", "values")
 
 
+DOC = document(TOSCA)
+
+
 def _meta():
-    meta, _ = read_frontmatter(TOSCA)
-    return meta
+    return DOC.meta
 
 
 def _body():
-    _, body = read_frontmatter(TOSCA)
-    return body
+    return DOC.body
 
 
 def _section(needle):
-    sections = markdown_sections(_body())
-    matching = [v for k, v in sections.items() if needle in k.lower()]
-    assert len(matching) == 1, (
-        f"expected exactly one section whose heading contains {needle!r}, found "
-        f"{len(matching)}. Headings are: {list(sections)}"
-    )
-    return matching[0]
+    return DOC.section(needle)
 
 
 class TestItIsAValidAdapter:

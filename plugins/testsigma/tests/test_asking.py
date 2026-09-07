@@ -9,16 +9,27 @@ it must, and that the documents which ask questions point at it.
 import pytest
 
 from support import (
+    document,
     REFERENCES_DIR,
     hedges_in,
     command_files,
     has_paragraph_with,
-    markdown_sections,
     read_frontmatter,
     skill_files,
 )
 
 ASKING = REFERENCES_DIR / "asking.md"
+
+DOC = document(ASKING)
+
+
+def _sections():
+    return DOC.sections
+
+
+def _section(needle):
+    return DOC.section(needle)
+
 
 #: The four things an Operator must never be shown. Each is a thing they would
 #: have to decode before they could answer, which makes the question unanswerable
@@ -31,10 +42,6 @@ def _body(path):
         encoding="utf-8"
     ).startswith("---") else (None, path.read_text(encoding="utf-8"))
     return body
-
-
-def _sections():
-    return markdown_sections(ASKING.read_text(encoding="utf-8"))
 
 
 def _prohibited_list():
@@ -51,15 +58,6 @@ def _prohibited_list():
         f"expected one bulleted prohibition, found {len(lists)}"
     )
     return lists[0].lower()
-
-
-def _section(needle):
-    matching = [v for k, v in _sections().items() if needle in k.lower()]
-    assert len(matching) == 1, (
-        f"expected exactly one section whose heading contains {needle!r}, found "
-        f"{len(matching)}. Headings are: {list(_sections())}"
-    )
-    return matching[0]
 
 
 class TestTheAskingReferenceExists:

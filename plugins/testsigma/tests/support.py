@@ -418,3 +418,96 @@ def declared_files(reference_text):
     import re as _re
 
     return set(_re.findall(r"\*\*`([^`]+\.md)`\*\*", reference_text))
+
+
+class Document:
+    """One document, bound to its path, with the four things tests ask of it.
+
+    Eight test modules each rebuilt this over `markdown_sections`, and two
+    copies of the "exactly one section" failure message had already drifted
+    apart. Worse, none of the eight was tested: the helper deciding whether a
+    module's assertions target the right text had no test anywhere.
+
+    The interface is deliberately four attributes. Everything a caller used to
+    have to know — that frontmatter must come off first, that a duplicate
+    heading is refused rather than merged, that a markdown wrap is not
+    semantic, that matching two sections is an error rather than a choice —
+    sits behind them.
+    """
+
+    def __init__(self, path):
+        self.path = Path(path)
+
+    def __repr__(self):
+        return f"Document({self.path.name})"
+
+    @property
+    def text(self):
+        """The file as written, frontmatter included."""
+        return self.path.read_text(encoding="utf-8")
+
+    @property
+    def _split(self):
+        """`(meta, body)`, with a document carrying no frontmatter allowed.
+
+        The distinction matters and swallowing the error erased it: a document
+        that carries *no* frontmatter is a reference or an ADR and is fine,
+        while one that opens `---` and cannot be parsed is broken. Catching
+        both made a malformed skill read as a frontmatterless one, so a test
+        asserting on `name` reported a missing field instead of the parse
+        error — a silent degradation of exactly the kind this suite exists to
+        refuse.
+        """
+        text = self.text
+        if not text.startswith("---"):
+            return {}, text
+        return split_frontmatter(text)
+
+    @property
+    def meta(self):
+        """The frontmatter mapping, or `{}` for a document that carries none.
+
+        Raises `FrontmatterError` where frontmatter is claimed and malformed.
+        """
+        return self._split[0]
+
+    @property
+    def body(self):
+        """The document below its frontmatter, or all of it where there is none."""
+        return self._split[1]
+
+    @property
+    def sections(self):
+        """`## heading` to body. Raises on a duplicate heading, by design."""
+        return markdown_sections(self.body)
+
+    @property
+    def flat(self):
+        """The body, whitespace-normalised and lowered.
+
+        For asserting a phrase that straddles a line wrap. Three ownership
+        controls in this suite matched nothing until they normalised, which is
+        a control that cannot fail.
+        """
+        return " ".join(self.body.split()).lower()
+
+    def section(self, needle):
+        """The one section whose heading contains `needle`, case-insensitively.
+
+        Refuses zero matches and refuses several. Both messages name the
+        headings the document actually holds, because a renamed heading is the
+        commonest cause and is otherwise invisible from the failure.
+        """
+        sections = self.sections
+        matching = [body for head, body in sections.items() if needle in head.lower()]
+        assert len(matching) == 1, (
+            f"{self.path.name}: expected exactly one section whose heading "
+            f"contains {needle!r}, found {len(matching)}. Headings are: "
+            f"{list(sections)}"
+        )
+        return matching[0]
+
+
+def document(path):
+    """A `Document` for `path`. The one way a test module binds to a file."""
+    return Document(path)

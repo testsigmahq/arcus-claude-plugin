@@ -15,6 +15,7 @@ from support import (
     paragraphs,
     parse_count_table,
     split_frontmatter,
+    document,
 )
 
 
@@ -237,3 +238,117 @@ class TestParseCountTableHandlesAPipeInACell:
             "| `M&T Inventory` | 4 |\n| `M&T Org Search | CHIP` | 2 |\n"
         )
         assert table == {"M&T Inventory": 4}
+
+
+# --- document ----------------------------------------------------------------
+#
+# Eight modules each rebuilt `_section` over `markdown_sections`, and two copies
+# of its failure message had already drifted apart. None of the eight was
+# tested: the helper that decides whether a whole file's assertions target the
+# right text had no test of its own anywhere in the suite.
+
+def _written(tmp_path, text):
+    path = tmp_path / "doc.md"
+    path.write_text(text, encoding="utf-8")
+    return path
+
+
+BODY = """---
+name: sample
+---
+
+# Title
+
+## Opening the helper
+
+Read it for sequence.
+
+## Closing
+
+Done.
+"""
+
+
+def test_a_handle_exposes_the_body_without_its_frontmatter(tmp_path):
+    doc = document(_written(tmp_path, BODY))
+    assert doc.body.lstrip().startswith("# Title")
+    assert "name: sample" not in doc.body
+
+
+def test_a_handle_reads_the_frontmatter_too(tmp_path):
+    assert document(_written(tmp_path, BODY)).meta["name"] == "sample"
+
+
+def test_a_handle_finds_a_section_by_part_of_its_heading(tmp_path):
+    doc = document(_written(tmp_path, BODY))
+    assert "sequence" in doc.section("helper")
+
+
+def test_a_needle_matching_no_section_names_the_headings_that_exist(tmp_path):
+    # The diagnosable failure: a renamed section is the commonest cause, and
+    # the message has to say what the document actually holds.
+    doc = document(_written(tmp_path, BODY))
+    with pytest.raises(AssertionError) as raised:
+        doc.section("residue")
+    message = str(raised.value)
+    assert "residue" in message
+    assert "Opening the helper" in message and "Closing" in message
+
+
+def test_a_needle_matching_two_sections_refuses_rather_than_choosing(tmp_path):
+    # Picking the first would let a document satisfy an assertion twice over,
+    # from either of two sections, with no way to tell which.
+    doc = document(_written(tmp_path, BODY.replace("## Closing", "## Closing the helper")))
+    with pytest.raises(AssertionError) as raised:
+        doc.section("helper")
+    assert "2" in str(raised.value)
+
+
+def test_a_duplicate_heading_is_still_refused_through_the_handle(tmp_path):
+    # markdown_sections raises on one deliberately: a gutted section plus a
+    # verbatim copy lower down would otherwise satisfy everything asserted
+    # against either. The handle must not soften that.
+    doc = document(_written(tmp_path, BODY + "\n## Closing\n\nAgain.\n"))
+    with pytest.raises(Exception):
+        doc.sections
+
+
+def test_a_handle_flattens_whitespace_on_request(tmp_path):
+    # A markdown line wrap is not semantic, and three phrase-ownership controls
+    # in this suite were silently vacuous until they normalised.
+    doc = document(_written(tmp_path, "---\nname: x\n---\n\n# T\n\nRead it\nfor sequence.\n"))
+    assert "read it for sequence." in doc.flat
+
+
+def test_a_handle_works_on_a_document_with_no_frontmatter(tmp_path):
+    # References and ADRs carry none; only skills and commands do.
+    doc = document(_written(tmp_path, "# Plain\n\n## One\n\nText.\n"))
+    assert doc.meta == {}
+    assert "Text." in doc.section("one")
+
+
+def test_malformed_frontmatter_raises_rather_than_reading_as_absent(tmp_path):
+    # The distinction the handle first got wrong: a document that *claims*
+    # frontmatter and cannot be parsed is broken, and must say so. Swallowing
+    # it made a skill with a bad opening block read as one with no frontmatter,
+    # so a test asserting on `name` reported a missing field — or passed
+    # vacuously — instead of naming the parse error.
+    path = _written(tmp_path, "---\nname: [unclosed\n---\n\n# T\n")
+    with pytest.raises(FrontmatterError):
+        document(path).meta
+    with pytest.raises(FrontmatterError):
+        document(path).body
+
+
+def test_unterminated_frontmatter_raises_too(tmp_path):
+    path = _written(tmp_path, "---\nname: sample\n\n# T\n\nNo closing fence.\n")
+    with pytest.raises(FrontmatterError):
+        document(path).meta
+
+
+def test_a_document_that_claims_no_frontmatter_is_not_a_parse_error(tmp_path):
+    # The other half: a reference opens with `# Title` and carries none, and
+    # that is not a fault.
+    doc = document(_written(tmp_path, "# Plain\n\nText.\n"))
+    assert doc.meta == {}
+    assert doc.body.startswith("# Plain")

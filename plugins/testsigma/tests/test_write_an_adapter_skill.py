@@ -8,38 +8,30 @@ an author to a document that passes the same suite the shipped ones pass.
 import pytest
 
 from support import (
-    ADAPTERS_DIR,
+    document,
     PLUGIN_ROOT,
     REQUIRED_ADAPTER_SECTIONS,
     THREE_PROPERTIES,
     adapter_files,
     has_paragraph_with,
     hedges_in,
-    markdown_sections,
     read_frontmatter,
 )
 
 SKILL = PLUGIN_ROOT / "skills" / "write-an-adapter" / "SKILL.md"
 
-LOAD_BEARING = ("three properties", "normalisation", "sequence", "documentation")
+DOC = document(SKILL)
 
 
 def _body():
-    _, body = read_frontmatter(SKILL)
-    return body
-
-
-def _sections():
-    return markdown_sections(_body())
+    return DOC.body
 
 
 def _section(needle):
-    matching = [v for k, v in _sections().items() if needle in k.lower()]
-    assert len(matching) == 1, (
-        f"expected exactly one section whose heading contains {needle!r}, found "
-        f"{len(matching)}. Headings are: {list(_sections())}"
-    )
-    return matching[0]
+    return DOC.section(needle)
+
+
+LOAD_BEARING = ("three properties", "normalisation", "sequence", "documentation")
 
 
 class TestTheSkillExists:

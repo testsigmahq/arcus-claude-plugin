@@ -10,6 +10,7 @@ comparison before a row can be called finished.
 import pytest
 
 from support import (
+    document,
     PLUGIN_ROOT,
     REFERENCES_DIR,
     has_paragraph_with,
@@ -21,6 +22,21 @@ from support import (
 
 MAP = PLUGIN_ROOT / "skills" / "map" / "SKILL.md"
 
+DOC = document(MAP)
+
+
+def _body():
+    return DOC.body
+
+
+def _sections():
+    return DOC.sections
+
+
+def _section(needle):
+    return DOC.section(needle)
+
+
 #: Every helper name that is treated as a loop until the source proves
 #: otherwise. A helper that re-drives the interface looks identical to a passive
 #: wait once flattened.
@@ -29,24 +45,6 @@ LOOP_NAMES = ("wait", "until", "refresh", "poll")
 #: Sections stating absolute rules. A paragraph granting an exception anywhere
 #: in one of these guts the rule while leaving its sentence intact.
 LOAD_BEARING = ("one distinct source step", "helper", "element", "compare", "residue")
-
-
-def _body():
-    _, body = read_frontmatter(MAP)
-    return body
-
-
-def _sections():
-    return markdown_sections(_body())
-
-
-def _section(needle):
-    matching = [v for k, v in _sections().items() if needle in k.lower()]
-    assert len(matching) == 1, (
-        f"expected exactly one section whose heading contains {needle!r}, found "
-        f"{len(matching)}. Headings are: {list(_sections())}"
-    )
-    return matching[0]
 
 
 class TestTheSkillExists:
@@ -321,14 +319,11 @@ class TestItWiresIntoTheRest:
 FAULT_CLASSES = REFERENCES_DIR / "fault-classes.md"
 
 
+FAULTS = document(FAULT_CLASSES)
+
+
 def _fault_section(needle):
-    sections = markdown_sections(FAULT_CLASSES.read_text(encoding="utf-8"))
-    matching = [v for k, v in sections.items() if needle in k.lower()]
-    assert len(matching) == 1, (
-        f"expected one section containing {needle!r}, found {len(matching)}: "
-        f"{list(sections)}"
-    )
-    return matching[0]
+    return FAULTS.section(needle)
 
 
 class TestTheFaultClassCatalogue:

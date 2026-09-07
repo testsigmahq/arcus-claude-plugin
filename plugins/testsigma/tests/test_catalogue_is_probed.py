@@ -10,12 +10,11 @@ pushed.
 import pytest
 
 from support import (
-    ADR_DIR,
+    document,
     CONTEXT,
     REFERENCES_DIR,
     adr_files,
     has_paragraph_with,
-    markdown_sections,
     paragraphs,
     skill_files,
 )
@@ -88,10 +87,7 @@ def test_no_document_sends_a_session_to_the_language_server(path):
 
 class TestTheOracle:
     def _section(self):
-        sections = markdown_sections(AUTHORING.read_text(encoding="utf-8"))
-        matching = [v for k, v in sections.items() if "asking the build" in k.lower()]
-        assert len(matching) == 1, f"no section asks the build: {list(sections)}"
-        return matching[0]
+        return document(AUTHORING).section("asking the build")
 
     def test_the_procedure_lives_in_one_place(self):
         assert self._section()

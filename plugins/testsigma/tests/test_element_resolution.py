@@ -16,10 +16,10 @@ import re
 import pytest
 
 from support import (
+    document,
     PLUGIN_ROOT,
     REFERENCES_DIR,
     has_paragraph_with,
-    markdown_sections,
 )
 
 ELEMENT_RESOLUTION = REFERENCES_DIR / "element-resolution.md"
@@ -28,14 +28,11 @@ MAP = PLUGIN_ROOT / "skills" / "map" / "SKILL.md"
 ASSEMBLE = PLUGIN_ROOT / "skills" / "assemble" / "SKILL.md"
 
 
+DOC = document(ELEMENT_RESOLUTION)
+
+
 def _text(needle=None):
-    text = ELEMENT_RESOLUTION.read_text(encoding="utf-8")
-    if needle is None:
-        return text
-    sections = markdown_sections(text)
-    matching = [v for k, v in sections.items() if needle in k.lower()]
-    assert len(matching) == 1, f"expected one section for {needle!r}: {list(sections)}"
-    return matching[0]
+    return DOC.body if needle is None else DOC.section(needle)
 
 
 def _bold_leads(text):

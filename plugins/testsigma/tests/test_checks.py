@@ -14,17 +14,27 @@ import re
 import pytest
 
 from support import (
+    document,
     MIGRATION_DIRECTORY_FILES,
-    PLUGIN_ROOT,
     REFERENCES_DIR,
     command_files,
     has_paragraph_with,
     hedges_in,
-    markdown_sections,
     skill_files,
 )
 
 CHECKS = REFERENCES_DIR / "checks.md"
+
+DOC = document(CHECKS)
+
+
+def _text():
+    return DOC.body
+
+
+def _section(needle):
+    return DOC.section(needle)
+
 
 #: The five checks in the order ADR-0001 fixes. Named here so the ordering is
 #: asserted against one list rather than restated per test.
@@ -35,14 +45,6 @@ CHECK_ORDER = ("validity", "compare-to-source", "tenant", "round trip", "render"
 NEEDS_A_TENANT = ("tenant", "round trip")
 
 LOAD_BEARING = ("order", "not checked", "gains", "record")
-
-
-def _text():
-    return CHECKS.read_text(encoding="utf-8")
-
-
-def _sections():
-    return markdown_sections(_text())
 
 
 def _numbered_checks(text):
@@ -56,15 +58,6 @@ def _numbered_checks(text):
         (int(number), name.lower())
         for number, name in re.findall(r"^\s*(\d+)\.\s+\*\*(.+?)\*\*", text, re.M)
     ]
-
-
-def _section(needle):
-    matching = [v for k, v in _sections().items() if needle in k.lower()]
-    assert len(matching) == 1, (
-        f"expected exactly one section whose heading contains {needle!r}, found "
-        f"{len(matching)}. Headings are: {list(_sections())}"
-    )
-    return matching[0]
 
 
 class TestTheReferenceExists:

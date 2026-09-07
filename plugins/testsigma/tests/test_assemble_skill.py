@@ -5,40 +5,31 @@ verification skill, and ADR-0001 makes it a property of a whole test rather than
 of a step, because it describes a fault that only exists between steps.
 """
 
-import re
-
 import pytest
 
 from support import (
+    document,
     PLUGIN_ROOT,
     has_paragraph_with,
     hedges_in,
-    markdown_sections,
     read_frontmatter,
 )
 
 ASSEMBLE = PLUGIN_ROOT / "skills" / "assemble" / "SKILL.md"
-SCRIPT = PLUGIN_ROOT / "scripts" / "check_step_order.py"
 
-LOAD_BEARING = ("reviewed", "unresolved element", "nesting", "sweep", "out of place")
+DOC = document(ASSEMBLE)
 
 
 def _body():
-    _, body = read_frontmatter(ASSEMBLE)
-    return body
-
-
-def _sections():
-    return markdown_sections(_body())
+    return DOC.body
 
 
 def _section(needle):
-    matching = [v for k, v in _sections().items() if needle in k.lower()]
-    assert len(matching) == 1, (
-        f"expected exactly one section whose heading contains {needle!r}, found "
-        f"{len(matching)}. Headings are: {list(_sections())}"
-    )
-    return matching[0]
+    return DOC.section(needle)
+
+SCRIPT = PLUGIN_ROOT / "scripts" / "check_step_order.py"
+
+LOAD_BEARING = ("reviewed", "unresolved element", "nesting", "sweep", "out of place")
 
 
 class TestTheSkillExists:

@@ -11,32 +11,28 @@ to re-probe rather than assume — ADR-0003.
 import pytest
 
 from support import (
+    document,
     REFERENCES_DIR,
-    command_files,
     has_paragraph_with,
     hedges_in,
-    markdown_sections,
     preamble,
     skill_files,
 )
 
 AUTHORING = REFERENCES_DIR / "authoring.md"
 
-LOAD_BEARING = ("deprecated", "layout", "round trip", "unconverted region", "credential")
+DOC = document(AUTHORING)
 
 
 def _text():
-    return AUTHORING.read_text(encoding="utf-8")
+    return DOC.body
 
 
 def _section(needle):
-    sections = markdown_sections(_text())
-    matching = [v for k, v in sections.items() if needle in k.lower()]
-    assert len(matching) == 1, (
-        f"expected one section containing {needle!r}, found {len(matching)}: "
-        f"{list(sections)}"
-    )
-    return matching[0]
+    return DOC.section(needle)
+
+
+LOAD_BEARING = ("deprecated", "layout", "round trip", "unconverted region", "credential")
 
 
 def test_it_exists():

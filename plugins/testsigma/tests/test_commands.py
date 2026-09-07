@@ -8,11 +8,11 @@ because of how it reads.
 import pytest
 
 from support import (
+    document,
     MIGRATION_DIRECTORY,
     PLUGIN_ROOT,
     command_files,
     has_paragraph_with,
-    markdown_sections,
     read_frontmatter,
 )
 
@@ -64,17 +64,13 @@ class TestResumeCommand:
         assert "resume" in description
 
     def _sections(self):
-        # Raises on a duplicate heading, which is what stops a gutted section
-        # plus a verbatim copy further down from satisfying anything below.
-        return markdown_sections(_body(RESUME))
+        # The handle raises on a duplicate heading, which is what stops a
+        # gutted section plus a verbatim copy further down from satisfying
+        # anything below.
+        return document(RESUME).sections
 
     def _section(self, needle):
-        matching = [v for k, v in self._sections().items() if needle in k.lower()]
-        assert len(matching) == 1, (
-            f"expected exactly one section whose heading contains {needle!r}, found "
-            f"{len(matching)}. Headings are: {list(self._sections())}"
-        )
-        return matching[0]
+        return document(RESUME).section(needle)
 
     # The four things it must report. Each is scoped to the section that
     # reports it, because these words recur across the whole document.
