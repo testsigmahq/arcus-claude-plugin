@@ -85,3 +85,16 @@ def test_the_docs_are_in_the_repository_once_the_plugin_is_committed():
         if path not in tracked
     ]
     assert not missing, f"on disk but not in the repository: {missing}"
+
+
+@pytest.mark.parametrize("pattern", ["*.bak", "*.orig", "*.rej", "*~"])
+def test_no_editor_leftovers_are_committed(pattern):
+    # A 283-line `.bak` of check_step_order.py was committed and sat beside the
+    # real script for weeks. Two copies of a parser is one that gets read and
+    # one that gets edited.
+    stray = [
+        path.relative_to(PLUGIN_ROOT).as_posix()
+        for path in PLUGIN_ROOT.rglob(pattern)
+        if ".git" not in path.parts
+    ]
+    assert not stray, f"editor leftovers on disk: {stray}"

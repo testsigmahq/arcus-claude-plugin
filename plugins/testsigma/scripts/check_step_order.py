@@ -89,9 +89,13 @@ class Step:
 def parse(text):
     """Return the root Step of a `.sigma` test, or None if it holds no steps.
 
-    Parentage comes from the lexical nesting. Only the first `[id = N]` on a
-    line is taken, so an argument that happens to contain the token cannot
-    invent a step.
+    Parentage comes from the lexical nesting. The **last** `[id = N]` on a line
+    is the step's own: identity is a setting, so it renders in the head's
+    settings position, after any argument that happens to contain the token.
+    Taking the first was the bug this module's header records.
+
+    A line beginning `}` closes its block and a line ending `{` opens one, and
+    a chained branch — `} else {`, `} else [id = N] {` — does both.
     """
     root = None
     stack = []
@@ -104,12 +108,17 @@ def parse(text):
         matches = list(_STEP.finditer(line))
         match = matches[-1] if matches else None
         opens = line.endswith("{")
-        closes = line == "}"
+        # A chained branch closes its block and opens the next on one line, so
+        # the two are independent rather than exclusive. Testing `line == "}"`
+        # made every `} else {` an opener that never closed, which mis-parented
+        # the branch and then failed the file on the guard below.
+        closes = line.startswith("}")
 
         if closes:
             if stack:
                 stack.pop()
-            continue
+            if not opens:
+                continue
 
         if match:
             identity = int(match.group(1))

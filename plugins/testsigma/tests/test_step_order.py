@@ -272,3 +272,75 @@ class TestTheCommandLine:
         sigma.write_text(ONE_CONDITIONAL, encoding="utf-8")
         assert order.main(["prog", str(sigma)]) == 0
         assert "correct order" in capsys.readouterr().out
+
+
+# --- chained branches --------------------------------------------------------
+#
+# `} else if … {` and `} else {` are first-class syntax: they appear in the
+# format's own canonical control-flow example. A line beginning `}` closes its
+# block and one ending `{` opens the next, so a chained branch does both. The
+# parser recognised a close only on a bare `}`, so every chained branch pushed
+# without popping and the file died on the unclosed-block guard.
+
+# The pulled shape. Identity is a setting, so it renders in the head's settings
+# position — which is the shape that matters here, because the orders this
+# script checks come from the platform and so the file has been pulled.
+ELSE_CHAIN = '''test "branches" [id = 1] {
+  if elementIs(element.banner, "visible") [id = 2] {
+    click(element.dismiss) [id = 3]
+  } else if pageHasText("try again") [id = 4] {
+    click(element.submit) [id = 5]
+  } else [id = 6] {
+    waitSeconds(1) [id = 7]
+  }
+
+  click(element.done) [id = 8]
+}
+'''
+
+# The hand-authored shape, before any push has given the branches ids.
+ELSE_UNANNOTATED = '''test "branches" [id = 1] {
+  if elementIs(element.banner, "visible") [id = 2] {
+    click(element.dismiss) [id = 3]
+  } else {
+    waitSeconds(1) [id = 4]
+  }
+}
+'''
+
+
+class TestAChainedBranch:
+    def test_the_file_parses_at_all(self):
+        # It raised "2 block(s) left open at end of file" on a file that closes
+        # every block it opens.
+        assert order.parse(ELSE_CHAIN) is not None
+
+    def test_each_branch_is_a_sibling_and_not_nested_in_the_one_before(self):
+        root = order.parse(ELSE_CHAIN)
+        ids = [child.identity for child in root.children]
+        assert ids == [2, 4, 6, 8], f"top level should be the branch heads: {ids}"
+
+    def test_each_branch_body_belongs_to_its_own_branch(self):
+        root = order.parse(ELSE_CHAIN)
+        expected = {2: [3], 4: [5], 6: [7], 8: []}
+        for child in root.children:
+            got = [step.identity for step in child.children]
+            assert got == expected[child.identity], (
+                f"branch {child.identity} holds {got}, expected {expected[child.identity]}"
+            )
+
+    def test_the_derived_order_is_still_a_pre_order_walk(self):
+        root = order.parse(ELSE_CHAIN)
+        walked = [step.identity for step in order.walk(root)]
+        assert walked == [1, 2, 3, 4, 5, 6, 7, 8], walked
+
+    def test_an_unannotated_branch_parses_and_keeps_the_depth_honest(self):
+        # No id means no step to parent to, so the body attaches to the
+        # enclosing block — the module's existing rule for a block with no
+        # annotation, not a special case for `else`.
+        root = order.parse(ELSE_UNANNOTATED)
+        ids = [child.identity for child in root.children]
+        assert ids == [2, 4], (
+            f"the unannotated else has no step of its own, so its body belongs "
+            f"to the test: {ids}"
+        )
