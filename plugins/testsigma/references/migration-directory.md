@@ -65,6 +65,25 @@ stated cause and the reasoning that produced it. An unexpressible step and an
 unresolved element are distinct causes. No entry is final: a cause is overturned
 when the format gains a spelling, or when one is found that nobody had used.
 
+A Standing is `gap` or `refusal`, and it says which of the two kinds of stop this
+is. A **gap** is a capability the format does not have yet, and the people who
+own the format may be tracking it; a **refusal** is a construct declined on
+purpose, and no build will bring it. Both stop a row, and only one is temporary.
+Written together in one column they are re-read identically, which costs twice:
+a settled decision gets re-examined every session, and a gap that has since
+closed goes on looking permanent.
+
+They differ in what revisits them, so `Revisit when` means something different
+in each. A gap is revisited when the build changes — `cli-probe.md` says a build
+that differs makes every capability possibly new, and a gap is the thing that
+sentence is about. A refusal is revisited only when the Operator or the format's
+owners reverse the decision, so it is not re-examined on a build change and
+`Revisit when` names the decision rather than a version.
+
+When neither is established, write `gap`. It is the reading that gets looked at
+again, and the cost of being wrong about it is one re-examination rather than a
+row written off for the life of the Migration.
+
 An entry is keyed by Source Step **and element**, because the two causes do not
 share a granularity. An unexpressible step blocks the whole row and leaves the
 element column empty. An unresolved element blocks only the occurrences that name
@@ -156,9 +175,10 @@ True of the application under test. Only someone who knows it can answer.
 # Residue
 
 Not final. A cause is overturned when a spelling is found or the format gains one.
+A Standing is `gap` or `refusal`.
 
-| Source Step | Element | Cause | Reasoning | Revisit when |
-|---|---|---|---|---|
+| Source Step | Element | Cause | Standing | Reasoning | Revisit when |
+|---|---|---|---|---|---|
 ```
 
 `check-record.md`:

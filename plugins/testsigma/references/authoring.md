@@ -19,8 +19,18 @@ there and false for anything you create. The push refuses the create outright.
 
 So treat a deprecated template as an authoring error at the moment a row proposes
 it, not as something to discover at push time, and keep a replacement for every
-one you have met. The measured case is worth recording because the replacement was
-*better* than the deprecated verb it replaced: where a source clicked an element
+one you have met.
+
+**Read the field rather than meeting the refusal.** `deprecated` is a boolean on
+the template, in the build's own catalogue, and 158 of the 473 web verbs carry
+it — a third of the surface, so meeting it by pushing is a choice and not a
+necessity. It is readable before a row is written, from the schema the build
+compiles in and that its language server drives completion and hover from. This
+rule was learned the expensive way, from a push that refused a create, and
+nothing required it to be learned that way.
+
+The measured case is worth recording because the replacement was *better* than
+the deprecated verb it replaced: where a source clicked an element
 matched by contained text, the replacement iterates every match, clicks the first
 whose text contains the value, and throws listing the actual texts it found —
 which is the source's semantics, decomposed into an element plus a text filter.
@@ -32,6 +42,49 @@ click an outer wrapper that also contains the text.
 is OCR-based: it screenshots, extracts text, and clicks a coordinate. It is not an
 XPath match, and nothing in the name says so. Resolve the verb to its
 implementation before using it (`fault-classes.md`).
+
+## A value kind, and which slots will take one
+
+A step's slot does not simply take "a value". Each slot declares the **value
+kinds** it accepts, and a value's kind is a consequence of how it is written:
+
+| Kind | Written as | What it is |
+|---|---|---|
+| raw | a literal | typed into the step |
+| parameter | `param[...]` | a column of a test data profile |
+| runtime | `runtime[...]` | a value an earlier step stored |
+| global | `env[...]` | an environment variable |
+| random | `random(n)` | a generated string of that length |
+| function | a `gen.` call | one of the catalogue's data generators |
+| phone_number | `phone[...]` | a provisioned test phone number |
+| mail_box | `mailbox[...]` | a provisioned test mailbox |
+| upload_path | `upload[...]` | a file the tenant holds for upload |
+
+The slot decides, not the verb and not the value: a slot's `allowedTypes` names
+the kinds the server will store there, and a reference of any other kind is
+refused however sensible it reads. The kinds are not evenly available — a slot
+taking an upload path is rare, where most slots take a literal — so "this worked
+in the last row" is not evidence about this one.
+
+This is why a mapping can be correct about the verb and still illegal. A source
+value that has to come from somewhere other than the test — a timestamp, an
+address, a value an earlier step captured — is expressible only where that slot
+allows the kind that carries it. Establish the slot's kinds before proposing the
+row, the same way and from the same place as `deprecated`.
+
+Where no allowed kind can carry the value, the row is Residue, and its standing
+is which of the two the slot's refusal is: a gap where the format may gain the
+kind, a refusal where the slot is never going to hold it. Do not reach for a raw
+literal instead. Freezing a generated or captured value into a literal is a
+Divergence that passes every check — the step runs, and it runs the same input
+every time, which is the one thing the source did not do.
+
+The data generators behind the `function` kind are a generated catalogue inside
+the CLI build — 125 of them in 22 groups when this was measured, against one
+build, so treat the figure as dated rather than as a fact about the installed
+one. Read them from the build — the language server drives completion and hover
+from the same schema — rather than copying any part of them here, which is the
+staleness `README.md` in `adapters/` warns about.
 
 ## Values, names and layout the validator enforces
 

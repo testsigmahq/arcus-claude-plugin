@@ -85,6 +85,11 @@ When neither the existing project nor the Operator can supply an element, record
 in `residue.md` as an unresolved element, naming the parameter value that identifies
 it. That cause is distinct from an unexpressible step and the two are never merged.
 
+Record its **Standing**. An element nobody has captured yet is a `gap` and closes
+the day someone captures it; one the application has no way to expose is a
+`refusal` and no capture will bring it. Where you cannot tell, write `gap`. The
+distinction is what decides whether a later session looks again.
+
 An unresolved element blocks assembly of every test that references it. Never
 substitute a placeholder and never assemble around it. A test that looks finished and
 cannot run is worse than one that is visibly absent, because the absent test is on a

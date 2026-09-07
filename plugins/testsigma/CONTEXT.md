@@ -78,6 +78,10 @@ An unexpressible step and an unresolved element are distinct causes. No entry is
 final: a cause is overturned when the format gains a spelling, or when one is
 found that nobody had used, so an entry records the reasoning that produced it
 and is revisited rather than treated as closed.
+Each entry also carries a **Standing**, which is a gap or a refusal — a
+capability the format does not have yet, against a construct declined on
+purpose. Both stop a row and only one is temporary, so they are not revisited by
+the same thing: a build change can close a gap and can never close a refusal.
 _Avoid_: gaps, failures, unsupported
 
 ### Verification
@@ -127,11 +131,21 @@ _Avoid_: results, log, audit trail
 Something true of Testsigma's own authoring surface that no reading of a source
 could reveal. A migration can settle one itself, by probing.
 
+**Value Kind**:
+Where a value in a step comes from: typed in, a column of a test data profile, a
+value an earlier step stored, an environment variable, a generator, an upload
+path. Each slot declares the kinds it will hold, so a kind is what makes an
+expression legal in a given slot rather than a property of the value on its own.
+_Avoid_: data type, variable, test data
+
 **Catalogue**:
 The set of steps Testsigma can express for one kind of application. Each platform
 has its own and they do not overlap, so a suite driving an application whose
 platform this build has no catalogue for is refused rather than partly converted.
-Which catalogues exist is a Platform Fact, established by probing, and it grows.
+The refusal is what happens today and not the Standing of it: the missing
+catalogues are tracked as work, so as Residue such a stop is a gap and closes
+when a catalogue lands. Which catalogues exist is a Platform Fact, established by
+probing, and it grows.
 _Avoid_: verb list, step library, schema
 
 **Application Fact**:

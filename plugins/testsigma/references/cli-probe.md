@@ -16,8 +16,14 @@ Run the CLI's help and look at the command list.
 
 | The help lists | What it is | Can it run a Migration? |
 |---|---|---|
-| `attach`, `pull`, `push`, `validate` | The workspace CLI this plugin needs | Yes |
+| `attach`, `pull`, `push`, `validate`, `run`, `url`, `list` | The workspace CLI this plugin needs | Yes |
 | `test`, `sprints`, `projects`, `modules` | The other Testsigma CLI, which authors individual tests | **No** |
+
+Those seven are the whole dispatch, and the first four are only the ones the
+Migration's stages drive directly. Telling the two programs apart needs any one
+of the seven, but do not read the four as the surface: `list` is how the platform
+gate below reads what a project holds, and a probe that never looked for it
+concluded the command did not exist.
 
 If the help shows the second surface, stop. Tell the Operator that the Testsigma
 command-line tool installed here is the one for writing individual tests, not the
@@ -97,10 +103,14 @@ the answer in `platform-facts.md` with how it was established:
   with the build identity beside it, and never as a fact about the installed
   build.
 
-A platform absent from the set is a refusal and not a gap: nothing here can say
-what a file for that platform would mean. Treat it the way a missing check is
-treated — recorded, not assumed — and re-establish it when the build changes,
-because a catalogue arriving is exactly the kind of growth ADR-0003 exists for.
+A platform absent from the set is a **gap** in the Residue sense and not a
+refusal: the format's owners track the three missing catalogues as work still to
+do, so a build change can close one, and recording it as permanent would tell a
+later session never to look again. What is permanent is only that no file can be
+written for a platform whose catalogue does not exist yet. Treat it the way a
+missing check is treated — recorded, not assumed — and re-establish it when the
+build changes, because a catalogue arriving is exactly the kind of growth
+ADR-0003 exists for.
 The code belongs here and in the Migration Directory; the Operator hears which
 platforms can be converted, never a diagnostic.
 

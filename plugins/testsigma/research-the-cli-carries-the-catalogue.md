@@ -44,6 +44,9 @@ A parameter declares a `slot` — `value` (432), `element` (175), `attribute`
 
 ## The four consequences for this plugin
 
+*All four consequences and the Residue point below are now addressed; each says
+how, beneath the finding. The corrections at the end are applied.*
+
 **1. Do not write a catalogue reference.** An earlier draft of this
 investigation proposed `references/target-surface.md`. That would be a stale,
 lossy, hand-copied duplicate of a generated file — the exact failure
@@ -55,12 +58,30 @@ that idea.
 a real tenant. It is a boolean on 158 of 473 Web verbs, readable before
 authoring anything.
 
+**Fixed.** The rule already said to treat it as an authoring error rather than a
+push-time discovery; it now says how that is possible — the field is in the
+build's own catalogue, a third of the Web surface carries it, and the language
+server drives hover and completion from the same schema.
+
 **3. The plugin has no concept for a value kind.** `allowedTypes` decides
 whether a given slot will accept a generator, a runtime variable, a global or a
 test-data-profile column. That is what makes a mapping legal or illegal, and
 neither `CONTEXT.md` nor the Step Map has a term or a column for it. The 125
 generators sit behind the `random` and `function` kinds and are equally
 unrepresented.
+
+**Fixed.** `CONTEXT.md` gains **Value Kind** and `references/authoring.md` gains
+a section carrying the nine kinds, the spelling of each — the namespace-to-kind
+map in the CLI's `entity-model.ts` is what makes the spelling decisive — the rule
+that the slot's `allowedTypes` decides, and the outcome when no allowed kind can
+carry the value. `map` establishes the slot before proposing a row and is told
+not to settle a mismatch with a raw literal, which passes every check and is a
+Divergence.
+
+**The Step Map gains no column, deliberately.** A row's Expression cell already
+carries the spelling, and a kind is a consequence of the spelling, so a second
+column would be derived data that can disagree with the cell beside it. What was
+missing was the term and the check, not a place to write the answer twice.
 
 **4. `survey`'s triage screens on the wrong axis.** It screens step *content* —
 spreadsheet and CSV handling, data-loader, database, shell and version-control
@@ -92,8 +113,15 @@ Eleven numbered wishlist entries carry the measurement behind each gap, and
 nineteen ADRs carry the deliberate refusals — 0010 refuses what the server
 accepts and never runs, 0017 records that the negated branches have no spelling.
 Those are residue causes maintained by the people who own the format. This
-plugin's residue causes are maintained by one conversion's memory, and nothing
-in it currently re-examines a cause when the surface grows.
+plugin's residue causes were maintained by one conversion's memory, and nothing
+in it re-examined a cause when the surface grew.
+
+**Fixed.** `residue.md` gains a **Standing** column, `gap` or `refusal`, and
+`Revisit when` now means something different in each: a gap is revisited on a
+build change, which `cli-probe.md` already makes a session-start event, and a
+refusal only when the decision is reversed. Unknown defaults to `gap`, because
+that is the reading that gets looked at again. `CONTEXT.md`, the two skills that
+write residue rows, and the eval fixture all carry it.
 
 ## Corrections to existing documents
 
@@ -102,6 +130,10 @@ in it currently re-examines a cause when the surface grows.
 `packages/cli/src/main.ts` has **seven**: those four plus `run`, `url` and
 `list`. The table is not wrong about which CLI is which; it is incomplete.
 
+**Fixed**, and it mattered more than a count: `list` is what the platform gate
+added above reads a project's application types from, and the four-command table
+was the reason an earlier reading concluded there was no such command.
+
 The probe itself reads only the `--help` surface, and the reference already
 admits that cannot show a rule tightening inside an existing command. The schema
 is the thing worth probing and the probe does not read it. It is compiled into
@@ -109,6 +141,12 @@ the package rather than written into an attached workspace, so a probe reaches
 it through the CLI or the language server (`packages/language-server`, which
 drives completion and hover from it) rather than from a file in the source
 suite.
+
+**Partly addressed.** The probe now reads the schema for two specific things —
+which platforms have a catalogue, and a slot's value kinds — through the CLI or
+the language server, as the paragraph above says it must. It still does not diff
+the schema across builds, which is what would turn "this build differs" into a
+list of what actually changed. That is the remaining work here.
 
 ## Out of scope, recorded so it is not re-found
 

@@ -218,11 +218,26 @@ between them: not the size of the gap but whether it is written down. A
 difference you noticed, judged acceptable, and did not record is indistinguishable
 afterwards from one you never saw.
 
+## Before a row is proposed: the slot decides the value
+
+Naming the right verb does not make a row legal. A slot declares which **value
+kinds** it will hold, and a value of any other kind is refused there however
+sensible it reads, so where a source value comes from is part of choosing the
+expression. `references/authoring.md` carries the kinds and where to read a
+slot's own list. Never settle a mismatch with a raw literal: freezing a generated
+or captured value into a constant passes every check and is a Divergence.
+
 ## Step 7: Residue, for what the format cannot express
 
 When a Source Step cannot be expressed, record it in `residue.md` with a stated
 cause and the reasoning that produced the ruling. An unexpressible step and an
 unresolved element are distinct causes and are never merged.
+
+Record its **Standing** too, which is `gap` or `refusal`: a capability the format
+does not have yet, against a construct it declines on purpose. Both stop the row
+and only one is temporary, so they are not revisited by the same thing — a build
+change can close a gap and can never close a refusal. Where you cannot tell,
+write `gap`, because that is the reading that gets looked at again.
 
 No entry is final. The reasoning is recorded so a ruling can be overturned rather
 than hardening into a fact: an entry is revisited when the format gains a

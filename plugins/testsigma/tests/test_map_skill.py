@@ -793,3 +793,23 @@ class TestAConcessionIsRecordedRatherThanHidden:
 
     def test_an_unrecorded_concession_is_a_divergence(self):
         assert has_paragraph_with(_section("concession"), "divergence", "written down")
+
+
+def test_map_records_the_standing_of_a_residue_entry():
+    # The column exists in the reference; the stage that writes the row is what
+    # decides whether it gets filled in.
+    body = _body()
+    assert has_paragraph_with(body, "standing", "gap", "refusal"), (
+        "map writes residue entries but never says to record which kind of stop "
+        "the cause is, so the column arrives empty"
+    )
+
+
+def test_map_establishes_the_slots_a_verb_will_accept_before_proposing_a_row():
+    # A row can name the right verb and still be illegal, because the slot
+    # decides which value kinds it will hold.
+    body = _body()
+    assert has_paragraph_with(body, "value kind", "references/authoring.md"), (
+        "the mapping stage proposes expressions with values in them and never "
+        "checks the kinds those slots accept"
+    )

@@ -393,3 +393,84 @@ def test_the_glossary_has_a_term_for_the_catalogue_a_platform_has():
     assert "refus" in entry, (
         "an absent catalogue is a refusal rather than a gap, and the term must say so"
     )
+
+
+# --- residue tells a gap from a refusal --------------------------------------
+#
+# The format's own maintainers draw a line the Residue model lacked: a
+# capability a later ticket fills is a gap, a construct declined on purpose is a
+# refusal. Both stop a run and only one is temporary, so recording them
+# identically means re-examining a settled decision every session and never
+# noticing when a gap has closed.
+
+def test_residue_says_whether_a_cause_is_temporary():
+    body = (REFERENCES_DIR / "migration-directory.md").read_text(encoding="utf-8")
+    header = next(
+        line for line in body.splitlines()
+        if line.startswith("| Source Step |") and "Cause" in line
+    )
+    assert "Standing" in header, f"residue.md cannot say whether a cause can close: {header}"
+    assert has_paragraph_with(body, "gap", "refusal", "revisit"), (
+        "the two standings must differ in what re-examines them"
+    )
+
+
+def test_the_glossary_keeps_a_gap_and_a_refusal_apart():
+    entry = CONTEXT.read_text(encoding="utf-8").split("**Residue**:")[1].split("_Avoid_")[0].lower()
+    assert "gap" in entry and "refusal" in entry, (
+        "Residue absorbs both, so a permanent decision and a missing feature "
+        "are recorded and re-read identically"
+    )
+
+
+def test_the_probe_calls_the_missing_catalogues_a_gap():
+    # wishlist 0008 says the three catalogues "remain the work", so they are a
+    # gap that presents as a refusal today, not a construct declined on purpose.
+    body = (REFERENCES_DIR / "cli-probe.md").read_text(encoding="utf-8")
+    assert not has_paragraph_with(body, "a refusal and not a gap"), (
+        "the missing catalogues are tracked work; calling them permanent tells "
+        "a later session never to look again"
+    )
+    assert has_paragraph_with(body, "catalogue", "gap")
+
+
+def test_the_probe_does_not_undercount_the_cli_surface():
+    body = (REFERENCES_DIR / "cli-probe.md").read_text(encoding="utf-8")
+    # The dispatch has seven commands; the table named four and read as the
+    # whole surface, which is how a probe misses `list`.
+    for command in ("run", "url", "list"):
+        assert f"`{command}`" in body, f"the probe never mentions {command}"
+
+
+def test_resolve_elements_records_the_standing_of_what_it_writes_off():
+    # An element nobody has captured yet is a gap; one the application cannot
+    # expose is a refusal. The two are not revisited by the same thing.
+    skill = PLUGIN_ROOT / "skills" / "resolve-elements" / "SKILL.md"
+    body = _body(skill)
+    assert has_paragraph_with(body, "standing", "gap"), (
+        "resolve-elements writes the residue row and leaves its standing empty"
+    )
+
+
+def test_the_glossary_has_a_term_for_a_value_kind():
+    # map and authoring.md both turn on it, and a term two documents use is a
+    # term the glossary owns.
+    body = CONTEXT.read_text(encoding="utf-8")
+    assert "**Value Kind**:" in body
+    entry = body.split("**Value Kind**:")[1].split("_Avoid_")[0].lower()
+    assert "slot" in entry, "a value kind is a property of the slot, not of the value alone"
+
+
+def test_the_two_documents_agree_on_the_standing_of_a_missing_catalogue():
+    # They disagreed: the glossary said "refused", the probe said "gap", and a
+    # later session reading either one alone drew the opposite conclusion. The
+    # answer is that the refusal is the behaviour and the gap is the standing.
+    entry = CONTEXT.read_text(encoding="utf-8").split("**Catalogue**:")[1].split("_Avoid_")[0]
+    assert "gap" in entry.lower(), (
+        "the glossary must say a missing catalogue is a gap, since that is what "
+        "decides whether anyone looks again"
+    )
+    assert has_paragraph_with(entry, "refus", "gap"), (
+        "both words must sit in one instruction, or the entry reads as one and "
+        "the probe as the other"
+    )

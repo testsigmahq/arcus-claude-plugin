@@ -174,3 +174,60 @@ def test_the_skill_that_writes_the_target_points_at_it():
     assert "references/authoring.md" in assemble.read_text(encoding="utf-8"), (
         "assembly is what writes the target; it must follow these rules"
     )
+
+
+# --- value kinds -------------------------------------------------------------
+#
+# A slot's `allowedTypes` decides whether it will accept a literal, a data
+# profile column, a runtime variable, a global, a generator or an upload path.
+# That is what makes a mapping legal or illegal, and the plugin had no term for
+# it, so a row could propose a value the slot would never take and nothing
+# before the push would say so.
+
+class TestValueKinds:
+    def _kinds(self):
+        return _section("value kind")
+
+    def test_the_reference_has_a_section_for_them(self):
+        assert self._kinds()
+
+    def test_the_slot_decides_and_not_the_verb(self):
+        assert has_paragraph_with(self._kinds(), "slot", "allowedtypes")
+
+    def test_it_gives_the_spelling_of_each_kind(self):
+        # Without the spellings the concept cannot be applied to a row: the kind
+        # a value has is a consequence of how it is written.
+        body = self._kinds().lower()
+        for spelling in ("param", "runtime", "env", "upload", "random"):
+            assert spelling in body, f"no spelling given for the {spelling} kind"
+
+    def test_it_says_what_an_unacceptable_kind_makes_the_row(self):
+        assert has_paragraph_with(self._kinds(), "residue", "kind"), (
+            "a value no allowed kind can carry has an outcome, and it is not "
+            "left to the author to invent one"
+        )
+
+    def test_it_points_at_the_catalogue_rather_than_copying_it(self):
+        # Retired finding 1: a hand-copied duplicate of a generated file is
+        # exactly the staleness this plugin warns about.
+        assert has_paragraph_with(
+            self._kinds(),
+            "generator",
+            absent=("the full list is", "listed below", "every generator is"),
+        )
+        assert not any(
+            line.strip().startswith("- `gen.") for line in self._kinds().splitlines()
+        ), "the generators are being copied into the plugin"
+
+
+def test_deprecation_is_readable_before_a_row_is_proposed():
+    # It was learned from a failed push. It is a boolean on the templates, and
+    # 158 of the 473 web verbs carry it, so discovering it at push time is a
+    # choice rather than a necessity.
+    section = _section("deprecated")
+    assert has_paragraph_with(section, "before", "read"), (
+        "the rule says treat it as an authoring error, but never how to know"
+    )
+    assert "158" in section or "473" in section, (
+        "the scale is what makes this worth checking mechanically"
+    )
