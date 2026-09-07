@@ -123,3 +123,23 @@ not checked against any capability the new build has gained.
 This is not theoretical. A fault class that a person caught by eye became an
 automatic refusal in the CLI inside about a day. Work converted before that change
 had never been checked for it, and nothing would have said so.
+
+**A differing build may also have withdrawn something**, and that direction is
+the one that costs work: a verb removed or a slot that stops accepting a kind it
+used to turns a converted row into a row the build will reject.
+
+**What this comparison cannot see is what changed.** It reports that the
+identity differs and nothing more: there is no command that enumerates what a
+build declares, so the Catalogues, Verbs and accepted Value Kinds of the old
+build and the new one cannot be set side by side. ADR-0008 is the decision not
+to try, and its reason is that the response is the same whichever direction the
+build moved.
+
+**So the recorded Platform Facts go stale rather than void.** Do not delete them
+and do not trust them: each one is re-probed at the moment it is
+next relied on, and the answer replaces the recorded one. Voiding the lot is the
+obvious alternative and is wrong, because a fact here is settled one question at
+a time — there is no bulk re-establish to run — so wholesale voiding throws away
+answers that are probably still true and cannot be recovered in one pass. Mark
+the recorded build beside them as superseded so a later reader knows which
+answers are awaiting confirmation.

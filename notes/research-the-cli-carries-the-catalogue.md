@@ -155,8 +155,16 @@ procedure.
 So the plugin now establishes a catalogue fact one question at a time and cannot
 enumerate at all. Enumeration exists only by regex over the minified `dist`,
 which was rejected: it fails by matching nothing, and nothing is
-indistinguishable from a verb that does not exist. Diffing the schema across
-builds remains undone and is now known to need that same unsupported route.
+indistinguishable from a verb that does not exist.
+
+**Settled, and no longer outstanding.** ADR-0008 decides that the plugin detects
+a changed build and never establishes what changed, because the response is the
+same whichever direction it moved: re-probe the facts, re-check the Units,
+rewrite what the new build rejects. There is no backward compatibility and no
+fallback for a withdrawn spelling — this is an internal tool, and the Operator
+rewrites the affected rows. "Diffing the schema" was also the wrong phrase for
+it: `CONTEXT.md` lists `schema` under _Avoid_, and the things that would have
+been diffed are the Catalogues, Verbs and Value Kinds a build declares.
 
 ## Out of scope, recorded so it is not re-found
 

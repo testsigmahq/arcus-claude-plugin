@@ -82,6 +82,9 @@ Each entry also carries a **Standing**, which is a gap or a refusal — a
 capability the format does not have yet, against a construct declined on
 purpose. Both stop a row and only one is temporary, so they are not revisited by
 the same thing: a build change can close a gap and can never close a refusal.
+It moves in the other direction too: a build that withdraws a spelling a
+converted row relied on opens a new entry, a gap where the capability may return
+and a refusal where it will not.
 _Avoid_: gaps, failures, unsupported
 
 ### Verification

@@ -89,6 +89,16 @@ They do not inherit a pass they never earned. Silently inheriting it is the
 obvious alternative and is how a Migration accumulates work nobody ever verified,
 under a record that says otherwise.
 
+**A build can also withdraw a capability, and that is the case that costs
+work.** A verb removed, a slot that narrows which kinds it will hold, a value
+kind renamed: each turns work that was expressible into work that is not, and
+none of it announces itself. Per ADR-0008 this plugin does not support the old
+spelling alongside the new one — the Operator rewrites the affected rows against
+the installed build — so a losing change has to be visible as a change rather
+than surface later as a converted test the build no longer accepts. Treat any
+differing build as capable of having withdrawn something as well as gained
+something, and re-check rather than assume the direction.
+
 This has already happened once rather than being imagined. A fault class that a
 person caught by eye became an automatic refusal in the CLI inside about a day.
 Work converted before that change had never been checked for it, and nothing in
