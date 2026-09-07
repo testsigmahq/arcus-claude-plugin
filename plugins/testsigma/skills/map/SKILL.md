@@ -44,7 +44,14 @@ twenty-one defects, every one found after the target code existed; the one that
 resolved first and authored second produced five, four caught before any target
 code was written.
 
-So do two things across the whole scenario **before proposing any expression**.
+Read the `Conducting the comparison` part of
+`${CLAUDE_PLUGIN_ROOT}/references/fault-classes.md#conducting-the-comparison`
+once here, before any row exists. It is what a verdict rests on, what a script
+may be trusted with, and how a finding is recorded — rules about the stage
+rather than things to look for in a row, so reading them per row is both too
+often and, where a row's text does not mention them, never.
+
+Then do two things across the whole scenario **before proposing any expression**.
 
 **Expand every call chain**: resolve each step definition and follow every call it
 makes, transitively, to the leaves. That yields the complete list of actions the
@@ -101,7 +108,8 @@ wrong four times out of six.
 The adapter's own Sequence section states where the sequence lives for this
 format and which traps recur in it. Follow it. Four shapes recur across every
 source format met so far, and all four produce a test that runs and passes;
-`${CLAUDE_PLUGIN_ROOT}/references/fault-classes.md` describes them.
+`${CLAUDE_PLUGIN_ROOT}/references/fault-classes.md#four-shapes-a-helper-takes-and-three-of-them-read-as-one-action`
+describes them.
 
 One of the four is an instruction rather than a description, so it is here:
 **treat every helper whose name contains `wait`, `until`, `refresh` or `poll` as
@@ -168,12 +176,14 @@ same order, whether it asserts the same thing, and whether anything the helper
 does is missing from it or invented in it.
 
 The other fault classes are catalogued in
-`${CLAUDE_PLUGIN_ROOT}/references/fault-classes.md`, which
+`${CLAUDE_PLUGIN_ROOT}/references/fault-classes.md#where-to-start-for-the-row-in-hand`,
+which
 came out of a step-by-step comparison of the first conversion against the source
-it was made from. Work through that catalogue for every row rather than trusting
-recall of it: every entry is there because it already reached a converted test
-that compiled, was accepted, and survived a round trip. It is not a list of
-things that might go wrong.
+it was made from. Work through its first part for every row rather than
+trusting recall of it: every entry is there because it already reached a
+converted test that compiled, was accepted, and survived a round trip. It is not
+a list of things that might go wrong. Its index orders that reading by what the
+row shows; it does not license reading less.
 
 **A wildcard or substring comparison in the source is a question, not a
 licence.** When the source matches loosely, what was being checked is unclear,

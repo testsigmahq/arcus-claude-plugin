@@ -9,8 +9,40 @@ one real conversion against its Java, eleven source steps deep, and every one ha
 already reached a converted test that compiled, was accepted by the tenant, and
 survived a round trip. None of them is hypothetical.
 
-Work through this list for each Step Map row while comparing. It is short on
-purpose.
+Work through this part for each Step Map row while comparing. It is not short —
+twenty-one entries — and the index below is how a row is read against all of them
+without reading the whole part first to find out where to look.
+
+The second part, `Conducting the comparison`, is read once at the start of a
+Migration rather than once per row. It holds the rules about how a comparison is
+carried out and how its findings are recorded, which are not things to look for
+in a row.
+
+## Where to start for the row in hand
+
+**This index orders the reading. It does not narrow it.** Every entry in this
+part already reached a converted test that compiled, was accepted by the tenant
+and survived a round trip, so no row is exempt from any of them. What the index
+buys is the order: read what the row's own text points at first, while the row
+is still open, then the rest.
+
+| What the row shows | Read these first |
+|---|---|
+| Every row, whatever else it shows | `Names that match, behaviour that does not`, `A name that has drifted from its behaviour`, `Four shapes a helper takes, and three of them read as one action` |
+| It came from a helper, and the helper has a body | `A composite step definition converted partway`, `A dropped side effect is judged by its consumers, not locally`, `Defensive code in the source is a map of the application's rough edges` |
+| A wait, a poll, a refresh or an until | `A readiness check that answers the wrong question`, `A race that commits the wrong value rather than failing` |
+| A pattern, a format, or a regular expression | `A format string is a program, not a value`, `A value transformed on its way to the browser` |
+| It names an element | `An element bound from the corpus rather than from the call site`, `Correct syntax pointed at the wrong thing` |
+| The source call passes arguments | `A non-default argument lost to a platform default` |
+| Its expression is stronger or weaker than the source | `A difference that improves on the source`, `The target being smarter creates failure modes the source lacks`, `A verb that addresses a different thing` |
+| One verb serving more than one source construct | `One target verb serving two source constructs` |
+| A literal value carried across from the source | `A credential inlined from the source` |
+| The rows were produced by a converter rather than read | `A converter's positional heuristic drops and invents at once` |
+| The row relies on what a target verb does | `Verb semantics are Platform Facts, and are established before they are relied on` |
+| Nothing in the row explains what it does | `A fault that surfaces far from its cause` |
+
+A row matching no trigger above still gets the whole part. No trigger is a
+precondition for a fault; they are only the fastest way in.
 
 ## A format string is a program, not a value
 
@@ -237,36 +269,6 @@ So when reporting a finding, name where it will surface as well as where it is.
 An Operator handed only the cause will not connect it to the failure they see,
 and one handed only the failure will look in the wrong place.
 
-## Partial absence read as omission
-
-Where the conversion does something at some sites and not others, the
-inconsistency is the finding.
-
-The measured conversion cleared a field before typing at four sites and not at
-four others. Uniform absence would have been a decision worth checking; partial
-absence is a mistake, and it means the sites that look right were reached by
-accident rather than by rule.
-
-Check every site of a pattern once you have found one wrong, not only the site
-that failed. And say which sites, because "this happens sometimes" is not
-actionable.
-
-## When the converted test cannot be run
-
-Some Migrations cannot execute what they produce: no tenant reaches the
-application under test, and the suite runs later on someone else's instance.
-
-That changes the standard of evidence rather than lowering it. Static comparison
-against the source becomes the only gate, so **absence of evidence is not
-evidence** — nothing here can be settled by observing that a test ran green.
-
-Two consequences follow. Prefer fidelity wherever fidelity and engineering
-judgement conflict, because an unverifiable deviation handed to a reviewing team
-is worse than a faithful reproduction of a weakness they already know: they can
-only diff it against the source too. And record every check that could not run as
-not checked, which `checks.md` requires anyway and which matters more here than
-anywhere.
-
 ## A readiness check that answers the wrong question
 
 The largest single finding in the conversion this catalogue comes from, and it
@@ -346,45 +348,6 @@ So for every dropped capture, find its consumers across the whole scenario befor
 judging it, and for every Concession, ask whether its cause is local or inherited
 from an earlier row.
 
-## A heuristic script over source code produces false findings
-
-A script is legitimate where the rule it applies is exact by construction — a
-normalisation rule, a count of distinct values. It is not legitimate as a way of
-searching source code for faults, and the measured pass proves it three times.
-
-A duplicate-step-definition sweep reported phantoms. An element-collision sweep
-reported an ambiguity that was a commented-out declaration. And the attempted fix
-for that — stripping `//` line comments — **deleted every XPath in the suite**,
-because an XPath begins with `//`, producing a confident "no collisions" result
-from an empty input.
-
-The arithmetic that matters: across the whole exercise those broad scripts
-produced one false positive and no true positives, while both real element defects
-came from targeted greps at the row that needed them. A false finding costs more
-than the manual check it replaced, because it has to be investigated and then
-retracted.
-
-The collision is genuine and it runs both ways. `//` opens a line comment and
-also begins an XPath. `/*` opens a block comment and also occurs *inside* XPaths —
-`//*[text()='ASN Details']` contains it — so a block-comment substitution swallows
-the file from that point on. And substituting a block comment away collapses its
-newlines, shifting every line number after it.
-
-Six failures came out of that in one exercise: eight phantom duplicate step
-definitions, all inside block comments; one phantom locator collision from a
-commented-out field; a reassuring all-clear from the stripper that had deleted
-every XPath; seventeen fields reported missing that all existed; and a batch of
-wrong line numbers.
-
-So analyse source with a parser. Where a regex is unavoidable: strip only lines
-whose **first** non-whitespace characters are `//`, replace a block comment with
-an equal number of newlines so line numbers survive, and **never trust an
-absence result** — a sweep reporting that something is not there is the one
-answer this class of tooling produces most confidently and least reliably.
-Prefer a targeted check at each row over one broad sweep across everything.
-Where a sweep is worth running, treat what it reports as a question rather than
-a finding until a direct reading confirms it.
-
 ## A converter's positional heuristic drops and invents at once
 
 Where a converter applies a rule about *where* something goes rather than *what*
@@ -414,22 +377,6 @@ where the source would have typed into the disabled field and failed visibly.
 So "the target does this better" is not the end of the comparison. Ask what the
 improvement does when the source's own weaknesses meet it, because a smarter
 strategy applied to a sloppy locator is how a silent wrong-field write happens.
-
-## A finding's count and its cause both drift
-
-Findings are not settled when first written, and a Migration that accumulates them
-without revisiting will act on stale ones.
-
-Measured, across one pass: a fault first recorded at four sites turned out to have
-six. An element count quoted in a dozen later findings was wrong by four. And a
-defect characterised as an invented locator was re-characterised as one lifted
-from the wrong page class — the defect stood, and its cause, which is what drives
-the fix, was wrong.
-
-So re-count a systemic finding as new sites appear, re-check any number quoted
-from an earlier finding before relying on it, and separate a finding's verdict
-from its cause: the verdict can be right while the cause is wrong, and the cause
-is the half the fix is built on.
 
 ## Defensive code in the source is a map of the application's rough edges
 
@@ -468,23 +415,6 @@ it has withheld something they need. `authoring.md` carries the handling rule.
 
 Never copy the value itself into the Migration Directory, a question, a commit
 message or a report.
-
-## A verdict given without the implementation
-
-Not a fault in a conversion but a fault in checking one, and it invalidates work
-rather than adding to it.
-
-In the measured pass, every one of the first several verdicts was given before the
-jar holding the source's generic step definitions had been opened. The verdicts
-did not change afterwards, but their standing did: reasoning about what a step
-was *for* produces a plausible mapping, and reading what it *does* produces a
-verifiable one. Those are different rungs, and only the second is a check.
-
-So obtain the implementation before starting, not partway through. Decompile the
-dependency, fetch the library, read the platform's snippet class. Where a
-comparison has already been made without it, re-open those rows rather than
-keeping them: a verdict reached from intent is provisional, and a Migration that
-records it as reviewed has recorded something it did not check.
 
 ## Names that match, behaviour that does not
 
@@ -528,34 +458,6 @@ overlay polling removes both layers of settling at once, the deliberate one and
 the accidental one. Reproduce the timing the source had and let the owning team
 replace sleeps with proper waits afterwards: that is a refactor, and a Migration
 is a translation.
-
-## Record the direction of every finding, not only its size
-
-A conversion is rarely uniformly worse. Recording that a row diverges says less
-than recording which way.
-
-Measured, in the same scenario: the conversion was **lossy on timing** — sleeps
-dropped, overlay waits absent, a non-default timeout halved — and **stronger on
-interaction** — the platform's click waits for clickability, retries, and falls
-back to a scripted click, where the source's did none of that.
-
-Both directions matter and they need different handling. A loss is a fidelity
-finding to fix. A gain is a question for the Operator, because it is still a
-difference from the suite they will diff against. Reporting only a count of
-findings loses the distinction, and a reviewer given "eleven findings" cannot
-tell a halved timeout from an improved click.
-
-## A count that does not match is a question first
-
-Where the number of a construct in the source and in the conversion differ, the
-mismatch is a question rather than a defect until you have found where the extra
-one came from.
-
-Measured: five clicks of one control in the conversion against four such steps in
-the feature. The extra one was correct — a step definition named for typing also
-clicked the control, so the fifth click came from a Composite Step rather than
-from an invention. Had the count been assumed wrong, a correct step would have
-been deleted.
 
 ## Verb semantics are Platform Facts, and are established before they are relied on
 
@@ -610,3 +512,145 @@ also failing on a timeout the source deliberately ignored — so a page slower t
 the limit passed in the source suite and fails in the converted one. "Is this
 equivalent" is therefore not one question with one axis, and a verb can need
 fixing in both directions at once.
+
+# Conducting the comparison
+
+The entries above are things to look for in a Step Map row. These are rules
+about how the comparison itself is carried out — what evidence a verdict rests
+on, what a script may be trusted with, and how a finding is recorded and
+revisited afterwards.
+
+Read this part once, at the start of a Migration, and not once per row. None of
+it is reachable from the index above, deliberately: routing a row to a rule
+about conduct would mean reading it as often as there are rows and skipping it
+whenever a row's own text did not happen to mention it.
+
+## Partial absence read as omission
+
+Where the conversion does something at some sites and not others, the
+inconsistency is the finding.
+
+The measured conversion cleared a field before typing at four sites and not at
+four others. Uniform absence would have been a decision worth checking; partial
+absence is a mistake, and it means the sites that look right were reached by
+accident rather than by rule.
+
+Check every site of a pattern once you have found one wrong, not only the site
+that failed. And say which sites, because "this happens sometimes" is not
+actionable.
+
+## When the converted test cannot be run
+
+Some Migrations cannot execute what they produce: no tenant reaches the
+application under test, and the suite runs later on someone else's instance.
+
+That changes the standard of evidence rather than lowering it. Static comparison
+against the source becomes the only gate, so **absence of evidence is not
+evidence** — nothing here can be settled by observing that a test ran green.
+
+Two consequences follow. Prefer fidelity wherever fidelity and engineering
+judgement conflict, because an unverifiable deviation handed to a reviewing team
+is worse than a faithful reproduction of a weakness they already know: they can
+only diff it against the source too. And record every check that could not run as
+not checked, which `checks.md` requires anyway and which matters more here than
+anywhere.
+
+## A heuristic script over source code produces false findings
+
+A script is legitimate where the rule it applies is exact by construction — a
+normalisation rule, a count of distinct values. It is not legitimate as a way of
+searching source code for faults, and the measured pass proves it three times.
+
+A duplicate-step-definition sweep reported phantoms. An element-collision sweep
+reported an ambiguity that was a commented-out declaration. And the attempted fix
+for that — stripping `//` line comments — **deleted every XPath in the suite**,
+because an XPath begins with `//`, producing a confident "no collisions" result
+from an empty input.
+
+The arithmetic that matters: across the whole exercise those broad scripts
+produced one false positive and no true positives, while both real element defects
+came from targeted greps at the row that needed them. A false finding costs more
+than the manual check it replaced, because it has to be investigated and then
+retracted.
+
+The collision is genuine and it runs both ways. `//` opens a line comment and
+also begins an XPath. `/*` opens a block comment and also occurs *inside* XPaths —
+`//*[text()='ASN Details']` contains it — so a block-comment substitution swallows
+the file from that point on. And substituting a block comment away collapses its
+newlines, shifting every line number after it.
+
+Six failures came out of that in one exercise: eight phantom duplicate step
+definitions, all inside block comments; one phantom locator collision from a
+commented-out field; a reassuring all-clear from the stripper that had deleted
+every XPath; seventeen fields reported missing that all existed; and a batch of
+wrong line numbers.
+
+So analyse source with a parser. Where a regex is unavoidable: strip only lines
+whose **first** non-whitespace characters are `//`, replace a block comment with
+an equal number of newlines so line numbers survive, and **never trust an
+absence result** — a sweep reporting that something is not there is the one
+answer this class of tooling produces most confidently and least reliably.
+Prefer a targeted check at each row over one broad sweep across everything.
+Where a sweep is worth running, treat what it reports as a question rather than
+a finding until a direct reading confirms it.
+
+## A finding's count and its cause both drift
+
+Findings are not settled when first written, and a Migration that accumulates them
+without revisiting will act on stale ones.
+
+Measured, across one pass: a fault first recorded at four sites turned out to have
+six. An element count quoted in a dozen later findings was wrong by four. And a
+defect characterised as an invented locator was re-characterised as one lifted
+from the wrong page class — the defect stood, and its cause, which is what drives
+the fix, was wrong.
+
+So re-count a systemic finding as new sites appear, re-check any number quoted
+from an earlier finding before relying on it, and separate a finding's verdict
+from its cause: the verdict can be right while the cause is wrong, and the cause
+is the half the fix is built on.
+
+## A verdict given without the implementation
+
+Not a fault in a conversion but a fault in checking one, and it invalidates work
+rather than adding to it.
+
+In the measured pass, every one of the first several verdicts was given before the
+jar holding the source's generic step definitions had been opened. The verdicts
+did not change afterwards, but their standing did: reasoning about what a step
+was *for* produces a plausible mapping, and reading what it *does* produces a
+verifiable one. Those are different rungs, and only the second is a check.
+
+So obtain the implementation before starting, not partway through. Decompile the
+dependency, fetch the library, read the platform's snippet class. Where a
+comparison has already been made without it, re-open those rows rather than
+keeping them: a verdict reached from intent is provisional, and a Migration that
+records it as reviewed has recorded something it did not check.
+
+## Record the direction of every finding, not only its size
+
+A conversion is rarely uniformly worse. Recording that a row diverges says less
+than recording which way.
+
+Measured, in the same scenario: the conversion was **lossy on timing** — sleeps
+dropped, overlay waits absent, a non-default timeout halved — and **stronger on
+interaction** — the platform's click waits for clickability, retries, and falls
+back to a scripted click, where the source's did none of that.
+
+Both directions matter and they need different handling. A loss is a fidelity
+finding to fix. A gain is a question for the Operator, because it is still a
+difference from the suite they will diff against. Reporting only a count of
+findings loses the distinction, and a reviewer given "eleven findings" cannot
+tell a halved timeout from an improved click.
+
+## A count that does not match is a question first
+
+Where the number of a construct in the source and in the conversion differ, the
+mismatch is a question rather than a defect until you have found where the extra
+one came from.
+
+Measured: five clicks of one control in the conversion against four such steps in
+the feature. The extra one was correct — a step definition named for typing also
+clicked the control, so the fifth click came from a Composite Step rather than
+from an invention. Had the count been assumed wrong, a correct step would have
+been deleted.

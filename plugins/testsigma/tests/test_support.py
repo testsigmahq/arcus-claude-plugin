@@ -11,6 +11,7 @@ from support import (
     git_ignores,
     is_kebab_case,
     has_paragraph_with,
+    markdown_parts,
     markdown_sections,
     paragraphs,
     parse_count_table,
@@ -154,6 +155,91 @@ def test_a_fenced_block_is_kept_in_its_section_body():
 
 def test_text_before_the_first_heading_is_not_a_section():
     assert markdown_sections("preamble\n\n## One\nalpha\n") == {"One": "alpha"}
+
+
+# --- markdown_parts ---------------------------------------------------------
+
+
+def test_maps_level_one_headings_to_their_bodies():
+    parts = markdown_parts("# One\nalpha\n\n# Two\nbeta\n")
+    assert list(parts) == ["One", "Two"]
+    assert "alpha" in parts["One"] and "beta" in parts["Two"]
+
+
+def test_level_two_headings_stay_inside_their_part():
+    # The whole reason this exists: fault-classes.md's index covers the `##`
+    # sections of one part, and a flat markdown_sections cannot say which part
+    # a section is in.
+    parts = markdown_parts("# One\n## A\nalpha\n# Two\n## B\nbeta\n")
+    assert "## A" in parts["One"] and "## A" not in parts["Two"]
+    assert "## B" in parts["Two"] and "## B" not in parts["One"]
+
+
+def test_a_level_one_heading_inside_a_fenced_block_is_not_a_part():
+    parts = markdown_parts("# One\n```\n# Not a part\n```\nalpha\n")
+    assert list(parts) == ["One"]
+    assert "# Not a part" in parts["One"]
+
+
+def test_text_before_the_first_heading_is_not_a_part():
+    assert markdown_parts("preamble\n\n# One\nalpha\n") == {"One": "alpha"}
+
+
+def test_a_duplicate_level_one_heading_raises():
+    # Same refusal as markdown_sections, for the same reason: a second part
+    # under one heading would silently replace the first, so an assertion
+    # scoped to it could be satisfied by either.
+    with pytest.raises(ValueError, match="duplicate"):
+        markdown_parts("# One\nalpha\n# One\nbeta\n")
+
+
+def test_a_deeper_heading_is_not_mistaken_for_a_part():
+    # `#` must match on the space, or every `##` would open a new part and the
+    # partition would be identical to markdown_sections.
+    parts = markdown_parts("# One\n## Two\nalpha\n")
+    assert list(parts) == ["One"]
+
+
+# --- Document.part -----------------------------------------------------------
+
+
+def test_part_returns_the_one_part_whose_heading_matches(tmp_path):
+    path = tmp_path / "d.md"
+    path.write_text("# Fault classes\nalpha\n# Conducting the comparison\nbeta\n")
+    doc = document(path)
+    assert "alpha" in doc.part("fault classes")
+    assert "beta" in doc.part("conducting")
+
+
+def test_part_refuses_a_needle_that_matches_nothing(tmp_path):
+    path = tmp_path / "d.md"
+    path.write_text("# One\nalpha\n")
+    with pytest.raises(AssertionError, match="exactly one part"):
+        document(path).part("missing")
+
+
+def test_part_refuses_a_needle_that_matches_several(tmp_path):
+    # The rule that matters. Returning the first would let an assertion be
+    # satisfied by either part, which is the false green section-scoping and
+    # the duplicate-heading raise both exist to refuse.
+    path = tmp_path / "d.md"
+    path.write_text("# One thing\nalpha\n# One other\nbeta\n")
+    with pytest.raises(AssertionError, match="exactly one part"):
+        document(path).part("one")
+
+
+def test_part_names_the_headings_the_document_holds_when_it_refuses(tmp_path):
+    # A renamed heading is the commonest cause and is invisible without this.
+    path = tmp_path / "d.md"
+    path.write_text("# Fault classes\nalpha\n")
+    with pytest.raises(AssertionError, match="Fault classes"):
+        document(path).part("conducting")
+
+
+def test_part_reads_below_frontmatter_like_every_other_accessor(tmp_path):
+    path = tmp_path / "d.md"
+    path.write_text("---\nname: d\n---\n\n# One\nalpha\n")
+    assert "alpha" in document(path).part("one")
 
 
 # --- parse_count_table -------------------------------------------------------

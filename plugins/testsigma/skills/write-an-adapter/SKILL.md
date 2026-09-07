@@ -89,9 +89,9 @@ happened: the files were opened, they were read for locators, and what the code
 actually did was never asked.
 
 Look for all four recurring shapes while you are in there.
-`${CLAUDE_PLUGIN_ROOT}/references/fault-classes.md` describes them, and a new
-adapter's Sequence section is where the format's own version of each gets
-written down.
+`${CLAUDE_PLUGIN_ROOT}/references/fault-classes.md#four-shapes-a-helper-takes-and-three-of-them-read-as-one-action`
+describes them, and a new adapter's Sequence section is where the format's own
+version of each gets written down.
 
 ## Step 3: State the normalisation rule
 

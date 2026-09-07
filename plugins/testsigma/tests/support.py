@@ -220,42 +220,63 @@ def adapter_files():
     )
 
 
-def markdown_sections(text):
-    """Map each level-two heading to the text beneath it, up to the next one.
+def _headed_blocks(text, marker):
+    """Map each heading opened by `marker` to the text beneath it.
 
-    Deeper headings stay inside their parent section, so a `###` subsection is
-    part of the `##` section that contains it.
+    One walk serves both heading levels. Deeper headings stay inside their
+    parent block, so a `###` subsection is part of its `##` section and a `##`
+    section is part of its `#` part.
+
+    A heading inside a fenced block is an example, not a heading. Without this,
+    a required section could be satisfied by a line of sample text.
+
+    A duplicate heading raises. It used to overwrite the first silently, so a
+    gutted section plus a verbatim copy further down passed every check scoped
+    to that heading — a worse false green than the one section-scoping was
+    introduced to fix.
     """
-    sections = {}
+    blocks = {}
     heading = None
     buffer = []
     in_fence = False
-    seen = []
     for line in text.splitlines():
-        # A heading inside a fenced block is an example, not a heading. Without
-        # this, a required section could be satisfied by a line of sample text.
         if line.lstrip().startswith("```"):
             in_fence = not in_fence
             if heading is not None:
                 buffer.append(line)
             continue
-        if not in_fence and line.startswith("## ") and not line.startswith("### "):
+        # The trailing space in the marker is what keeps a deeper heading out:
+        # without it every `##` would open a new `#` block.
+        if not in_fence and line.startswith(marker):
             if heading is not None:
-                sections[heading] = "\n".join(buffer)
-            heading = line[3:].strip()
-            # A duplicate heading used to overwrite the first silently, so a
-            # gutted section plus a verbatim copy further down passed every
-            # check scoped to that heading. That is a worse false green than
-            # the one section-scoping was introduced to fix.
-            if heading in seen:
-                raise ValueError(f"duplicate '## {heading}' heading")
-            seen.append(heading)
+                blocks[heading] = "\n".join(buffer)
+            heading = line[len(marker):].strip()
+            if heading in blocks:
+                raise ValueError(f"duplicate '{marker}{heading}' heading")
             buffer = []
         elif heading is not None:
             buffer.append(line)
     if heading is not None:
-        sections[heading] = "\n".join(buffer)
-    return sections
+        blocks[heading] = "\n".join(buffer)
+    return blocks
+
+
+def markdown_sections(text):
+    """Map each level-two heading to the text beneath it, up to the next one."""
+    return _headed_blocks(text, "## ")
+
+
+def markdown_parts(text):
+    """Map each level-one heading to the text beneath it, up to the next one.
+
+    markdown_sections is blind to `#` headings, so a document divided into two
+    parts hands back one flat dict of `##` sections with no way to tell which
+    part a section sits in. `fault-classes.md` is divided exactly that way —
+    what to look for in a row, and how the comparison is conducted — and its
+    index covers the first part only, so the test holding the two in step has
+    to be able to see the division.
+    """
+    return _headed_blocks(text, "# ")
 
 
 def preamble(text):
@@ -491,21 +512,37 @@ class Document:
         """
         return " ".join(self.body.split()).lower()
 
-    def section(self, needle):
-        """The one section whose heading contains `needle`, case-insensitively.
+    @property
+    def parts(self):
+        """`# heading` to body, for a document divided into parts.
+
+        A `##` section stays inside the part that holds it, which `sections`
+        cannot express: it returns one flat dict for the whole document.
+        """
+        return markdown_parts(self.body)
+
+    def _one(self, blocks, needle, kind):
+        """The one block whose heading contains `needle`, case-insensitively.
 
         Refuses zero matches and refuses several. Both messages name the
         headings the document actually holds, because a renamed heading is the
         commonest cause and is otherwise invisible from the failure.
         """
-        sections = self.sections
-        matching = [body for head, body in sections.items() if needle in head.lower()]
+        matching = [body for head, body in blocks.items() if needle in head.lower()]
         assert len(matching) == 1, (
-            f"{self.path.name}: expected exactly one section whose heading "
+            f"{self.path.name}: expected exactly one {kind} whose heading "
             f"contains {needle!r}, found {len(matching)}. Headings are: "
-            f"{list(sections)}"
+            f"{list(blocks)}"
         )
         return matching[0]
+
+    def section(self, needle):
+        """The one `##` section whose heading contains `needle`."""
+        return self._one(self.sections, needle, "section")
+
+    def part(self, needle):
+        """The one `#` part whose heading contains `needle`."""
+        return self._one(self.parts, needle, "part")
 
 
 def document(path):

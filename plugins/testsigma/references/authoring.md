@@ -58,7 +58,8 @@ click an outer wrapper that also contains the text.
 **Do not choose a verb by its name.** One verb whose name reads as clicking text
 is OCR-based: it screenshots, extracts text, and clicks a coordinate. It is not an
 XPath match, and nothing in the name says so. Resolve the verb to its
-implementation before using it (`fault-classes.md`).
+implementation before using it — see
+`fault-classes.md#verb-semantics-are-platform-facts-and-are-established-before-they-are-relied-on`.
 
 ## Asking the build: one question, one compile
 
@@ -245,7 +246,9 @@ the implementation and are reusable across Migrations.
   and passes if any one equals the value. That decomposes a source assertion of
   the form "every expected value appears somewhere in this list" into one call per
   expected value. It reads the element's text directly, so the inner-markup
-  divergence described in `fault-classes.md` does not apply to it.
+  divergence described in
+  `fault-classes.md#verb-semantics-are-platform-facts-and-are-established-before-they-are-relied-on`
+  does not apply to it.
 - A verb that waits for the page to contain given text is the right mapping for a
   source wait on a locator built from a runtime value: it keeps both the wait and
   its non-default timeout, where a static element cannot express the locator at
