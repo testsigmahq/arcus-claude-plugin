@@ -55,7 +55,37 @@ NESTED = '''test "nested" [id = 1] {
 '''
 
 
+#: Three levels, so a step exists whose parent has no next sibling while an
+#: ancestor above it does. The bound that matters for `click(element.c)` is
+#: `click(element.s)`: c sits inside block 2, so it must be numbered before
+#: whatever follows block 2, however deep inside it c happens to be.
+DEEP = '''test "deep" [id = 1] {
+  for a in x [id = 2] {
+    for b in y [id = 3] {
+      click(element.c) [id = 4]
+    }
+  }
+
+  click(element.s) [id = 9]
+}
+'''
+
+
 class TestParsingTheTree:
+
+    def test_a_top_level_block_with_no_id_is_refused_by_name(self):
+        # An id-less block at the top level has no parent to inherit, so the
+        # steps inside it were given `None` as a parent: the first became the
+        # tree root and the second raised "a second step at the top level",
+        # which names the wrong problem. A working copy always opens with a
+        # `test "..." [id = N] {`, so this file is not one.
+        with pytest.raises(ValueError, match="no id"):
+            order.parse('''for row in tdp["d"].rows() {
+  click(element.a) [id = 2]
+  click(element.b) [id = 3]
+}
+''')
+
     def test_it_finds_the_root_and_its_children(self):
         root = order.parse(ONE_CONDITIONAL)
         assert root.identity == 10
@@ -217,6 +247,48 @@ class TestTheProperty:
         assert [entry["id"] for entry in found] == [5]
         assert found[0]["parent_order"] == 3
         assert found[0]["limit"] == 5
+
+
+    def test_a_body_numbered_past_an_ancestors_next_sibling_is_a_fault(self):
+        # The hole. The upper bound was the *direct* parent's next sibling, so
+        # a step whose parent is an only child got no upper bound at all — and
+        # at three levels deep that is the primary fault class going
+        # unreported. Here step 4 sits inside block 2 and is numbered 99 while
+        # what follows block 2 is numbered 3: block 2 draws empty and its
+        # steps run last, which is exactly what this module exists to catch.
+        #
+        # I met this case once before and concluded the property was right to
+        # give no bound, then moved the fixture. It was the property that was
+        # incomplete.
+        found = self._check(DEEP, {1: 0, 2: 1, 3: 2, 4: 99, 9: 3})
+        assert [entry["id"] for entry in found] == [4], (
+            f"a step numbered outside its grandparent's block is unreported: {found}"
+        )
+        assert found[0]["limit"] == 3, "the window must name the bound that applies"
+
+    def test_a_clean_deep_test_reports_nothing(self):
+        # The bound must not fire on correct nesting.
+        assert self._check(DEEP, {1: 0, 2: 1, 3: 2, 4: 3, 9: 4}) == []
+
+    def test_one_step_breaking_two_bounds_is_reported_once(self):
+        # The count is what a person acts on. A step both numbered before its
+        # own block and out of order against the step before it was appended
+        # twice, so one misplaced step read as two.
+        found = self._check(
+            '''test "t" [id = 1] {
+  for a in x [id = 2] {
+    click(element.p) [id = 3]
+    click(element.q) [id = 4]
+  }
+}
+''',
+            {1: 0, 2: 5, 3: 9, 4: 1},
+        )
+        assert [entry["id"] for entry in found] == [4], f"id 4 reported twice: {found}"
+        assert "own block" in found[0]["reason"]
+        assert "document order" in found[0]["reason"], (
+            "both reasons are true and both belong in the one entry"
+        )
 
     def test_a_clean_test_reports_nothing(self):
         assert self._check(NESTED, {1: 0, 2: 1, 3: 2, 4: 3, 5: 4, 7: 5, 6: 6}) == []

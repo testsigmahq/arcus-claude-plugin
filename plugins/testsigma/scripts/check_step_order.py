@@ -144,7 +144,13 @@ def parse(text):
         elif opens:
             # A block with no id of its own: keep the depth honest so the steps
             # inside it are not reparented to its grandparent.
-            stack.append(stack[-1] if stack else None)
+            if not stack:
+                raise ValueError(
+                    f"line {number}: a block with no id at the top level; the "
+                    f"steps inside it would belong to no tree. A working copy "
+                    f"opens with a test whose id is declared"
+                )
+            stack.append(stack[-1])
     if stack:
         raise ValueError(
             f"{len(stack)} block(s) left open at end of file; the parentage this "
@@ -201,6 +207,24 @@ def _next_sibling(step):
     return siblings[index + 1] if index + 1 < len(siblings) else None
 
 
+def _bounding_sibling(step):
+    """The next sibling of the nearest ancestor-or-self that has one.
+
+    A child must be numbered before whatever follows the block it sits in, and
+    that block is not always its direct parent: where the parent is an only
+    child, the bound comes from higher up. Using only the direct parent's next
+    sibling meant a step whose parent had none got no upper bound at all, so at
+    three levels deep the primary fault class went unreported.
+    """
+    node = step
+    while node is not None:
+        sibling = _next_sibling(node)
+        if sibling is not None:
+            return sibling
+        node = node.parent
+    return None
+
+
 def violations(root):
     """Every step whose order breaks the property.
 
@@ -212,18 +236,17 @@ def violations(root):
         for index, child in enumerate(step.children):
             if child.order is None or step.order is None:
                 continue
-            upper = _next_sibling(step)
+            upper = _bounding_sibling(step)
+            # Every reason that applies to one step, in one entry. Appending
+            # per reason made a single misplaced step read as two, and the
+            # count is the number a person acts on.
+            reasons = []
             if child.order <= step.order:
-                found.append(_fault(child, step, upper, "numbered before its own block"))
+                reasons.append("numbered before its own block")
             elif upper is not None and upper.order is not None and child.order >= upper.order:
-                found.append(
-                    _fault(
-                        child,
-                        step,
-                        upper,
-                        "numbered outside its own block, so the block draws empty "
-                        "and its steps run late",
-                    )
+                reasons.append(
+                    "numbered outside its own block, so the block draws empty "
+                    "and its steps run late"
                 )
             previous = step.children[index - 1] if index else None
             if (
@@ -231,15 +254,12 @@ def violations(root):
                 and previous.order is not None
                 and child.order <= previous.order
             ):
-                found.append(
-                    _fault(
-                        child,
-                        step,
-                        None,
-                        f"out of document order against the step before it "
-                        f"(order {previous.order})",
-                    )
+                reasons.append(
+                    f"out of document order against the step before it "
+                    f"(order {previous.order})"
                 )
+            if reasons:
+                found.append(_fault(child, step, upper, "; and ".join(reasons)))
     return found
 
 

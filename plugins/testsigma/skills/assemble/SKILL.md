@@ -89,9 +89,11 @@ fault that only exists between steps. A conditional whose body is ordered outsid
 its own block draws empty and runs its steps late; no single step is wrong.
 
 The property is arithmetic. For every step with a parent, the step's order falls
-strictly between its parent's order and the order of the parent's next sibling,
-with no upper bound where the parent has no next sibling. Siblings increase in
-document order.
+strictly between its parent's order and the order of whatever follows the block
+it sits in — the next sibling of the nearest ancestor that has one, which is not
+always the direct parent. Where the parent is an only child the bound comes from
+higher up, and there is no upper bound only where no ancestor has a next sibling
+at all. Siblings increase in document order.
 
 **An id is not the order.** An id is assigned when a step is created, so a step
 authored later carries a higher id while sitting earlier in the document —

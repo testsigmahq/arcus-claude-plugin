@@ -102,9 +102,17 @@ class TestTheOrderCheck:
     def test_it_states_the_property_arithmetically(self):
         section = _section("nesting")
         assert has_paragraph_with(section, "parent", "next sibling")
-        # Without this clause the property is wrong for a last child, which has
-        # no next sibling and so no upper bound at all.
-        assert has_paragraph_with(section, "no upper bound", "no next sibling")
+        # The clause this test used to pin was wrong, and pinning it kept the
+        # script wrong too: "no upper bound where the parent has no next
+        # sibling" gives a step whose parent is an only child no bound at all,
+        # so at three levels deep the primary fault class went unreported. The
+        # bound comes from the nearest *ancestor* that has a next sibling.
+        assert has_paragraph_with(section, "ancestor", "next sibling"), (
+            "the upper bound is not the direct parent's next sibling"
+        )
+        assert has_paragraph_with(section, "no upper bound", "no ancestor"), (
+            "and there is no bound only when no ancestor has one at all"
+        )
 
     def test_it_says_an_id_is_not_an_order(self):
         # The correction measured on real data: ids are assigned at creation, so
