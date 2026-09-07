@@ -313,3 +313,83 @@ class TestSurveySkill:
     def test_it_has_the_steps_a_reader_needs(self):
         sections = markdown_sections(_body(SURVEY))
         assert len(sections) >= 4, f"survey has only {len(sections)} sections"
+
+
+# --- the triage axis ---------------------------------------------------------
+#
+# survey screened step *content* and never asked what application type the suite
+# targets, so it could green-light a Migration that `attach` refuses on day one:
+# the CLI declares a catalogue for web and unified applications only, and every
+# other platform occupies a non-overlapping template-id block, so three
+# catalogues are missing rather than one.
+
+class TestSurveyScreensTheTargetPlatform:
+    def _refusals(self):
+        return TestSurveySkill()._refusals()
+
+    def test_it_refuses_a_suite_whose_platform_has_no_catalogue(self):
+        assert has_paragraph_with(
+            self._refusals(),
+            "platform",
+            "stop",
+            absent=("do not refuse", "proceed anyway", "warn only"),
+        ), (
+            "the refusals section never screens the target platform, so a survey "
+            "can size a Migration the first attach refuses"
+        )
+
+    def test_the_platform_gate_names_the_two_kinds_of_application_it_can_convert(self):
+        assert has_paragraph_with(self._refusals(), "web", "unified"), (
+            "a platform gate that does not say which platforms are convertible "
+            "cannot be acted on"
+        )
+
+    def test_it_asks_the_operator_which_application_the_migration_targets(self):
+        # The suite's own source cannot settle this: the target application is a
+        # thing in their tenant, so it is an Application Fact, not a probe.
+        assert has_paragraph_with(self._refusals(), "operator", "which application")
+
+    def test_the_convertible_set_is_probed_and_not_pinned(self):
+        # ADR-0003. A set hardcoded here is a set that is wrong the day a
+        # catalogue lands, and wrong in a document nobody re-reads.
+        body = _body(SURVEY)
+        assert has_paragraph_with(body, "catalogue", "platform-facts.md"), (
+            "the convertible set must be recorded as a probed Platform Fact"
+        )
+
+    def test_the_platform_gate_precedes_the_content_screen(self):
+        # Cheapest-decisive first: the content screen reads the whole suite, and
+        # is wasted effort on a suite that could never attach.
+        body = _body(SURVEY)
+        gate = body.lower().index("platform")
+        screen = body.lower().index("screen for what is unconvertible")
+        assert gate < screen
+
+    def test_the_content_screen_says_which_axis_it_screens(self):
+        # It is still a correct screen, and was never the whole of triage. Left
+        # unqualified, its presence reads as though platform were covered.
+        assert has_paragraph_with(
+            _body(SURVEY), "screen for what is unconvertible", "platform"
+        ), "the content screen must not read as the whole of triage"
+
+    def test_the_probe_records_which_platforms_the_build_writes(self):
+        body = (REFERENCES_DIR / "cli-probe.md").read_text(encoding="utf-8").lower()
+        assert "applicationtype" in body or "application type" in body, (
+            "the probe records what the build checks but not what it can write"
+        )
+        assert "tss1609" in body, (
+            "the diagnostic that proves the refusal is real belongs in the "
+            "reference, never in front of the Operator"
+        )
+
+
+def test_the_glossary_has_a_term_for_the_catalogue_a_platform_has():
+    # The platform gate in survey turns on it, and a gate whose central noun is
+    # undefined is a gate two readers will draw differently.
+    body = CONTEXT.read_text(encoding="utf-8")
+    assert "**Catalogue**:" in body, "survey refuses on a term the glossary never defines"
+    entry = body.split("**Catalogue**:")[1].split("**")[0].lower()
+    assert "platform" in entry
+    assert "refus" in entry, (
+        "an absent catalogue is a refusal rather than a gap, and the term must say so"
+    )

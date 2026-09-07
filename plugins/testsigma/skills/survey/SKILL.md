@@ -33,10 +33,12 @@ subdirectory beside application code, is the normal case rather than the excepti
 The Migration Directory goes at the suite root you settle on, even when the
 repository root is higher up. Say which folder you chose.
 
-## Before anything else: three refusals
+## Before anything else: four refusals
 
-Check all three before doing any work, cheapest first. Each is a stop, not a
-warning.
+Check all four before doing any work, cheapest first. Each is a stop, not a
+warning. The first three, and the two confirmations that follow them, each cost a
+command; the fourth costs the Operator a question, so it comes after everything a
+command can settle.
 
 **A Migration must not already exist.** If `.testsigma/migration/` is present in
 the suite, this suite has already been started. Do not start again and do not
@@ -60,7 +62,7 @@ wrong: the conversion that produced this plugin's design sat unversioned in a
 temporary directory, holding the only copy of every artifact it had produced.
 
 Two further checks belong with these, because both make the Migration Directory
-silently useless rather than absent:
+silently useless rather than absent. Neither is one of the four:
 
 **The suite must not ignore the Migration Directory.** Check with
 `git check-ignore -q .testsigma/migration`. Plenty of repositories ignore dot
@@ -72,6 +74,31 @@ discard this folder.
 **Notice a submodule.** If the suite is its own repository nested inside another,
 its state commits somewhere the Operator may not expect. Do not refuse; say which
 repository will hold the Migration's notes and confirm that is what they want.
+
+The fourth refusal comes after all of those because it is the only one that spends
+the Operator's attention rather than a command's.
+
+**The suite's platform must be one this build has a catalogue for.** Ask the
+Operator which application in their Testsigma project this Migration targets, and
+what kind of application it is. This build writes working copies for web and
+unified applications only; an application on any other platform is refused the
+first time a working copy is attached, before a single row has been converted.
+The refusal is not a Web catalogue with holes in it: each platform's steps sit in
+a template-id block of its own and the blocks do not overlap, so a suite driving
+a native or mobile-web application has no catalogue here at all. If that is what
+this suite drives, stop. Tell the Operator which platforms can be converted today
+and that theirs is not yet among them, so nothing produced here could be attached.
+
+Take the answer from the Operator rather than from the source. A suite's own code
+is weak evidence of the platform it drives — the same driver spelling appears in
+both — and the target application is a thing in their tenant, so this is an
+Application Fact and they are the only ones who can settle it.
+
+Which platforms have a catalogue is a property of the installed build and it
+grows; `references/cli-probe.md` says how to read it, and the answer is recorded
+in `platform-facts.md` with how it was established. So this stop turns on what
+the probe found, and never on the pair named above: if this build converts
+something the plugin does not list, the list is what is out of date.
 
 ## Step 1: Choose the Source Adapter, and say why
 
@@ -166,7 +193,10 @@ nothing and the Migration will cost about what rewriting the suite by hand would
 That is a decision for the Operator, not a number to file. Put it to them, record
 the question in `open-questions.md` immediately, and clear it only when they answer.
 
-**Screen for what is unconvertible before quoting a size.** A scenario can be
+**Screen for what is unconvertible before quoting a size.** This screens step
+content, and it is the second of the two triage axes: the platform gate above
+settled whether the suite's application can be converted at all, and this settles
+which of its scenarios can. A scenario can be
 pure web and still impossible: in a measured estate, six of seven web-only
 scenarios seeded their data by rewriting a spreadsheet and importing it through the
 application, which Testsigma cannot do — it can attach an upload, not edit a file

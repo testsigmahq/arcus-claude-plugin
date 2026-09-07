@@ -127,6 +127,13 @@ _Avoid_: results, log, audit trail
 Something true of Testsigma's own authoring surface that no reading of a source
 could reveal. A migration can settle one itself, by probing.
 
+**Catalogue**:
+The set of steps Testsigma can express for one kind of application. Each platform
+has its own and they do not overlap, so a suite driving an application whose
+platform this build has no catalogue for is refused rather than partly converted.
+Which catalogues exist is a Platform Fact, established by probing, and it grows.
+_Avoid_: verb list, step library, schema
+
 **Application Fact**:
 Something true of the application under test. Only a person who knows that
 application can answer one, so it stays open until answered.

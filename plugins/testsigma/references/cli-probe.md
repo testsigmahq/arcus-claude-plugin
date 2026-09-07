@@ -73,7 +73,38 @@ records that check as **not covered** rather than as passing. This is the whole
 point of probing: the dangerous failure is not a missing feature, it is a report
 that a check passed when nothing ran.
 
-## Fourth: notice when it changes
+## Fourth: record which platforms this build can write
+
+A working copy is written against one catalogue, and the marker's
+`applicationType` says which. This build has two — `WebApplication` and
+`Unified` — and the rest of the server's `ApplicationType` enum is absent on
+purpose rather than defaulted to Web, because each platform's steps occupy a
+template-id block of its own and the blocks do not overlap. An application on an
+absent platform is refused at `attach` with **TSS1609**, and mapping it to the
+Web catalogue instead would attach and then fail every pull with TSS1410,
+reading as a hole in the Web catalogue rather than as the wrong platform.
+
+So the set matters at survey, before any row is converted, and it is a property
+of the build rather than of this plugin. Establish it, in this order, and record
+the answer in `platform-facts.md` with how it was established:
+
+- run `testsigma list applications` for the target project. It prints each
+  application with its type, which is what says whether the one the Operator
+  named is convertible at all.
+- where the project is not reachable yet, the refusal text is the next best
+  evidence: `attach` names the type it was given and the types it writes.
+- failing both, record the two above as the set *this reference last measured*,
+  with the build identity beside it, and never as a fact about the installed
+  build.
+
+A platform absent from the set is a refusal and not a gap: nothing here can say
+what a file for that platform would mean. Treat it the way a missing check is
+treated — recorded, not assumed — and re-establish it when the build changes,
+because a catalogue arriving is exactly the kind of growth ADR-0003 exists for.
+The code belongs here and in the Migration Directory; the Operator hears which
+platforms can be converted, never a diagnostic.
+
+## Fifth: notice when it changes
 
 Compare the recorded build against what is installed now. If they differ, say so
 before doing any work, and mark every Unit of Work checked under the old build as

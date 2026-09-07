@@ -71,7 +71,14 @@ IOSNative and MobileWeb are refused at `attach` with TSS1609, because their
 catalogues do not exist; WINDOWS is out of scope. Each platform occupies its own
 non-overlapping template-id block, so three catalogues are missing rather than
 one. A survey can therefore green-light a migration that `attach` refuses on day
-one. This is a live defect in a shipped skill, not a gap.
+one. This was a live defect in a shipped skill, not a gap.
+
+**Fixed.** `survey` now carries the platform screen as its fourth refusal, ahead
+of the content screen and of the Migration Directory commit, and the content
+screen says which of the two axes it is. Which platforms have a catalogue is
+established by probing, per ADR-0003, and `references/cli-probe.md` gained the
+procedure and the diagnostic. `CONTEXT.md` gained **Catalogue**, since the gate
+turns on it. The remaining three consequences above are still open.
 
 ## What the CLI models better than this plugin does
 
