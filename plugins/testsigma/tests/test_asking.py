@@ -10,10 +10,11 @@ import pytest
 
 from support import (
     COMMANDS_DIR,
+    doc_id,
+    document_files,
     document,
     REFERENCES_DIR,
     hedges_in,
-    command_files,
     has_paragraph_with,
     paragraphs,
     read_frontmatter,
@@ -223,20 +224,32 @@ class TestTheTwoKindsOfFact:
 
 # --- the documents that ask ---------------------------------------------------
 
-_DOCUMENTS = list(skill_files()) + list(command_files())
-_DOC_IDS = lambda p: p.parent.name if p.name == "SKILL.md" else p.stem
+_DOCUMENTS = document_files()
 
 #: The parameter is named `path`, not `document`, because `document` is the
 #: handle imported above and shadowing it forced four of these tests to
 #: re-implement `.flat` by hand.
 
 
+#: The three items distinctive enough to detect a copy by. "code" is excluded:
+#: it is a substring of "diagnostic code" and appears in every document that
+#: mentions reading code at all.
+_DISTINCTIVE = ("file path", "stack trace", "diagnostic")
+
+
 def _restates_the_list(doc):
-    """True where this document carries the four prohibitions itself."""
-    return "stack trace" in doc.flat
+    """True where this document names any of the prohibited things itself.
+
+    The trigger used to be the presence of "stack trace", which a partial copy
+    evaded *by being partial*: `write-an-adapter` said "source code or a
+    diagnostic" and was the one skipped document in the suite. Keying on any
+    distinctive item means a copy naming two of the four is caught for naming
+    two, and a document that defers entirely still skips.
+    """
+    return any(item in doc.flat for item in _DISTINCTIVE)
 
 
-@pytest.mark.parametrize("path", _DOCUMENTS, ids=_DOC_IDS)
+@pytest.mark.parametrize("path", _DOCUMENTS, ids=doc_id)
 def test_a_document_restating_the_forbidden_list_does_not_drift_from_it(path):
     # Two documents restated this list with "a command" where asking.md says
     # "code" — narrower, and wrong: a shell command is not the concern, source
@@ -244,16 +257,19 @@ def test_a_document_restating_the_forbidden_list_does_not_drift_from_it(path):
     doc = document(path)
     if not _restates_the_list(doc):
         pytest.skip("this document does not restate what a question may not contain")
-    for forbidden in FORBIDDEN_IN_A_QUESTION:
-        assert forbidden in doc.flat, (
-            f"this document restates the forbidden list but omits {forbidden!r}"
-        )
+    missing = [item for item in FORBIDDEN_IN_A_QUESTION if item not in doc.flat]
+    assert not missing, (
+        f"this document names some of the prohibited things but omits "
+        f"{missing}; a copy carries the whole list or defers to asking.md "
+        f"entirely, because a partial copy reads as the rule while permitting "
+        f"what it leaves out"
+    )
     assert "references/asking.md" in doc.text, (
         "a document restating the list must point at the definition it restates"
     )
 
 
-@pytest.mark.parametrize("path", _DOCUMENTS, ids=_DOC_IDS)
+@pytest.mark.parametrize("path", _DOCUMENTS, ids=doc_id)
 def test_a_document_restating_the_list_does_not_deny_restating_it(path):
     # Four documents restated the four prohibitions and then said "this does
     # not restate it". The copy is deliberate — a skill body loads whole on
@@ -283,7 +299,7 @@ def test_a_document_restating_the_list_does_not_deny_restating_it(path):
             )
 
 
-@pytest.mark.parametrize("path", _DOCUMENTS, ids=_DOC_IDS)
+@pytest.mark.parametrize("path", _DOCUMENTS, ids=doc_id)
 def test_a_copy_says_why_it_is_a_copy(path):
     # An unexplained copy invites the deletion an architecture review already
     # proposed for these five. The reason is load-bearing: a skill body loads
@@ -300,7 +316,7 @@ def test_a_copy_says_why_it_is_a_copy(path):
     )
 
 
-@pytest.mark.parametrize("path", _DOCUMENTS, ids=_DOC_IDS)
+@pytest.mark.parametrize("path", _DOCUMENTS, ids=doc_id)
 def test_a_copy_does_not_describe_the_owner_as_narrower_than_it_is(path):
     # The defect that caused all of this. Five documents forbade code, paths,
     # traces and diagnostic codes in anything put in front of the Operator,
@@ -316,7 +332,7 @@ def test_a_copy_does_not_describe_the_owner_as_narrower_than_it_is(path):
     )
 
 
-@pytest.mark.parametrize("path", _DOCUMENTS, ids=_DOC_IDS)
+@pytest.mark.parametrize("path", _DOCUMENTS, ids=doc_id)
 def test_a_document_that_touches_open_questions_points_at_the_asking_rules(path):
     doc = document(path)
     if "open-questions.md" not in doc.text:

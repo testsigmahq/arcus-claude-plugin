@@ -17,10 +17,10 @@ import re
 import pytest
 
 from support import (
+    document_files,
+    doc_id,
     MIGRATION_DIRECTORY_FILES,
     PLUGIN_ROOT,
-    command_files,
-    skill_files,
 )
 
 #: The plugin's own directories. A closed set, so this needs no allowlist of
@@ -35,11 +35,7 @@ _PLUGIN_PATH = re.compile(
     r"(?P<prefix>\S*?)(?P<path>(?:" + "|".join(PLUGIN_DIRECTORIES) + r")/[\w./-]+)"
 )
 
-COMPONENTS = sorted(skill_files()) + sorted(command_files())
-
-
-def _ids(path):
-    return f"{path.parent.name}/{path.name}"
+COMPONENTS = document_files()
 
 
 def _pointers(path):
@@ -50,7 +46,7 @@ def _pointers(path):
     ]
 
 
-@pytest.mark.parametrize("component", COMPONENTS, ids=_ids)
+@pytest.mark.parametrize("component", COMPONENTS, ids=doc_id)
 def test_every_pointer_is_anchored_to_the_plugin_root(component):
     # The three spellings that were in use: anchored (correct), `../../` from a
     # skill (worked, but only because the reader infers the anchor), and bare
@@ -62,12 +58,12 @@ def test_every_pointer_is_anchored_to_the_plugin_root(component):
         if not prefix.endswith(ANCHOR + "/")
     ]
     assert not unanchored, (
-        f"{_ids(component)} names plugin files without anchoring them to "
+        f"{doc_id(component)} names plugin files without anchoring them to "
         f"{ANCHOR}: {unanchored}"
     )
 
 
-@pytest.mark.parametrize("component", COMPONENTS, ids=_ids)
+@pytest.mark.parametrize("component", COMPONENTS, ids=doc_id)
 def test_every_pointer_resolves_to_a_file_that_exists(component):
     # The check the suite never had. Three of the broken pointers were the
     # CLI-probe instruction on the critical path of both entry points, where a
@@ -77,10 +73,10 @@ def test_every_pointer_resolves_to_a_file_that_exists(component):
         for _, path in _pointers(component)
         if not (PLUGIN_ROOT / path).exists()
     ]
-    assert not missing, f"{_ids(component)} points at files that do not exist: {missing}"
+    assert not missing, f"{doc_id(component)} points at files that do not exist: {missing}"
 
 
-@pytest.mark.parametrize("component", COMPONENTS, ids=_ids)
+@pytest.mark.parametrize("component", COMPONENTS, ids=doc_id)
 def test_the_glossary_is_anchored_too(component):
     # `CONTEXT.md` sits at the plugin root like the references do, and was
     # named bare in all five skills and the command.
@@ -89,11 +85,11 @@ def test_the_glossary_is_anchored_too(component):
         pytest.skip("this component does not name the glossary")
     for match in re.finditer(r"(\S*?)CONTEXT\.md", body):
         assert match.group(1).endswith(ANCHOR + "/"), (
-            f"{_ids(component)} names CONTEXT.md unanchored: {match.group(0)!r}"
+            f"{doc_id(component)} names CONTEXT.md unanchored: {match.group(0)!r}"
         )
 
 
-@pytest.mark.parametrize("component", COMPONENTS, ids=_ids)
+@pytest.mark.parametrize("component", COMPONENTS, ids=doc_id)
 def test_a_migration_directory_file_is_never_anchored_to_the_plugin(component):
     # The inverse error, and the reason this module does not simply resolve
     # everything path-shaped: `residue.md` and `step-map.md` live in the user's
@@ -102,7 +98,7 @@ def test_a_migration_directory_file_is_never_anchored_to_the_plugin(component):
     body = component.read_text(encoding="utf-8")
     for filename in MIGRATION_DIRECTORY_FILES:
         assert f"{ANCHOR}/{filename}" not in body, (
-            f"{_ids(component)} anchors {filename} to the plugin; it belongs to "
+            f"{doc_id(component)} anchors {filename} to the plugin; it belongs to "
             f"the source suite"
         )
 

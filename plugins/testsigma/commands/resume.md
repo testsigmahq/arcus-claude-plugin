@@ -9,7 +9,7 @@ session entry point: it reads the Migration Directory and says where the work
 stands, so picking the work up is one command rather than an act of archaeology.
 
 Read only. Nothing here writes to the Migration Directory except the one case
-Step 2 names, and that case is a correction to a record that has become wrong.
+Step 1 names, and that case is a correction to a record that has become wrong.
 
 **Who you are talking to.** The person running a Migration is the Operator.
 They know Testsigma and do not necessarily read code, so nothing you put in

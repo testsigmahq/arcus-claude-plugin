@@ -34,8 +34,9 @@ adapter chosen, no snapshot pinned and no Step Map to write rows into, and
 mapping without those produces rows nobody can trace back to a source.
 
 If it is present, read it before working. `migration.md` names the adapter and
-the pinned snapshot; `step-map.md` holds the rows already decided. Run the resume
-command if you need the state in full.
+the pinned snapshot; `step-map.md` holds the rows already decided. Where you need
+the state in full, read the rest of the Migration Directory files rather than
+reaching for the Operator's own command.
 
 ## Step 0: Resolve everything before authoring anything
 
@@ -97,6 +98,20 @@ Composite Step becomes a converted test. The row holds the whole sequence.
 
 A status is `unreviewed`, `reviewed` or `residue`, as defined in the Migration
 Directory reference. A row is `unreviewed` from the moment it is written.
+
+### Before a row is proposed: the slot decides the value
+
+Naming the right verb does not make a row legal. A slot declares which **value
+kinds** it will hold, and a value of any other kind is refused there however
+sensible it reads, so where a source value comes from is part of choosing the
+expression. `${CLAUDE_PLUGIN_ROOT}/references/authoring.md` carries the kinds and
+how to ask the build what a slot accepts. Never settle a mismatch with a raw
+literal: freezing a generated or captured value into a constant passes every check
+and is a Divergence.
+
+Where a row's value is not a raw literal, record a `Kind:` line in its Expression
+cell naming the kinds it uses, as
+`${CLAUDE_PLUGIN_ROOT}/references/migration-directory.md` defines.
 
 ## Step 3: Open the helper behind the line and read its sequence
 
@@ -217,20 +232,6 @@ A Concession is expressed work and does not block assembly; Residue is declined
 work and does. `${CLAUDE_PLUGIN_ROOT}/CONTEXT.md` carries what separates the two
 from a Divergence, and it is worth reading before deciding a row is one rather
 than another.
-
-## Before a row is proposed: the slot decides the value
-
-Naming the right verb does not make a row legal. A slot declares which **value
-kinds** it will hold, and a value of any other kind is refused there however
-sensible it reads, so where a source value comes from is part of choosing the
-expression. `${CLAUDE_PLUGIN_ROOT}/references/authoring.md` carries the kinds and
-how to ask the build what a slot accepts. Never settle a mismatch with a raw
-literal: freezing a generated or captured value into a constant passes every check
-and is a Divergence.
-
-Where a row's value is not a raw literal, record a `Kind:` line in its Expression
-cell naming the kinds it uses, as
-`${CLAUDE_PLUGIN_ROOT}/references/migration-directory.md` defines.
 
 ## Step 7: Residue, for what the format cannot express
 

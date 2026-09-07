@@ -21,10 +21,10 @@ suite parses the document, insists on all three properties and all six sections,
 checks the stated worked example against the fixture using the document's own
 normalisation rule. A document whose rule and counts disagree fails.
 
-**Who you are talking to.** Whoever is writing an adapter may be a developer, but a
-question that reaches the Operator still follows
-`${CLAUDE_PLUGIN_ROOT}/references/asking.md`. Do not put source code or a
-diagnostic in front of them.
+**Who you are talking to.** Whoever is writing an adapter may be a developer, but
+a question that reaches the Operator still follows
+`${CLAUDE_PLUGIN_ROOT}/references/asking.md`, which decides everything shown to
+them.
 
 ## Before anything: distrust the documentation
 

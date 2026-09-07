@@ -1,6 +1,6 @@
 ---
 name: assemble
-description: Use when building Testsigma tests from a Migration's reviewed Step Map rows — assembling scenarios, converting a feature file's tests now that mapping is done, or checking assembled tests for document order and block nesting. Takes only reviewed rows, refuses a test that references an unresolved element, and checks every finished test for the order fault that compiles, passes preflight and survives a round trip.
+description: Use when building Testsigma tests from a Migration's reviewed Step Map rows — assembling scenarios, converting a feature file whose rows are already reviewed, or checking assembled tests for document order and block nesting. Not the way into a Migration — where nothing has been surveyed or mapped yet, survey and map come first. Takes only reviewed rows, refuses a test that references an unresolved element, and checks every finished test for the order fault that compiles, passes preflight and survives a round trip.
 ---
 
 # Assemble: build tests from reviewed rows

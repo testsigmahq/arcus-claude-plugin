@@ -14,13 +14,12 @@ import re
 import pytest
 
 from support import (
+    document_files,
     document,
     MIGRATION_DIRECTORY_FILES,
     REFERENCES_DIR,
-    command_files,
     has_paragraph_with,
     hedges_in,
-    skill_files,
 )
 
 CHECKS = REFERENCES_DIR / "checks.md"
@@ -210,7 +209,7 @@ def test_no_section_grants_an_exception_to_its_own_rule(section):
 
 # --- the documents that run checks -------------------------------------------
 
-_DOCUMENTS = list(skill_files()) + list(command_files())
+_DOCUMENTS = document_files()
 _IDS = lambda p: p.parent.name if p.name == "SKILL.md" else p.stem
 
 

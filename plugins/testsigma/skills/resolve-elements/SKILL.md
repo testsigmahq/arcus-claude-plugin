@@ -1,6 +1,6 @@
 ---
 name: resolve-elements
-description: Use when a Migration's source carries no locators — a Tosca subset export, an ALM design-step export, any source that describes what tests do but not how to find the controls — and the Step Map is mapped but its elements are unsatisfied. Runs as its own Phase after mapping, matching each element the Step Map names against the existing Testsigma project by name before asking the Operator to capture anything.
+description: Use when a Migration's source carries no locators and its adapter already exists, declaring carries-locators no — a Tosca subset export, an ALM design-step export, any source that describes what tests do but not how to find the controls — and the Step Map is mapped but its elements are unsatisfied. Runs as its own Phase after mapping, matching each element the Step Map names against the existing Testsigma project by name before asking the Operator to capture anything.
 ---
 
 # Resolve elements

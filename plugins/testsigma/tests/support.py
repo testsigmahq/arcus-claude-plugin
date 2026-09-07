@@ -194,6 +194,21 @@ def git_tracked_paths(directory):
     }
 
 
+def document_files():
+    """Every skill and command document, sorted. The set that talks to a user.
+
+    Five test modules had each rebuilt this alongside their own copy of the
+    id function below, so a module reaching for "the documents" now reaches
+    for one definition of them.
+    """
+    return sorted(skill_files()) + sorted(command_files())
+
+
+def doc_id(path):
+    """A short parametrize id: the skill's directory, or the command's stem."""
+    return path.parent.name if path.name == "SKILL.md" else path.stem
+
+
 def adr_files():
     """Every ADR in the plugin, sorted by filename."""
     return sorted(ADR_DIR.glob("[0-9][0-9][0-9][0-9]-*.md")) if ADR_DIR.is_dir() else []
