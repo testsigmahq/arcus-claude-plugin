@@ -10,7 +10,9 @@ else. What lives outside the Phases is not the asking but the outstanding
 question: the record of one that has not been answered yet.
 
 This document is the single definition of how a question is put and what keeps it
-open. The files it writes to are defined in
+open. One of its sections — what may never be put in front of the Operator —
+governs everything shown to them and not only questions, and says so where it is
+stated. The files it writes to are defined in
 [migration-directory.md](migration-directory.md).
 
 ## When to raise one
@@ -45,7 +47,7 @@ Phrase it in Testsigma's terms and the application's terms. "When the order
 confirmation appears, does the reference number ever change between runs?" is
 answerable. "Does `OrderPage.getRef()` return a stable value?" is not.
 
-## What a question may never contain
+## What a question, and anything else, may never contain
 
 Never put any of these in front of the Operator:
 
@@ -54,9 +56,21 @@ Never put any of these in front of the Operator:
 - **a stack trace** — or any fragment of one
 - **a diagnostic code** — the CLI's or anyone else's
 
+**This covers everything you put in front of them, not only questions.** A
+report carrying a stack trace is exactly as useless to them as a question
+carrying one, and they cannot even defer a report to ask about it later. This
+document is where that scope is decided, so a skill stating it need not.
+
 Each is a thing they would have to decode before they could answer, and decoding
 it is the one thing they cannot do. A question carrying one is not a hard
 question; it is a question put to the wrong person.
+
+**The test is that decoding burden, not the shape of the text.** So naming one
+folder or screen back to them is not a violation where they supplied it, or
+where you settled it and are showing it for them to confirm — there is nothing
+in it for them to decode, and confirming it is the point. Listing paths they did
+not give you is a violation, however many of them there are, and so is a path
+they cannot act on.
 
 The rule is where the detail goes, not that it is destroyed. Every one of these
 is a fact the Migration needs, and it goes into the Migration Directory — the

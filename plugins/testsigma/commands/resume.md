@@ -14,8 +14,9 @@ Step 2 names, and that case is a correction to a record that has become wrong.
 **Who you are talking to.** The person running a Migration is the Operator.
 They know Testsigma and do not necessarily read code, so nothing you put in
 front of them carries code, a file path, a stack trace or a diagnostic code.
-Those go in the Migration Directory. `${CLAUDE_PLUGIN_ROOT}/references/asking.md` is the
-rule for what a question may contain; this does not restate it. See
+Those go in the Migration Directory. They are copied here rather than pointed
+at because a question arises mid-work; `${CLAUDE_PLUGIN_ROOT}/references/asking.md`
+decides them and covers everything else shown to the Operator. See
 `${CLAUDE_PLUGIN_ROOT}/CONTEXT.md` for the vocabulary this plugin uses with them.
 
 The file set this reads is defined in
@@ -30,9 +31,11 @@ that survey is what starts a Migration. Do not create the directory here and do
 not guess at the state — survey pins a snapshot and probes the CLI, and a
 directory conjured without those facts is worse than none.
 
-If the directory exists but a file the reference names is missing, say which and
-stop. A partial directory means a session was interrupted mid-write, and reading
-around the gap would report a state that was never true.
+If the directory exists but a file the reference names is missing, stop, and say
+which record is absent in the terms the Operator knows it by — the Step Map, the
+check record, the open questions — rather than which file. A partial directory
+means a session was interrupted mid-write, and reading around the gap would
+report a state that was never true.
 
 ## Step 1: Re-probe the CLI and compare it against the recorded build
 

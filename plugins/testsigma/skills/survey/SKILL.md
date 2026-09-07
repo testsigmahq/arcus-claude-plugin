@@ -17,8 +17,9 @@ to resume.
 **Who you are talking to.** The person running a Migration is the Operator.
 They know Testsigma and do not necessarily read code, so nothing you put in
 front of them carries code, a file path, a stack trace or a diagnostic code.
-Those go in the Migration Directory. `${CLAUDE_PLUGIN_ROOT}/references/asking.md` is the
-rule for what a question may contain; this does not restate it. See
+Those go in the Migration Directory. They are copied here rather than pointed
+at because a question arises mid-work; `${CLAUDE_PLUGIN_ROOT}/references/asking.md`
+decides them and covers everything else shown to the Operator. See
 `${CLAUDE_PLUGIN_ROOT}/CONTEXT.md` for the vocabulary this plugin uses with them.
 
 ## Step 0: Establish which folder is the source suite
