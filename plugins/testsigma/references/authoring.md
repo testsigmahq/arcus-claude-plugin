@@ -206,6 +206,24 @@ Migration Directory.
 Use it for any region left unconverted on purpose. Do not drop the steps silently,
 and do not leave a comment in their place — a comment is invisible in the tenant.
 
+**The label is the whole content of the marker**, so it carries what was needed
+and not that something is missing. `Not converted` tells a reader nothing they
+could act on; `Needs a step addon: scan a barcode into the receiving field` names
+the work and the person who can do it. Write the source's intent in the
+Operator's language, then the Cause, using the fixed set in
+`migration-directory.md`.
+
+An empty block is legal anywhere a step is legal, so put it **where the step
+would have gone** — same position, same nesting. A marker collected at the end
+of a test loses the one thing it was for, which is showing a reader the point in
+the sequence where the test stops matching its source.
+
+A marker is not a substitute for a Residue entry, and neither is a substitute for
+the other. The entry carries the reasoning and gets revisited; the marker is what
+a person sees when they open the test and never reads the Migration Directory.
+Writing one without the other leaves either a gap nobody can find or a gap nobody
+can explain.
+
 ## Api blocks, and a Residue cause overturned
 
 An api block expresses method, url, headers, query, several body kinds, most

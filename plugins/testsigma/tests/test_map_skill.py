@@ -794,3 +794,29 @@ def test_no_caller_describes_a_shape_the_catalogue_owns(shape, caller):
     assert shape not in _flattened(caller.read_text(encoding="utf-8")), (
         f"{caller.parent.name} describes {shape!r}; point at the catalogue"
     )
+
+
+class TestResidueRoutesToWhoeverCanCloseIt:
+    def _section(self):
+        body = document(PLUGIN_ROOT / "skills" / "map" / "SKILL.md").section("residue")
+        return " ".join(body.split())
+
+    def test_it_names_both_addon_kinds(self):
+        section = self._section().lower()
+        assert "step addon" in section and "data generator addon" in section, (
+            "a cause reading only that the step cannot be expressed routes "
+            "nowhere; the two addon kinds are different requests"
+        )
+
+    def test_it_defers_the_cause_set_rather_than_listing_it(self):
+        assert "migration-directory.md" in self._section(), (
+            "the fixed set lives with the table that uses it; a second list "
+            "here is one that drifts"
+        )
+
+    def test_the_row_stays_in_the_step_map_as_residue(self):
+        section = self._section().lower()
+        assert "residue`" in section or "`residue" in section, (
+            "a row dropped from step-map.md instead of being given the residue "
+            "status takes the step out of every test that used it"
+        )

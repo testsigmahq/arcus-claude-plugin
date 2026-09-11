@@ -213,3 +213,57 @@ class TestTheUnreferencedElementSweep:
         assert has_paragraph_with(
             _section("sweep"), "isolated", "systematic"
         ), "one missing step and a pattern of them need different responses"
+
+
+class TestAResidueRowBecomesAMarker:
+    """A declined step must still be visible in the test it was declined from.
+
+    This is the seam where Residue turns into a Divergence if it is got wrong.
+    Mapping decides a step is inexpressible; if assembly then treats `residue`
+    as merely "not `reviewed`" and skips the row, the test reads as a complete
+    conversion of its source and is not. Nothing downstream catches it: the file
+    validates, pushes, round-trips, and the only record of the absence is in a
+    directory the person running the test never opens.
+    """
+
+    def test_the_stage_has_a_step_for_it(self):
+        assert _section("marker"), (
+            "assembly must say what becomes of a residue row, or the natural "
+            "reading of 'take only reviewed rows' drops it"
+        )
+
+    def test_the_marker_stands_where_the_step_would_have_been(self):
+        section = _section("marker")
+        assert "position" in section, (
+            "a marker collected elsewhere loses the sequence position that is "
+            "the reason for putting it in the test at all"
+        )
+
+    def test_a_residue_row_is_named_as_the_exception_to_the_reviewed_rule(self):
+        # Scoped to the reviewed-rows section deliberately. Stating the
+        # exception three sections later does not reach a reader who has
+        # already applied the rule and moved on.
+        assert "residue" in _section("reviewed"), (
+            "the rule that drops the row and the exception to it must sit "
+            "together"
+        )
+
+    def test_it_defers_how_to_write_the_marker_rather_than_restating_it(self):
+        assert "authoring.md" in _section("marker"), (
+            "the marker's spelling belongs to authoring.md; a second copy here "
+            "is one that softens"
+        )
+
+    def test_the_per_test_document_is_written_here(self):
+        section = _section("marker")
+        assert "residue/" in section, (
+            "the per-test document can only be written where a test exists, "
+            "which is this stage"
+        )
+
+    def test_a_test_carrying_markers_is_still_checked(self):
+        section = _section("marker")
+        assert "refused" in section, (
+            "a marker is a recorded absence, not a reason to abandon the test; "
+            "say so, or it reads like the unresolved-element refusal above it"
+        )

@@ -1,6 +1,6 @@
 ---
 name: assemble
-description: Use when building Testsigma tests from a Migration's reviewed Step Map rows — assembling scenarios, converting a feature file whose rows are already reviewed, or checking assembled tests for document order and block nesting. Not the way into a Migration — where nothing has been surveyed or mapped yet, survey and map come first. Takes only reviewed rows, refuses a test that references an unresolved element, and checks every finished test for the order fault that compiles, passes preflight and survives a round trip.
+description: Use when building Testsigma tests from a Migration's reviewed Step Map rows — assembling scenarios, converting a feature file whose rows are already reviewed, or checking assembled tests for document order and block nesting. Not the way into a Migration — where nothing has been surveyed or mapped yet, survey and map come first. Builds only from reviewed rows, stands an empty marker block where a residue row falls so a declined step is never silently absent, refuses a test that references an unresolved element, and checks every finished test for the order fault that compiles, passes preflight and survives a round trip.
 ---
 
 # Assemble: build tests from reviewed rows
@@ -30,7 +30,7 @@ assemble. Stop. If it exists but `step-map.md` holds no reviewed rows, mapping
 has not produced anything yet; say so and run mapping rather than assembling
 from proposals.
 
-## Step 1: Take only reviewed rows
+## Step 1: Build only from reviewed rows
 
 A row's status in `step-map.md` decides whether it may be used. Use rows whose
 status is `reviewed`. Never assemble from a row that is `unreviewed`, and never
@@ -45,6 +45,12 @@ different.
 Where a scenario needs a row that is not yet reviewed, leave that scenario
 unassembled and say which row it is waiting on. A partially assembled suite with
 a named gap is worth more than a complete one with an unreviewed step in it.
+
+A `residue` row is the exception and does not block its scenario. It is a decided
+row — decided as inexpressible — so it is assembled, as a marker. The next step
+says how. Treating `residue` as "not `reviewed`, therefore skip" is the reading
+that drops the step, and it is the natural reading of the rule above, which is
+why it is written out here.
 
 ## Step 2: Refuse a test that references an unresolved element
 
@@ -62,7 +68,36 @@ because a safety rule kept in two places is one that softens in one of them.
 A row whose other elements all resolved is not blocked. Decide per element, at
 the parameter value, which is what that column is for.
 
-## Step 3: Build the test
+## Step 3: A residue row becomes a marker, not a silence
+
+Every `residue` row that a scenario uses is assembled as an empty inline block,
+in the position the step would have occupied.
+
+This is the difference between Residue and a Divergence, and it is decided here
+rather than in mapping. A step recorded as Residue and then left out of the test
+is a test that reads as complete and is not — which is the definition of a
+Divergence in `${CLAUDE_PLUGIN_ROOT}/CONTEXT.md`. The Migration Directory knowing
+about the gap does not repair that, because the person who runs the test and the
+person who reads `residue.md` are not the same person and often not the same
+week.
+
+How the marker is written, and what its label must carry, are in
+`${CLAUDE_PLUGIN_ROOT}/references/authoring.md`. The short of it: the label names
+what was needed, not that something is missing.
+
+Then write the per-test document, `residue/<test>.md`, one per assembled test,
+with a row for each marker in it. Its shape is in
+`${CLAUDE_PLUGIN_ROOT}/references/migration-directory.md`. Write it as the test
+is assembled and not in a sweep afterwards — a sweep re-derives from the file
+what was already known while writing it, and re-derivation is where the label and
+the entry drift apart.
+
+A test carrying markers is still assembled and still checked. It is not refused,
+and it is not reported as done without qualification: report it as assembled with
+*n* markers, so the count is visible beside the test rather than only in a
+document nobody opened.
+
+## Step 4: Build the test
 
 The rules the validator and the push enforce — which templates a new step may
 use, how environment names and layout must be written, what to do after the first
@@ -79,7 +114,7 @@ order is the lexical order and parentage is the lexical nesting, so a correctly
 written file is correct by construction — which is why the fault the next step
 looks for is not visible here.
 
-## Step 4: Check document order and block nesting
+## Step 5: Check document order and block nesting
 
 This is the exit condition of this stage. A test is not assembled until it has
 passed this check, and a test that has not been checked is not done.
@@ -116,7 +151,7 @@ Running the test cannot replace this. The fault survives compilation, tenant
 preflight and a full round trip: the round trip rebuilds the step tree from
 parentage, and order is not parentage.
 
-## Step 5: Sweep for elements nothing references
+## Step 6: Sweep for elements nothing references
 
 Cheap, and it earns its place — as a secondary check. The primary one is
 call-chain coverage during mapping, and the difference is measured: in the
@@ -151,7 +186,7 @@ identifier for a later step to read — leaves nothing for this to notice. Those
 caught by the comparison in mapping or not at all, so do not report a clean sweep
 as evidence that no step was dropped.
 
-## Step 6: Report what is out of place
+## Step 7: Report what is out of place
 
 When the check fails, report which steps are out of place and the window each
 one had to fall inside. A report saying only that a test is wrong cannot be acted
@@ -165,7 +200,7 @@ pass. An unchecked step reading as clean is the failure mode ADR-0001 exists to
 prevent: three checks that cannot see the fault class are worse than none,
 because they read as reassurance.
 
-## Step 7: Record the check and commit
+## Step 8: Record the check and commit
 
 Write what ran into `check-record.md`, per test, naming the CLI build in use.
 The five checks, the order they run in, and what a check that could not run is

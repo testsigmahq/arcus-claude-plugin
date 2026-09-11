@@ -157,6 +157,16 @@ when a catalogue lands. Which catalogues exist is a Platform Fact, established b
 probing, and it grows.
 _Avoid_: verb list, step library, schema
 
+**Addon**:
+A unit that extends a Catalogue past what the installed build ships. A **step
+addon** adds a Verb; a **data generator addon** adds a generator behind the
+`function` Value Kind. Which of the two a stopped row needs is the whole
+difference between two pieces of work, owned by different people and shipped on
+different schedules, so a Residue cause reading only "cannot express it" routes
+nowhere. A missing Verb and a missing generator look identical from inside a
+half-written step and are not the same request.
+_Avoid_: plugin, extension, custom step, custom function
+
 **Application Fact**:
 Something true of the application under test. Only a person who knows that
 application can answer one, so it stays open until answered.

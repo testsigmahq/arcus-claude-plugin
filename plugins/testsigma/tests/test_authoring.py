@@ -233,3 +233,38 @@ def test_deprecation_is_established_before_a_row_is_proposed():
     assert "third" in section or "158" in section, (
         "the scale is what makes this worth establishing rather than meeting"
     )
+
+
+class TestTheUnconvertedMarkerCarriesItsReason:
+    """An empty block is only useful if its label says what was needed.
+
+    The block validates and shows in the tenant either way, so a label reading
+    `Not converted` produces a marker that is present, correct, and useless: the
+    reader learns a step is missing and nothing about what would restore it. The
+    marker's whole payload is its label.
+    """
+
+    def _section(self):
+        # Normalised: every phrase below straddles a line wrap in the source,
+        # which is the failure mode `Document.flat` was added for.
+        return " ".join(DOC.section("marker").split()).lower()
+
+    def test_the_label_names_what_was_needed(self):
+        section = self._section()
+        assert "what was needed" in section or "names the work" in section, (
+            "a label that only announces an absence gives a reader nothing to "
+            "act on"
+        )
+
+    def test_it_says_where_the_marker_goes(self):
+        assert "where the step would have gone" in self._section(), (
+            "position is the one thing a marker carries that the Migration "
+            "Directory cannot"
+        )
+
+    def test_the_marker_and_the_residue_entry_are_both_required(self):
+        section = self._section()
+        assert "not a substitute" in section, (
+            "either alone leaves a gap nobody can find, or one nobody can "
+            "explain"
+        )

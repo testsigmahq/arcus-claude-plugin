@@ -242,10 +242,24 @@ unresolved element are distinct causes and are never merged.
 Record its **Standing** too, `gap` or `refusal`. Where you cannot tell, write
 `gap`, because that is the reading that gets looked at again.
 
+The **Cause** is one of a fixed set, not prose;
+`${CLAUDE_PLUGIN_ROOT}/references/migration-directory.md` holds the set and what
+each one means. Two of them are the ones that matter here and are easy to merge:
+a **step addon** is needed when no Verb performs the action, a **data generator
+addon** when no generator produces a value. They feel the same while writing a
+step that will not finish, and they are requests to different people. Deciding
+which of the two it is, is part of recording the entry rather than a detail left
+for whoever reads it later.
+
 The reasoning is what lets a ruling be overturned later, so write the reasoning
 and not just the verdict: one case already believed unexpressible turned out to
-have a spelling that existed all along. What a Standing means, and why Residue is
-not a Divergence, are in `${CLAUDE_PLUGIN_ROOT}/CONTEXT.md`.
+have a spelling that existed all along. What a Standing means, what an Addon is,
+and why Residue is not a Divergence, are in `${CLAUDE_PLUGIN_ROOT}/CONTEXT.md`.
+
+Set the row's status to `residue`. It is not a status assembly may skip over: a
+`residue` row is assembled as a marker, per the stage that builds tests. Leaving
+the row out of `step-map.md` entirely would lose that, and the step would go
+missing from every test that used it.
 
 ## Step 8: Record and commit
 

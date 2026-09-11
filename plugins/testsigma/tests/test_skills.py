@@ -501,6 +501,7 @@ GLOSSARY_PHRASES = (
     "unrecorded concession is a divergence",
     "no entry is final",
     "a build change can close a gap and can never close a refusal",
+    "**step addon** adds a verb",
 )
 
 
@@ -518,4 +519,46 @@ def test_no_skill_restates_a_definition_the_glossary_owns(phrase, skill):
     assert phrase not in body, (
         f"{skill.parent.name} restates {phrase!r}, which CONTEXT.md owns; a "
         f"skill uses the vocabulary rather than defining it"
+    )
+
+
+#: The fixed Residue causes. A cause written as prose reads fine to whoever
+#: wrote it and cannot be counted, sorted, or handed to the person who can close
+#: it — and the first two below are the pair that get merged by accident, since
+#: both present as a step that will not finish and neither is the other's work.
+RESIDUE_CAUSES = (
+    "step addon",
+    "data generator addon",
+    "unresolved element",
+    "no catalogue",
+    "declined",
+)
+
+
+@pytest.mark.parametrize("cause", RESIDUE_CAUSES)
+def test_the_migration_directory_defines_every_residue_cause(cause):
+    body = (REFERENCES_DIR / "migration-directory.md").read_text(encoding="utf-8")
+    assert cause in body.lower(), (
+        f"{cause!r} is not defined where the Residue table lives, so each stage "
+        f"will invent its own wording for it"
+    )
+
+
+def test_the_two_addon_causes_are_distinguished_not_merged():
+    body = (REFERENCES_DIR / "migration-directory.md").read_text(encoding="utf-8").lower()
+    # Both must be present *and* the difference stated. Listing them adjacently
+    # in a table is what a merge looks like right before it happens.
+    assert "step addon" in body and "data generator addon" in body
+    assert "different" in body, (
+        "the table must say the two addon causes are different requests, or the "
+        "distinction is decoration"
+    )
+
+
+def test_the_glossary_owns_what_an_addon_is():
+    body = " ".join(CONTEXT.read_text(encoding="utf-8").split()).lower()
+    assert "**addon**" in body
+    assert "data generator addon" in body, (
+        "an Addon that names only the step kind leaves the generator kind with "
+        "no word, which is how the two get recorded as one cause"
     )

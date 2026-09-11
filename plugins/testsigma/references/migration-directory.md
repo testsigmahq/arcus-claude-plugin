@@ -101,6 +101,41 @@ generic step's parameter values can far outnumber its rows, so marking the whole
 row would block every occurrence that resolved perfectly well. Assembly reads
 this column to decide which tests are blocked.
 
+A **Cause** is one of a fixed set, not prose. Prose reads fine to whoever wrote
+it and cannot be counted, sorted, or handed to the person who can close it:
+
+| Cause | What is missing | Who closes it |
+|---|---|---|
+| `step addon` | no Verb in the Catalogue performs this action | whoever builds step addons |
+| `data generator addon` | no generator produces this value | whoever builds generator addons |
+| `unresolved element` | the element could not be resolved from source or tenant | the Operator, by capture |
+| `no catalogue` | this build has no Catalogue for the application's platform | whoever ships catalogues |
+| `declined` | expressible, and not converted on purpose | nobody — this is the refusal |
+
+The first two are the ones that get merged by accident, and they are the two that
+must not be. Both present as a step that cannot be finished; they are different
+requests to different people. Where a step is missing *and* a value inside it has
+no generator, the Cause is `step addon` — the generator question does not arise
+until something can hold it.
+
+Everything a fixed Cause cannot carry goes in `Reasoning`, which stays prose and
+is what lets a ruling be overturned.
+
+**`residue/<test>.md`** — one document per assembled test, naming what that test
+could not do. Written at assembly, because a Residue row only becomes a specific
+absence in a specific test at the moment that test is built.
+
+It does not duplicate `residue.md`; the two are keyed differently on purpose and
+answer different questions. `residue.md` is keyed by Source Step, so it answers
+"what must be built to unblock the Migration" and one entry may cover forty
+tests. The per-test document answers "what does *this* test not cover", which is
+the question asked by whoever has to decide whether to trust a run of it. Neither
+key can be derived from the other by sorting, because one row maps to many tests
+and one test collects many rows.
+
+Each entry names the marker block that stands in the test, so the document and
+the test can be read against each other.
+
 **`check-record.md`** — which checks ran against which Unit of Work. A check that
 could not run is recorded as not checked, never as a pass. When the CLI gains a
 check it did not have, the Units converted before it are marked as not checked
@@ -111,6 +146,12 @@ against that capability rather than inheriting a pass they never earned.
 Survey creates all seven. Six of them start empty, and they are created anyway so
 that a later session finds the same shape every time and does not invent one. Write
 these exactly; a Migration's files are read by several skills and by a person.
+
+`residue/` is not among the seven and survey does not create it. Its documents
+are per test and cannot exist before a test does, so assembly creates the
+directory when it writes the first one. An absent `residue/` means no test has
+been assembled yet, which is different from every assembled test being clean —
+and a file that survey had pre-created empty could not tell those apart.
 
 `migration.md`:
 
@@ -188,6 +229,18 @@ A Standing is `gap` or `refusal`.
 
 | Source Step | Element | Cause | Standing | Reasoning | Revisit when |
 |---|---|---|---|---|---|
+```
+
+`residue/<test>.md`:
+
+```markdown
+# Residue: <test name>
+
+What this test does not do, and why. Each row stands in the test as a marker
+block carrying the same label.
+
+| Marker label | Source Step | Cause | Standing | What was needed |
+|---|---|---|---|---|
 ```
 
 `check-record.md`:

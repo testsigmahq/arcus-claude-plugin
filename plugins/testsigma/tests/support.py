@@ -450,10 +450,19 @@ def hedges_in(text):
 
 
 def declared_files(reference_text):
-    """The filenames a reference document declares, as `**`name.md`**` leads."""
+    """The fixed filenames a reference document declares, as `**`name.md`**` leads.
+
+    A lead carrying a `<placeholder>` names a shape, not a file: `residue/<test>.md`
+    is one document per assembled test, so there is no single path to create, and
+    the count of them is a fact about the Migration rather than about the format.
+    The set this returns is compared against the seven files a Migration always
+    has — including against a fixture directory's actual contents — so admitting
+    a template here would demand a file literally named `<test>`.
+    """
     import re as _re
 
-    return set(_re.findall(r"\*\*`([^`]+\.md)`\*\*", reference_text))
+    declared = _re.findall(r"\*\*`([^`]+\.md)`\*\*", reference_text)
+    return {name for name in declared if "<" not in name}
 
 
 class Document:
@@ -542,7 +551,13 @@ class Document:
         Refuses zero matches and refuses several. Both messages name the
         headings the document actually holds, because a renamed heading is the
         commonest cause and is otherwise invisible from the failure.
+
+        Both sides are lowered. Lowering only the heading made the docstring
+        false in the one direction a caller would not suspect: a capitalised
+        needle reported "found 0" beside a heading list plainly containing it,
+        which reads as a missing section rather than a miscased argument.
         """
+        needle = needle.lower()
         matching = [body for head, body in blocks.items() if needle in head.lower()]
         assert len(matching) == 1, (
             f"{self.path.name}: expected exactly one {kind} whose heading "
