@@ -3,22 +3,22 @@ package web.Pages;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
 
-public class PutawayPage {
+public class ArchivePage {
 
-    @FindBy(id = "putaway-confirm")
+    @FindBy(id = "archive-confirm")
     private WebElement confirmButton;
 
     private final SearchPage searchPage;
 
-    public PutawayPage(SearchPage searchPage) {
+    public ArchivePage(SearchPage searchPage) {
         this.searchPage = searchPage;
     }
 
     // One level of delegation. Reading this method alone shows two actions.
-    // The true sequence is five, because searchForLpn is itself four, including
+    // The true sequence is five, because searchForRecord is itself four, including
     // a conditional. Stopping at the first method opened gets this wrong.
-    public void putAwayLpn(String lpn) {
-        searchPage.searchForLpn(lpn);
+    public void archiveRecord(String lpn) {
+        searchPage.searchForRecord(lpn);
         confirmButton.click();
     }
 }

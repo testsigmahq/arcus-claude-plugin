@@ -157,8 +157,8 @@ def test_double_quotes_are_replaced_before_single_quotes():
 
 
 def test_a_number_inside_a_word_is_not_a_placeholder():
-    # Identifiers like ILPN05 are part of the phrasing, not a parameter.
-    assert normalise_step("When I open ILPN05") == "I open ILPN05"
+    # Identifiers like REC05 are part of the phrasing, not a parameter.
+    assert normalise_step("When I open REC05") == "I open REC05"
 
 
 def test_two_lines_differing_only_in_their_literals_are_one_source_step():

@@ -58,7 +58,7 @@ both. Apply in order:
 6. Strip trailing `.`, `,`, `;`, `:` and `!`.
 7. Replace every standalone number with `<number>`. A number is standalone only
    when it is not adjacent to a word character or a dot, so `3` in `3 results`
-   is a parameter and `05` in `ILPN05` is not. A comma-grouped number such as
+   is a parameter and `05` in `REC05` is not. A comma-grouped number such as
    `1,000` is one number, and a version-like `1.2.3` is left alone.
 
 Three consequences of that order are deliberate.
@@ -76,7 +76,7 @@ plainly not.
 
 **Every literal collapses onto the same placeholder**, whichever way it was
 written. So `When I search for "A1"`, `When I search for 'A1'` and
-`When I search for <lpn>` are one Source Step asked three ways. Quoting style is
+`When I search for <record>` are one Source Step asked three ways. Quoting style is
 not part of what a step means.
 
 **A parameter is sometimes a verb.** Where the parameter of a collapsed step is
@@ -114,7 +114,7 @@ reason code` reads as a choice being committed. The method only sends text. Ther
 is a submit control on the page and no caller ever clicks it. Converting the
 implied submit invents a step the source never performed.
 
-**A helper that does more than its line implies.** `When I search for LPN "X"`
+**A helper that does more than its line implies.** `When I search for record "X"`
 reads as typing. The method tests whether the field is displayed, clicks an
 expand control when it is not, clears the field, types, then presses Enter. Four
 actions, one conditional among them, none of it visible from the feature file.
@@ -129,7 +129,7 @@ and clicking refresh, so flattening one into a passive wait produces a test that
 looks right and does something else. `refreshUntilRecordAppears` is this shape.
 
 **A helper that delegates.** When a method calls another method, follow it; the
-sequence is the flattened sequence of the leaves. `putAwayLpn` reads as two
+sequence is the flattened sequence of the leaves. `archiveRecord` reads as two
 actions and is five, because the search helper it calls is itself four. Stopping
 at the first method the step definition names is the most natural way to get this
 wrong, because that method looks complete.
@@ -240,11 +240,11 @@ and three page objects:
 
 | Source Step | Occurrences |
 |---|---|
-| `I see the LPN "<param>" in the list` | 5 |
+| `I see the record "<param>" in the list` | 5 |
 | `I am signed in` | 2 |
 | `I refresh until the record appears` | 2 |
-| `I search for LPN "<param>"` | 2 |
-| `I put away LPN "<param>"` | 1 |
+| `I search for record "<param>"` | 2 |
+| `I archive record "<param>"` | 1 |
 | `I see <number> result` | 1 |
 | `I see <number> results` | 1 |
 | `I select "<param>" reason code` | 1 |
@@ -254,8 +254,8 @@ four Source Steps occurring exactly once.
 
 Note what the ratio does not tell you. Two of those eight are the
 singular/plural pair discussed under Normalisation and are really one step.
-`I search for LPN "<param>"` is the four-action Composite Step. And
-`I put away LPN "<param>"` occurs once, looks like the smallest row in the table,
+`I search for record "<param>"` is the four-action Composite Step. And
+`I archive record "<param>"` occurs once, looks like the smallest row in the table,
 and is the largest: it delegates to the search helper, so its true sequence is
 five actions and only two of them are visible in the method the step definition
 names. A healthy-looking ratio says the vocabulary is worth mapping. It says

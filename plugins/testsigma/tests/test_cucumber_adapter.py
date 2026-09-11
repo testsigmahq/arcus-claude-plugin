@@ -82,8 +82,8 @@ def test_the_delegating_helper_is_still_there():
     # The adapter instructs the reader to follow a nested call. Without a
     # fixture that has one, ticket 13's evals cannot tell whether an agent
     # follows delegation or stops at the first method it opens.
-    source = (FIXTURE / "pages" / "PutawayPage.java").read_text(encoding="utf-8")
-    assert "searchPage.searchForLpn" in source, "the delegation is the point"
+    source = (FIXTURE / "pages" / "ArchivePage.java").read_text(encoding="utf-8")
+    assert "searchPage.searchForRecord" in source, "the delegation is the point"
     assert "confirmButton.click()" in source, "it must also act in its own right"
 
 
@@ -101,7 +101,7 @@ def test_the_rule_collapses_an_outline_placeholder_onto_its_quoted_twin(feature_
     # The fixture contains both spellings of one search step, once quoted and
     # once as a Scenario Outline placeholder. They must be one Source Step.
     counts = distinct_source_steps(feature_texts)
-    assert counts['I search for LPN "<param>"'] == 2
+    assert counts['I search for record "<param>"'] == 2
 
 
 def test_the_documented_textual_limit_is_real(feature_texts):

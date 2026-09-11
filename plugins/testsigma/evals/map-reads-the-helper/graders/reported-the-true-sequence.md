@@ -4,7 +4,7 @@ criteria: |
   Taking the Step Map row the agent wrote together with anything it reported,
   the step is described as a sequence of more than one action. It must account
   for at least the conditional expand of the hidden field and the Enter
-  keypress, and must not present the step as only typing or entering the LPN.
+  keypress, and must not present the step as only typing or entering the record.
   Judge only what the step is said to do; ignore formatting, the choice of
   Testsigma verbs, and anything about other steps. The prompt did not ask what
   the step does, so silence about the real sequence counts as failing.

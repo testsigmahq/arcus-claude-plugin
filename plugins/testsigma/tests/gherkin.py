@@ -26,7 +26,7 @@ _DOUBLE_QUOTED = re.compile(r'"[^"]*"')
 #: Without that, "I don't see the user's name" reads `'t see the user'` as one.
 _SINGLE_QUOTED = re.compile(r"(?<![\w'])'([^']*)'(?![\w])")
 #: A number is a parameter only when it stands alone, so `3` in `3 results` is
-#: one and `05` in `ILPN05` is not. Comma groups stay a single number.
+#: one and `05` in `REC05` is not. Comma groups stay a single number.
 _NUMBER = re.compile(r"(?<![\w.])\d+(?:,\d{3})*(?:\.\d+)?(?![\w.])")
 #: Gherkin allows localised keywords via a `# language:` pragma. This reader
 #: only knows the English ones, and a localised file would otherwise yield zero

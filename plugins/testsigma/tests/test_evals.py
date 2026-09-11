@@ -303,15 +303,35 @@ def test_the_part_done_fixture_carries_an_unresolved_element():
     )
 
 
-#: Shapes that would mean a fixture came from a real suite rather than being
-#: hand-built. Checked because these fixtures are committed to a public
-#: repository and the source material they imitate is a customer's.
-FORBIDDEN_IN_A_FIXTURE = (
-    "testsigma.com",
+#: Shapes that would mean text came from a real suite rather than being
+#: hand-built. Checked because this plugin is published, and the source material
+#: its examples imitate is a customer's.
+#:
+#: Two kinds sit here together. Credentials and hosts are obvious. The rest are
+#: vocabulary lifted from one customer's domain and code — a system name, an
+#: identifier style, a test-case prefix. Those are the ones that actually got
+#: through, because an author writing prose reaches for the example they have
+#: been staring at all week, and cannot see that it is theirs and not everyone's.
+FORBIDDEN_ANYWHERE = (
     "dhl",
-    "@gmail",
+    "mawm",
+    "manh",
+    "exldd",
+    "exlds",
+    "ilpn",
+    "olpn",
     "TESTSIGMA_API_KEY",
     "password=",
+)
+
+#: Forbidden in a fixture, legitimate elsewhere. A tenant hostname is the
+#: vendor's own and belongs in `plugin.json` and in prose that tells an operator
+#: where to attach; inside a fixture the same string means someone pasted a real
+#: tenant's data in. The distinction is the directory, so these two lists cannot
+#: be merged however similar they look.
+FORBIDDEN_IN_A_FIXTURE = FORBIDDEN_ANYWHERE + (
+    "testsigma.com",
+    "@gmail",
 )
 
 
@@ -337,14 +357,55 @@ def test_the_compressed_fixture_is_actually_scanned():
     assert "Entities" in _fixture_text(export), "the .tsu did not decompress"
 
 
+#: Directories that are never scanned. Caches hold copies of scanned sources, and
+#: `.git` holds every version of them, so both would report faults already fixed.
+_UNSCANNED = {"__pycache__", ".pytest_cache", ".git", "results"}
+
+
+def _published_files():
+    """Every file this plugin publishes, cache and history excluded."""
+    for path in PLUGIN_ROOT.rglob("*"):
+        if not path.is_file():
+            continue
+        if _UNSCANNED & set(path.parts):
+            continue
+        yield path
+
+
+def test_the_scan_reaches_beyond_fixtures():
+    """Arms the check below.
+
+    The previous scan covered fixtures only, and a customer system name sat in
+    `references/authoring.md` the whole time. If the walk ever narrows back to
+    fixtures, this fails rather than the leak check quietly passing again.
+    """
+    scanned = {p for p in _published_files()}
+    assert any(p.parent.name == "references" for p in scanned)
+    assert any(p.parent.name == "adapters" for p in scanned)
+    assert any("skills" in p.parts for p in scanned)
+
+
+@pytest.mark.parametrize("forbidden", FORBIDDEN_ANYWHERE)
+def test_no_published_file_carries_client_data(forbidden):
+    needle = forbidden.lower()
+    for path in _published_files():
+        # This file names every forbidden token by definition.
+        if path.name == "test_evals.py":
+            continue
+        text = _fixture_text(path).lower()
+        assert needle not in text, f"{path} contains {forbidden!r}"
+
+
 @pytest.mark.parametrize("forbidden", FORBIDDEN_IN_A_FIXTURE)
 def test_no_fixture_carries_third_party_or_client_data(forbidden):
     roots = [FIXTURES_DIR, EVALS_DIR / "fixtures"]
+    needle = forbidden.lower()
     for root in roots:
         if not root.is_dir():
             continue
         for path in root.rglob("*"):
             if not path.is_file():
                 continue
-            text = _fixture_text(path).lower()
-            assert forbidden.lower() not in text, f"{path} contains {forbidden!r}"
+            assert needle not in _fixture_text(path).lower(), (
+                f"{path} contains {forbidden!r}"
+            )

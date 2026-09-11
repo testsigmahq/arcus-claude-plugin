@@ -159,8 +159,8 @@ naive checks:
   call chain never reaches
 - **same name, different xpath** — one field name declared in two classes with
   genuinely different locators
-- **right class, wrong field** — `byExpandILPNfield1` taken where
-  `byExpandILPNfield` was called
+- **right class, wrong field** — `byExpandRowField1` taken where
+  `byExpandRowField` was called
 - **lifted from commented-out source** — a locator named by a Gherkin line that
   is commented out, where the live step uses a different one
 

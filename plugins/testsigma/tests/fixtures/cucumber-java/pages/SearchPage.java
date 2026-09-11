@@ -5,19 +5,19 @@ import org.openqa.selenium.support.FindBy;
 
 public class SearchPage {
 
-    @FindBy(id = "lpn-search-input")
-    private WebElement lpnSearchInput;
+    @FindBy(id = "record-search-input")
+    private WebElement recordSearchInput;
 
     @FindBy(css = ".search-panel .expand-toggle")
     private WebElement expandToggle;
 
     // Reads as one action in the feature file. Performs four.
-    public void searchForLpn(String lpn) {
-        if (!lpnSearchInput.isDisplayed()) {
+    public void searchForRecord(String lpn) {
+        if (!recordSearchInput.isDisplayed()) {
             expandToggle.click();
         }
-        lpnSearchInput.clear();
-        lpnSearchInput.sendKeys(lpn);
-        lpnSearchInput.sendKeys(Keys.ENTER);
+        recordSearchInput.clear();
+        recordSearchInput.sendKeys(lpn);
+        recordSearchInput.sendKeys(Keys.ENTER);
     }
 }

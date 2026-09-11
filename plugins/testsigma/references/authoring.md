@@ -158,8 +158,8 @@ staleness `README.md` in `adapters/` warns about, and which ADR-0006 refuses.
 
 - **Environment names need bracket lookup.** An `UPPER_SNAKE` name is not
   identifier-safe, so dotted access fails validation. Emit the bracket form
-  always — `env["MAWM_WEB_URL"]` — including inside interpolation, where it needs
-  escaping: `"${env[\"MAWM_API_BASE_URL\"]}/path"`. Dotted access working for some
+  always — `env["APP_BASE_URL"]` — including inside interpolation, where it needs
+  escaping: `"${env[\"API_BASE_URL\"]}/path"`. Dotted access working for some
   names is a trap, because any sane naming convention produces names it fails on.
 - **Environments are project-scoped**, not application-scoped: the `envs/`
   directory sits beside the project, not inside the application directory.

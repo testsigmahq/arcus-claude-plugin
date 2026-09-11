@@ -9,10 +9,10 @@ each one wrong.
 
 | Page object | The trap |
 |---|---|
-| `SearchPage.searchForLpn` | Does **more** than its step line implies: expands a hidden field, clears it, types, presses Enter |
+| `SearchPage.searchForRecord` | Does **more** than its step line implies: expands a hidden field, clears it, types, presses Enter |
 | `ReceivingPage.selectReasonCode` | Does **less** than its step line implies: sends text and never submits |
 | `JournalPage.refreshUntilRecordAppears` | Is a **loop** that re-drives the interface, not a passive wait |
-| `PutawayPage.putAwayLpn` | **Delegates** to another page object, so the true sequence is only visible one level down |
+| `ArchivePage.archiveRecord` | **Delegates** to another page object, so the true sequence is only visible one level down |
 
 Locators live in `@FindBy` annotations on the page objects, which is what makes
 this source one that carries locators.
