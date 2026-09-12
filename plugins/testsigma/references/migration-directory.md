@@ -12,6 +12,23 @@ cannot drift apart across the skills that share them.
 One file per concern. Not one state file, because a person reviews these and they
 land in the source repository's diffs, where a single churning file is unreadable.
 
+## Two ways this folder is silently useless
+
+Both are checked once, by survey, before anything is written here. Neither is
+about the folder's contents: each makes a Migration's state fail to be kept while
+every command reports success.
+
+**The suite must not ignore the Migration Directory.** Check with
+`git check-ignore -q .testsigma/migration`. Plenty of repositories ignore dot
+directories wholesale. If this one does, every commit of the Migration's state
+silently does nothing, which is the exact failure version control was required to
+prevent, arriving quietly. Stop, and tell the Operator the suite is configured to
+discard this folder.
+
+**Notice a submodule.** If the suite is its own repository nested inside another,
+its state commits somewhere the Operator may not expect. Do not refuse; say which
+repository will hold the Migration's notes and confirm that is what they want.
+
 ## The files
 
 **`migration.md`** — the marker. What this Migration is: when it started, which
@@ -77,12 +94,21 @@ concessions can be counted and listed: a Concession nobody can find is a
 Divergence, which is the one thing the term exists to prevent. The platform limit
 that forced it goes in `platform-facts.md`.
 
-A row's status is one of `unreviewed`, `reviewed` or `residue`. A row is
-`unreviewed` from the moment it is written until a person has looked at it;
+A row's status is one of `unreviewed`, `reviewed`, `adopted` or `residue`. A row
+is `unreviewed` from the moment it is written until a person has looked at it;
 nothing else may set it to `reviewed`. `residue` means the row has an entry in
-`residue.md` and is not waiting on review. The vocabulary is fixed here because
-resume counts the rows in each state and a private fourth value would be counted
-as neither.
+`residue.md` and is not waiting on review. `adopted` means the target project
+already expresses this Source Step and the row is bound to that entity rather
+than to one this Migration wrote — its Expression cell names the entity on an
+`Adopted:` line, and `${CLAUDE_PLUGIN_ROOT}/references/adoption.md` says what
+must be true before a row may carry it. The vocabulary is fixed here because
+resume counts the rows in each state and a private fifth value would be counted
+as none of them.
+
+`adopted` is deliberately not a kind of `reviewed`. The two answer different
+questions — one says a person decided how to express this step, the other that a
+person decided it was already expressed — and a report that merges them can
+answer neither what is left to do nor what this Migration actually produced.
 
 **`open-questions.md`** — questions put to the Operator that have not been
 answered. Added to at the moment a question arises, and cleared only by an answer.
@@ -169,6 +195,19 @@ the test can be read against each other.
 could not run is recorded as not checked, never as a pass. When the CLI gains a
 check it did not have, the Units converted before it are marked as not checked
 against that capability rather than inheriting a pass they never earned.
+
+## `existing/`, which is evidence rather than state
+
+`.testsigma/migration/existing/` holds working copies of what the target project
+already contained, pulled by survey with `testsigma pull version --write` when the
+Operator says the project is not empty. It is neither one of the seven files nor
+a place a Migration authors: its whole value is that it says what the project held
+at the snapshot this Migration started from, and an edited copy has stopped saying
+that. `${CLAUDE_PLUGIN_ROOT}/references/adoption.md` says what is done with it.
+
+An absent `existing/` is ambiguous on its own — an empty project and an
+uninspected one look identical — so survey records which it was in `migration.md`
+rather than leaving the directory to carry the meaning.
 
 ## Skeletons
 

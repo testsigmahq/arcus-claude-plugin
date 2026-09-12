@@ -8,14 +8,27 @@ the skill that calls this says which case it is in.
 
 Try three places, in this order, and stop at the first that answers:
 
-**The source, first.** What you lifted in Step 3 resolves most elements without
+**The existing Testsigma project, by name — first.** Before creating any screen or
+element, look in `.testsigma/migration/existing/` for one whose name matches, and
+reuse it.
+The Operator maintains those screens, and a Migration that duplicates them hands
+back a project with two of everything and no way to tell which is live.
+
+This comes first, and it comes first in **both** cases — whether or not the source
+carries locators. That is a correction of an earlier ordering, and the reason is
+that the two cases fail differently. Where the source carries no locators, asking
+the project is how an element is found at all. Where the source carries them, the
+source will answer every time, so a project checked second is a project never
+checked — and the duplicate screens that produces are exactly what this rule was
+written to prevent. A source locator is still what gets written where the names
+disagree; the point of looking first is to notice that they do.
+
+Where the project holds no inventory, this place answers nothing and costs one
+listing. Where it holds one, it is the only place that can see a duplicate coming.
+
+**The source, second.** What you lifted in Step 3 resolves most elements without
 anyone being asked anything. This is the whole reason the two questions share one
 reading.
-
-**The existing Testsigma project, by name.** Before creating any screen or
-element, look for one already there whose name matches, and reuse it. The
-Operator maintains those screens, and a Migration that duplicates them hands back
-a project with two of everything and no way to tell which is live.
 
 **Operator capture, last resort.** Ask only when neither the source nor the
 existing project can supply the element. Their time is the last resort and not

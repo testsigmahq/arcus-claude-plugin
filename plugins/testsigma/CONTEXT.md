@@ -115,6 +115,15 @@ whose difference is known and written down. An unrecorded Concession is a
 Divergence; that is the only thing separating them.
 _Avoid_: workaround, compromise, approximation
 
+**Adoption**:
+Binding a Step Map row to an entity the target project already held, instead of
+authoring a second one. What makes it adoption rather than a guess is that the
+existing entity was verified against the same source the row names, by the same
+call-chain comparison that guards a row the Migration wrote. An unverified
+binding is not an Adoption; it is a row nobody checked, wearing a status that
+says someone did.
+_Avoid_: reuse, import, linking
+
 **Unit of Work**:
 What a check runs against: a distinct Source Step while mapping, an assembled
 test while assembling. The two differ because the faults they can carry differ —

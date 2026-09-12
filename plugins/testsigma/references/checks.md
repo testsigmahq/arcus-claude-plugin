@@ -105,6 +105,24 @@ it did not run.
 Checks 3 and 4 are the only ones that need a tenant. Survey, mapping, element
 resolution from a source, and assembly all run without one.
 
+## The same comparison, pointed at a row the Migration did not write
+
+An `adopted` row is bound to an entity the target project already held. Nothing
+after mapping can tell an adopted row from an authored one — both are a row with
+an expression, and every later check compares against the row — so both must have
+cleared the same bar to become trusted.
+
+So the call-chain comparison above is what verifies an adoption, run against the
+working copy pulled into `.testsigma/migration/existing/` with the Source Step's
+implementing symbol. A hand-converted step drops actions exactly as a generated
+one does, and the drop is inherited by every scenario that adopts it.
+
+Exit 2 — could not compare — is not a pass here any more than anywhere else. An
+adoption taken on a person's reading is recorded as one; an unverifiable adoption
+written down as verified is a claim the next session has no way to doubt.
+`${CLAUDE_PLUGIN_ROOT}/references/adoption.md` holds the invocation and what each
+of the three outcomes requires.
+
 ## A check built on residue can only find what leaves residue
 
 The element sweep detects a dropped step by the element it orphaned. So it finds

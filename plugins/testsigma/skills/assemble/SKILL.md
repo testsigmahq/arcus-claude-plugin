@@ -33,8 +33,8 @@ from proposals.
 ## Step 1: Build only from reviewed rows
 
 A row's status in `step-map.md` decides whether it may be used. Use rows whose
-status is `reviewed`. Never assemble from a row that is `unreviewed`, and never
-change a row's status from here — a status set by the stage that consumes the row
+status is `reviewed` or `adopted`. Never assemble from a row that is
+`unreviewed`, and never change a row's status from here — a status set by the stage that consumes the row
 is not a review, it is a rubber stamp.
 
 An `unreviewed` row means its expression has not been compared against the
@@ -45,6 +45,16 @@ different.
 Where a scenario needs a row that is not yet reviewed, leave that scenario
 unassembled and say which row it is waiting on. A partially assembled suite with
 a named gap is worth more than a complete one with an unreviewed step in it.
+
+An `adopted` row is decided too, and it is assembled like any other. Its
+expression calls an entity the target project already held rather than one this
+Migration wrote, and nothing else about it differs: the scenario gets a step where
+its Source Step falls, and coverage counts it. A row that skipped assembly because
+someone else had written the step group would leave the scenario silently short of
+that step, which is the same hole a marker block exists to prevent.
+`${CLAUDE_PLUGIN_ROOT}/references/adoption.md` says what the `Adopted:` line
+names, and that a row may not carry the status until the entity was verified
+against the source.
 
 A `residue` row is the exception and does not block its scenario. It is a decided
 row — decided as inexpressible — so it is assembled, as a marker. The next step

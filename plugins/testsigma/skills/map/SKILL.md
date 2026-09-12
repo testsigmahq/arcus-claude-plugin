@@ -158,21 +158,30 @@ Separating the two readings is the fault, not an inefficiency — see
 opened every page object, read it for locators, and never asked what the code
 did.
 
-## Step 4: Resolve the elements a row references
+## Step 4: Ask whether the project already expresses this step
+
+Where `.testsigma/migration/existing/` holds an inventory, look there before
+deciding an expression. A step group the team already wrote is the cheapest
+correct answer and the one a person can be asked about.
+
+Adopting is not free and never bulk: the pulled entity is verified against the
+same call chain an authored row is, and a disagreement goes to the Operator as an
+open question rather than being repaired. `${CLAUDE_PLUGIN_ROOT}/references/adoption.md`
+holds the procedure, the `Adopted:` line a row records, and why a row that could
+not be verified says so.
+
+## Step 5: Resolve the elements a row references
 
 This step runs here only where the adapter declares `carries-locators: yes` or
-`sometimes`. Where it declares `no` the source has nothing to read, resolution
-becomes a Phase of its own after mapping, and this step does not apply. Whether
-element resolution is a Phase is a property of the source rather than of the
-Migration.
+`sometimes`; where it declares `no`, resolution is a Phase of its own after
+mapping and this step does not apply.
 
 The procedure — the three places to look, in order, and what happens when none of
 them answers — is defined in
-`${CLAUDE_PLUGIN_ROOT}/references/element-resolution.md`.
-It is shared with the resolve-elements skill, which runs it as a Phase of its own
-where the source carries no locators.
+`${CLAUDE_PLUGIN_ROOT}/references/element-resolution.md`, which the
+resolve-elements skill shares.
 
-## Step 5: Compare the expression against the source before finishing
+## Step 6: Compare the expression against the source before finishing
 
 The comparison is the exit condition of this stage. A row cannot be marked
 reviewed before its proposed expression has been compared against the helper's
@@ -208,7 +217,7 @@ work through its first part for every row rather than trusting recall of it. A
 loose comparison in the source is a question rather than a licence — both are
 stated in `${CLAUDE_PLUGIN_ROOT}/references/checks.md`.
 
-## Step 6: Concessions, for what the format expresses differently
+## Step 7: Concessions, for what the format expresses differently
 
 Most differences are neither a clean expression nor a refusal. The format has no
 verb for what the source did, the nearest spelling differs in a way you can
@@ -234,7 +243,7 @@ work and does. `${CLAUDE_PLUGIN_ROOT}/CONTEXT.md` carries what separates the two
 from a Divergence, and it is worth reading before deciding a row is one rather
 than another.
 
-## Step 7: Residue, for what the format cannot express
+## Step 8: Residue, for what the format cannot express
 
 When a Source Step cannot be expressed, record it in `residue.md` with a stated
 cause and the reasoning that produced the ruling. An unexpressible step and an
@@ -260,7 +269,7 @@ Set the row's status to `residue`. It is not a status assembly may skip over: a
 the row out of `step-map.md` entirely would lose that, and the step would go
 missing from every test that used it.
 
-## Step 8: Record and commit
+## Step 9: Record and commit
 
 Record the comparison in `check-record.md` as each row is reviewed. A reviewed row
 is a Unit of Work that has been checked, and a record covering only assembled tests

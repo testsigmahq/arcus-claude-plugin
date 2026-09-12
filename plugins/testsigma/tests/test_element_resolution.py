@@ -51,6 +51,13 @@ class TestTheProcedure:
         # Structural. "source" and "first" co-occur in the capture paragraph too
         # ("their time is the last resort and not the first"), which passed this
         # with the source demoted to "one option among three".
+        #
+        # The project leads, ahead of the source. This inverts the original
+        # order deliberately. Where the source carries locators it answers every
+        # time, so a project consulted second is a project never consulted — and
+        # the duplicate screens that produces are what this procedure exists to
+        # prevent. The source is still what supplies the locator; looking at the
+        # project first is how a collision is noticed at all.
         leads = _bold_leads(_text())
         found = {}
         for index, lead in enumerate(leads):
@@ -60,11 +67,11 @@ class TestTheProcedure:
         assert set(found) == {"source", "existing", "capture"}, (
             f"the three places an element comes from are not all named: {leads}"
         )
-        assert found["source"] < found["existing"] < found["capture"], (
+        assert found["existing"] < found["source"] < found["capture"], (
             f"the three places are out of order: {leads}"
         )
-        assert "first" in leads[found["source"]].lower(), (
-            "the source must be named as the first place tried, not merely as one of them"
+        assert "first" in leads[found["existing"]].lower(), (
+            "the project must be named as the first place tried, not merely as one of them"
         )
 
     def test_it_stops_at_the_first_place_that_answers(self):

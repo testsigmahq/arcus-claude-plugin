@@ -63,18 +63,11 @@ wrong: the conversion that produced this plugin's design sat unversioned in a
 temporary directory, holding the only copy of every artifact it had produced.
 
 Two further checks belong with these, because both make the Migration Directory
-silently useless rather than absent. Neither is one of the four:
-
-**The suite must not ignore the Migration Directory.** Check with
-`git check-ignore -q .testsigma/migration`. Plenty of repositories ignore dot
-directories wholesale. If this one does, every commit of the Migration's state
-silently does nothing, which is the exact failure version control was required to
-prevent, arriving quietly. Stop, and tell the Operator the suite is configured to
-discard this folder.
-
-**Notice a submodule.** If the suite is its own repository nested inside another,
-its state commits somewhere the Operator may not expect. Do not refuse; say which
-repository will hold the Migration's notes and confirm that is what they want.
+silently useless rather than absent, and neither is one of the four. Run both now,
+reading what each means in `${CLAUDE_PLUGIN_ROOT}/references/migration-directory.md`:
+`git check-ignore -q .testsigma/migration`, which stops the Migration if the suite
+discards the folder, and whether the suite is a submodule, which does not stop it
+but must be confirmed.
 
 The fourth refusal comes after all of those because it is the only one that spends
 the Operator's attention rather than a command's.
@@ -84,11 +77,11 @@ Operator which application in their Testsigma project this Migration targets, an
 what kind of application it is. This build writes working copies for web and
 unified applications only; an application on any other platform is refused the
 first time a working copy is attached, before a single row has been converted.
-The refusal is not a Web catalogue with holes in it: each platform's steps sit in
-a template-id block of its own and the blocks do not overlap, so a suite driving
-a native or mobile-web application has no catalogue here at all. If that is what
-this suite drives, stop. Tell the Operator which platforms can be converted today
-and that theirs is not yet among them, so nothing produced here could be attached.
+The refusal is not a Web catalogue with holes in it — `cli-probe.md` says why, and
+the consequence is that a suite driving another platform has no catalogue here at
+all. If that is what this suite drives, stop. Tell the Operator which platforms
+can be converted today and that theirs is not yet among them, so nothing produced
+here could be attached.
 
 Take the answer from the Operator rather than from the source. A suite's own code
 is weak evidence of the platform it drives — the same driver spelling appears in
@@ -166,7 +159,27 @@ bare commit of everything, which in a monorepo sweeps up unrelated work.
 
 State is only kept if it is committed, which is the whole point of putting it here.
 
-## Step 5: Enumerate the Source Steps
+## Step 5: Inventory what the target project already holds
+
+Ask the Operator whether anyone has already converted part of this suite by hand.
+A Migration that does not know what the project holds authors a second copy of it.
+
+If they say yes, pull the project's entities into
+`.testsigma/migration/existing/` with `testsigma pull version --write` and commit
+them. That inventory is what lets mapping adopt an existing step group rather than
+rebuild it, and element resolution reuse a screen the team already maintains.
+`${CLAUDE_PLUGIN_ROOT}/references/adoption.md` says what adoption is and what must
+be true before a row may claim it.
+
+**Ask whether the project may be written to.** A project holding work a team
+depends on is often read-only, and only they hold that fact. Record it in
+`application-facts.md`: every later stage decides where to push from it, and an
+unrecorded read-only project is discovered by writing to it.
+
+Record in `migration.md` what was pulled, or that the Operator said the project
+was empty. An absent `existing/` must not read as "nobody looked".
+
+## Step 6: Enumerate the Source Steps
 
 Follow the chosen adapter's own Enumeration section. It states the rule that
 decides when two source lines are the same Source Step, and that rule belongs to
@@ -232,7 +245,7 @@ nothing.
 
 Amend `migration.md` with the enumeration and commit again.
 
-## Step 6: Report, and hand over
+## Step 7: Report, and hand over
 
 Tell the Operator, in their terms:
 
