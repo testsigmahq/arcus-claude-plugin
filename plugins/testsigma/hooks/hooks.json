@@ -1,0 +1,16 @@
+{
+  "description": "Refuse to end a session that leaves a Migration's own record uncommitted.",
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/scripts/stop_gate.py\"",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}

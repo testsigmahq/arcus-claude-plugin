@@ -29,7 +29,10 @@ in all three — which is why its output is a question for a reader, not a verdi
     check_call_chain.py --source-root src --symbol MenuPage.searchMenu <test.sigma> --block "Search menu"
 
 Exit 0 when the block performs at least as many actions as the source, 1 when
-the source does something the block does not.
+the source does something the block does not, and 2 when nothing could be
+compared — the symbol did not resolve, or the block was not found. Two is not a
+softer one: it means the check did not run, and a caller that treats it as a
+failure drowns a real finding in noise.
 """
 import argparse
 import pathlib
@@ -59,8 +62,38 @@ SIGMA_ACTIONS = (
 NOT_ACTIONS = ("waitfor", "waituntil", "clearcache", "keyword")
 
 
+#: Comment syntaxes across the languages this walks. Order matters: block
+#: comments are stripped before line comments, or a `//` inside a `/* */` ends
+#: the wrong thing.
+def strip_comments(text):
+    """Remove commented-out code before any call is counted.
+
+    A measured run caught this and was right to: a helper had a commented-out
+    `click_SubmitUser(...)`, the walk counted it, and the check reported the
+    block as missing an action the source does not perform. A false "the source
+    does more" is the *inverse* of the fault this exists to catch, and an
+    inverse fault is how a check teaches its reader to disregard it — which is
+    exactly what happened, except the run cited the document that predicted it
+    and overruled the script instead.
+
+    Strings are not protected. A `//` inside a string literal will truncate the
+    line, which can only ever *remove* calls from the source side, making the
+    check quieter rather than wronger. Protecting them would need a lexer, and
+    a lexer is the parser this deliberately does not have.
+    """
+    out = re.sub(r"/\*.*?\*/", " ", text, flags=re.S)   # C-style block
+    out = re.sub(r'"""(?:.|\n)*?"""', " ", out)          # Python docstring
+    out = re.sub(r"^\s*#.*$", " ", out, flags=re.M)      # Python / Ruby line
+    out = re.sub(r"//.*$", " ", out, flags=re.M)          # C-style line
+    return out
+
+
 def action_calls(body, vocabulary):
-    """Every call in `body` whose name reads as an action, in order."""
+    """Every call in `body` whose name reads as an action, in order.
+
+    Commented-out code is removed first; see `strip_comments`.
+    """
+    body = strip_comments(body)
     found = []
     for name in re.findall(r"\b([A-Za-z_][A-Za-z0-9_]*)\s*\(", body):
         low = name.lower()
@@ -96,7 +129,7 @@ def definition_body(text, name):
     return None
 
 
-def walk(root, symbol, depth, seen=None, depth_is_top=True):
+def walk(root, symbol, depth, seen=None, depth_is_top=True, near=None):
     """Action calls reached from `symbol`, following calls `depth` levels down.
 
     A step definition rarely acts itself; it calls a page object that does. One
@@ -125,6 +158,13 @@ def walk(root, symbol, depth, seen=None, depth_is_top=True):
             # method elsewhere and the result looks confident.
             print(f"note: no file under the source root is named {owner!r}; "
                   f"matching on {name!r} alone")
+    elif near is not None:
+        # A callee is nearly always defined beside its caller, and the same
+        # method name often exists in several page objects with different
+        # bodies. Resolving `searchMenu` globally picked a namesake carrying an
+        # extra keypress and reported a correct block as missing an action —
+        # the inverse fault again, from ambiguity rather than from comments.
+        candidates = [near] + [c for c in candidates if c != near]
     for path in candidates:
         try:
             text = path.read_text(encoding="utf-8", errors="replace")
@@ -138,7 +178,8 @@ def walk(root, symbol, depth, seen=None, depth_is_top=True):
             for callee in re.findall(r"\b([A-Za-z_][A-Za-z0-9_]*)\s*\(", body):
                 if callee.lower().startswith(SOURCE_ACTIONS):
                     continue
-                actions += walk(root, callee, depth - 1, seen, depth_is_top=False)
+                actions += walk(root, callee, depth - 1, seen,
+                                depth_is_top=False, near=path)
         return actions
     return []
 
@@ -175,7 +216,7 @@ def main():
     label, body = block_body(text, args.block)
     if body is None:
         print(f"no block's label contains {args.block!r}")
-        return 1
+        return 2
     converted = action_calls(body, SIGMA_ACTIONS)
 
     print(f"block:  {label}")
@@ -185,7 +226,7 @@ def main():
     if not source:
         print(f"\n{args.symbol} was not found under {args.source_root}, or performs no")
         print("action. Nothing was compared, and that is not a pass — check the symbol.")
-        return 1
+        return 2
 
     if len(converted) < len(source):
         print(f"\nThe source performs {len(source) - len(converted)} more actions than the block.")

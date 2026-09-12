@@ -255,6 +255,10 @@ recorded as are defined in
 `${CLAUDE_PLUGIN_ROOT}/references/checks.md`. Follow it rather than
 deciding here what counts as checked.
 
+Run `${CLAUDE_PLUGIN_ROOT}/scripts/check_stage.py` over the assembled test
+first — it is check 3 over every block at once, and what it reports is part of
+the record.
+
 Commit the Migration Directory *and the assembled working copy* as tests are
 built — scoping the commit to the Migration Directory leaves the .sigma files
 behind, which is half the state. Then run

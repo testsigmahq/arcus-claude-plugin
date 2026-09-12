@@ -115,15 +115,20 @@ def test_it_follows_a_call_one_level_down(tmp_path):
 
 
 def test_a_symbol_that_is_not_found_is_not_a_pass(tmp_path):
-    """Silence from a check that compared nothing is the fault it exists for."""
+    """Silence from a check that compared nothing is the fault it exists for.
+
+    Exit 2, not 1: "could not compare" and "the block is short" are different
+    answers. A caller that merges them reports most of a test as failing, which
+    is how a check earns being ignored.
+    """
     r = run(tmp_path, COMPLETE, "MenuPage.noSuchMethod")
-    assert r.returncode == 1
+    assert r.returncode == 2
     assert "not a pass" in r.stdout
 
 
 def test_a_missing_block_is_reported(tmp_path):
     r = run(tmp_path, COMPLETE, "MenuPage.searchMenu", block="nothing like this")
-    assert r.returncode == 1
+    assert r.returncode == 2
     assert "no block" in r.stdout
 
 
@@ -136,3 +141,48 @@ def test_an_owner_no_file_declares_is_reported(tmp_path):
     """
     r = run(tmp_path, DROPPED, "NoSuchClass.searchMenu")
     assert "no file under the source root is named" in r.stdout
+
+
+def test_a_callee_is_resolved_beside_its_caller_first(tmp_path):
+    """The same method name in two page objects with different bodies.
+
+    Resolving a bare callee globally picked the namesake carrying an extra
+    keypress and reported a correct block as short — the inverse fault, from
+    ambiguity rather than from comments.
+    """
+    src = tmp_path / "src"
+    src.mkdir(exist_ok=True)
+    (src / "HomePage.java").write_text('''\
+public class HomePage {
+    public static void navigate() { HomePage.searchMenu("x"); SeleniumActions.click(byMenu, "m"); }
+    public static void searchMenu(String s) {
+        SeleniumActions.clear(bySearch, "s");
+        SeleniumActions.sendTextToElement(bySearch, s, "s");
+    }
+}
+''', encoding="utf-8")
+    (src / "OtherPage.java").write_text('''\
+public class OtherPage {
+    public static void searchMenu(String s) {
+        SeleniumActions.clear(bySearch, "s");
+        SeleniumActions.sendTextToElement(bySearch, s, "s");
+        KeyboardActions.pressEnterKey(bySearch);
+        SeleniumActions.click(byLabel, s);
+    }
+}
+''', encoding="utf-8")
+    test = tmp_path / "t.sigma"
+    test.write_text('''test "x" {
+  block "Navigate" {
+    clearElementValue(element.s)
+    enterText("x", element.s)
+    click(element.menu)
+  }
+}
+''', encoding="utf-8")
+    r = subprocess.run(
+        [sys.executable, str(SCRIPT), "--source-root", str(src),
+         "--symbol", "HomePage.navigate", "--block", "Navigate", str(test)],
+        capture_output=True, text=True)
+    assert r.returncode == 0, r.stdout
+    assert "pressEnterKey" not in r.stdout, "resolved the namesake in OtherPage"

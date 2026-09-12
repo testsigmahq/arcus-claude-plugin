@@ -40,6 +40,22 @@ Fixed by ADR-0001 and extended by ADR-0010, and not negotiable per Migration:
    still written recording four of its source method's five actions. It was
    marked `reviewed` and reused across every scenario that followed. An
    instruction a reader believes they followed is not a check.
+
+   **Run it over the whole test, not row by row.** `scripts/check_stage.py`
+   matches every block to its Step Map row and compares each one that carries a
+   `Source` symbol:
+
+       python3 scripts/check_stage.py --suite <suite> \
+         --source-root <the suite's source> <the assembled test>
+
+   Choosing which rows deserve a check is how rows get missed: one run checked a
+   single representative row, the next checked none. This removes the choice.
+   It reports four outcomes and only the first is a fault — blocks that perform
+   fewer actions than their source; blocks whose label already **declares** the
+   gap, which is the marker convention working; blocks it could not compare,
+   usually a row whose `Source` names a wrapper that only delegates; and blocks
+   matching no row. The last two are not passes, and fixing them means fixing
+   the row's `Source`, not the test.
 4. **Tenant acceptance** — the tenant accepts the work.
 5. **Round trip** — the work survives a push and pull unchanged.
 6. **Render check** — it looks right in the application, judged by a person.
