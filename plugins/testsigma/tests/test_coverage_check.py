@@ -204,3 +204,69 @@ class TestADuplicatedStepIsCountedTwice:
         r = run(tmp_path, self.STEPS, looser)
         assert r.returncode == 1, r.stdout
         assert "3 of 4" in r.stdout
+
+
+class TestANestedMarkerIsDetailNotAClaim:
+    """A marker inside a step's block explains that step; it claims nothing.
+
+    The structure a real conversion produced, and it is better than a flat file
+    because the marker sits where the missing work belongs:
+
+        block "Validate list of UI values …"
+            block "Needs a step addon: check all 10 values …"
+
+    Counting the inner one as a block matching no source step made the check
+    exit 1 on a complete 55-of-55 conversion. The run read that, correctly
+    called the extras informational, and carried on — a check teaching its
+    reader to disregard it, which is worse than not having run.
+    """
+
+    STEPS = "Given I am signed in\nAnd Do the thing\n"
+
+    def test_a_marker_nested_in_a_claiming_block_is_not_an_extra(self, tmp_path):
+        nested = '''\
+        test "x" {
+          block "Given I am signed in" { click(element["a"]) }
+          block "And Do the thing" {
+            block "Needs a step addon: no verb for this" {
+            }
+          }
+        }
+        '''
+        r = run(tmp_path, self.STEPS, nested)
+        assert r.returncode == 0, r.stdout
+        assert "2 of 2" in r.stdout
+        assert "match no source step" not in r.stdout
+
+    def test_a_step_block_inside_a_conditional_still_claims(self, tmp_path):
+        """Depth is not the rule; a *claiming parent* is.
+
+        Only counting top-level blocks would call a correctly nested conversion
+        incomplete, so an `if` around a step's block must not suppress it.
+        """
+        conditional = '''\
+        test "x" {
+          block "Given I am signed in" { click(element["a"]) }
+          if elementIs(element["x"], "visible") {
+            block "And Do the thing" { click(element["b"]) }
+          }
+        }
+        '''
+        r = run(tmp_path, self.STEPS, conditional)
+        assert r.returncode == 0, r.stdout
+        assert "2 of 2" in r.stdout
+
+    def test_an_invented_top_level_block_is_still_reported(self, tmp_path):
+        # The rule must not become "ignore anything unmatched" — a top-level
+        # block that claims nothing in the source is still a step nobody asked
+        # for, and that is what the extras list is for.
+        invented = '''\
+        test "x" {
+          block "Given I am signed in" { click(element["a"]) }
+          block "And Do the thing" { click(element["b"]) }
+          block "And something nobody asked for" { click(element["c"]) }
+        }
+        '''
+        r = run(tmp_path, self.STEPS, invented)
+        assert r.returncode == 1, r.stdout
+        assert "nobody asked for" in r.stdout

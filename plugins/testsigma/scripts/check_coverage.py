@@ -46,19 +46,38 @@ def normalise(text):
 
 
 def labels(sigma_text):
-    """Every block label in the file, unescaped, in document order.
+    """Block labels that *claim* a source step, unescaped, in document order.
 
-    Nesting is not tracked. A block inside a block is still a label that claims
-    a source step, and counting only top-level ones would report a correctly
-    nested conversion as incomplete.
+    A block nested inside a block that already claims a step is detail, not a
+    claim. The structure a real conversion produced makes the reason concrete:
+
+        block "Validate list of UI values …"        <- claims the source step
+            block "Needs a step addon: check all 10 values …"   <- explains it
+
+    That is better than a flat file — the marker sits where the missing work
+    belongs — and a first version counted all thirteen such markers as blocks
+    matching no source step, so it exited 1 on a complete conversion. The run
+    read the output, correctly called the extras informational, and carried on,
+    which is a check teaching its reader to disregard it.
+
+    Nesting still cannot be ignored altogether: a step's own block may sit
+    inside an `if` or a `while`, and only counting top-level blocks would call
+    a correctly nested conversion incomplete. So the rule is about *claiming*
+    parents, not depth — a block under `if` still claims, a block under a
+    claiming block does not.
     """
     found = []
+    claiming_depth = None
+    depth = 0
     for line in sigma_text.split("\n"):
         m = BLOCK.search(line)
-        if m:
+        if m and claiming_depth is None:
             label = m.group(1).replace('\\"', '"').replace("\\\\", "\\")
-            label = re.sub(r"^Step:\s*", "", label)
-            found.append(label)
+            found.append(re.sub(r"^Step:\s*", "", label))
+            claiming_depth = depth
+        depth += line.count("{") - line.count("}")
+        if claiming_depth is not None and depth <= claiming_depth:
+            claiming_depth = None
     return found
 
 
