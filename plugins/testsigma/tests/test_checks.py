@@ -35,9 +35,15 @@ def _section(needle):
     return DOC.section(needle)
 
 
-#: The five checks in the order ADR-0001 fixes. Named here so the ordering is
-#: asserted against one list rather than restated per test.
-CHECK_ORDER = ("validity", "compare-to-source", "tenant", "round trip", "render")
+#: The six checks in the order ADR-0001 fixes and ADR-0010 extends. Named here
+#: so the ordering is asserted against one list rather than restated per test.
+#:
+#: Coverage leads. It is the only one that can see a conversion that stopped
+#: early, and the four after validity all operate on what was sent, which a
+#: partial test satisfies perfectly.
+CHECK_ORDER = (
+    "coverage", "validity", "compare-to-source", "tenant", "round trip", "render",
+)
 
 #: The two that need a tenant. Everything before them must run offline, or the
 #: check with the record of finding faults becomes the one that gets skipped.
@@ -71,15 +77,16 @@ class TestTheReferenceExists:
 
 
 class TestTheFixedOrder:
-    def test_all_five_checks_are_named(self):
+    def test_all_six_checks_are_named(self):
         lowered = _section("order").lower()
         for check in CHECK_ORDER:
             assert check in lowered, f"the {check} check is not named"
 
     def test_they_appear_in_the_fixed_order(self):
         numbered = _numbered_checks(_section("order"))
-        assert [number for number, _ in numbered] == [1, 2, 3, 4, 5], (
-            f"the checks are not numbered one to five: {numbered}"
+        expected_numbers = list(range(1, len(CHECK_ORDER) + 1))
+        assert [number for number, _ in numbered] == expected_numbers, (
+            f"the checks are not numbered one to {len(CHECK_ORDER)}: {numbered}"
         )
         for (_, name), expected in zip(numbered, CHECK_ORDER):
             assert expected in name, (
@@ -87,9 +94,10 @@ class TestTheFixedOrder:
             )
 
     def test_the_order_is_numbered_so_it_cannot_be_read_as_a_set(self):
-        # A bulleted list of five checks says nothing about which runs first.
-        assert len(_numbered_checks(_section("order"))) == 5, (
-            "the order must be a numbered list of five, not a bag of checks"
+        # A bulleted list says nothing about which runs first.
+        assert len(_numbered_checks(_section("order"))) == len(CHECK_ORDER), (
+            f"the order must be a numbered list of {len(CHECK_ORDER)}, not a "
+            f"bag of checks"
         )
 
     @pytest.mark.parametrize("check", NEEDS_A_TENANT)

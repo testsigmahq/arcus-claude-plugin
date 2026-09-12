@@ -105,16 +105,47 @@ push of a new entity kind, and how to mark a region left unconverted on purpose 
 are in `${CLAUDE_PLUGIN_ROOT}/references/authoring.md`. Follow it;
 most of those constraints only surface at push time, and by then the work is done.
 
-Express each step from its reviewed row, in the source's own sequence. Where a
-row maps one Source Step to several Testsigma steps, emit all of them, in the
-row's order.
+**One block per source step, labelled with that step's text.** Express the row
+inside it — where a row maps one Source Step to several Testsigma steps, emit
+all of them inside that block, in the row's order.
+
+The envelope is not decoration. It is what makes the next step's comparison
+possible: a test written as bare statements can be compared with nothing, so
+whether it covers its scenario is unanswerable and therefore unasked. It is also
+what a reviewer reads, since the source step's own words are the only name that
+survives from one side to the other.
 
 Nest blocks as the source nests them. In a `.sigma` working copy the document
 order is the lexical order and parentage is the lexical nesting, so a correctly
 written file is correct by construction — which is why the fault the next step
 looks for is not visible here.
 
-## Step 5: Check document order and block nesting
+## Step 5: Check that every source step is accounted for
+
+Run `${CLAUDE_PLUGIN_ROOT}/scripts/check_coverage.py --steps <steps> <test>`,
+passing the scenario's steps one per line — the ones already read while mapping.
+It reports how many are accounted for and names every one that is not.
+
+A step is accounted for when a block claims it, whether that block holds the
+converted steps or stands empty as a marker. Nothing else counts, and a test
+with an unaccounted step is not assembled.
+
+This is the check that catches a conversion stopping early, and no other check
+can. Validity looks at what is in the file. The order check looks at how it is
+arranged. The element sweep finds a dropped step only when it left an element
+behind. All three ask whether the file is right; this one asks whether it is all
+there, which is a different question and needs the source to answer.
+
+Measured: a run converted the nine API steps at the head of a fifty-five step
+scenario, stopped, and reported "all 7 steps (pure API, no UI)". The file
+compiled, the tenant took it, `pull` said no difference, and `residue.md` was
+empty. Every signal said done. The step count was the only thing that disagreed,
+and nothing was reading it.
+
+Report coverage as *n of m* beside the test, always — including when they match.
+A number that is only printed when it is wrong is one nobody learns to look for.
+
+## Step 6: Check document order and block nesting
 
 This is the exit condition of this stage. A test is not assembled until it has
 passed this check, and a test that has not been checked is not done.
@@ -151,7 +182,7 @@ Running the test cannot replace this. The fault survives compilation, tenant
 preflight and a full round trip: the round trip rebuilds the step tree from
 parentage, and order is not parentage.
 
-## Step 6: Sweep for elements nothing references
+## Step 7: Sweep for elements nothing references
 
 Cheap, and it earns its place — as a secondary check. The primary one is
 call-chain coverage during mapping, and the difference is measured: in the
@@ -186,7 +217,7 @@ identifier for a later step to read — leaves nothing for this to notice. Those
 caught by the comparison in mapping or not at all, so do not report a clean sweep
 as evidence that no step was dropped.
 
-## Step 7: Report what is out of place
+## Step 8: Report what is out of place
 
 When the check fails, report which steps are out of place and the window each
 one had to fall inside. A report saying only that a test is wrong cannot be acted
@@ -200,7 +231,7 @@ pass. An unchecked step reading as clean is the failure mode ADR-0001 exists to
 prevent: three checks that cannot see the fault class are worse than none,
 because they read as reassurance.
 
-## Step 8: Record the check and commit
+## Step 9: Record the check and commit
 
 Write what ran into `check-record.md`, per test, naming the CLI build in use.
 The five checks, the order they run in, and what a check that could not run is

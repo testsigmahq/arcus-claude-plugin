@@ -1,8 +1,9 @@
-# The five checks, and what a check record means
+# The six checks, and what a check record means
 
-A Migration checks converted work five ways: it is legal in the format, it
-matches the source's implementation, the tenant accepts it, it survives a round
-trip unchanged, and it looks right in the application.
+A Migration checks converted work six ways: it accounts for every step of its
+source, it is legal in the format, it matches the source's implementation, the
+tenant accepts it, it survives a round trip unchanged, and it looks right in the
+application.
 
 This document is the single definition of the order those run in, of what a
 check that could not run is recorded as, and of what happens when the installed
@@ -11,19 +12,23 @@ CLI grows a check it did not have. The file that holds the record is defined in
 
 ## The order
 
-Fixed by ADR-0001, and not negotiable per Migration:
+Fixed by ADR-0001 and extended by ADR-0010, and not negotiable per Migration:
 
-1. **Validity** — the working copy is legal in the format. Machine-decidable,
+1. **Coverage** — the assembled test accounts for every step of its source
+   scenario, each one either converted or standing as a marker. Machine-decidable
+   against the source's step list, and the only check that can see a conversion
+   that stopped early. See ADR-0010 for why the other five cannot.
+2. **Validity** — the working copy is legal in the format. Machine-decidable,
    needs nothing but the working copy.
-2. **Compare-to-source** — the converted step does what the source's
+3. **Compare-to-source** — the converted step does what the source's
    implementation does, read against the implementation rather than the surface
    syntax. This is the exit condition of mapping.
-3. **Tenant acceptance** — the tenant accepts the work.
-4. **Round trip** — the work survives a push and pull unchanged.
-5. **Render check** — it looks right in the application, judged by a person.
+4. **Tenant acceptance** — the tenant accepts the work.
+5. **Round trip** — the work survives a push and pull unchanged.
+6. **Render check** — it looks right in the application, judged by a person.
 
 Not every check runs against every Unit of Work. Compare-to-source runs against
-a distinct Source Step, in mapping. The other four run against an assembled
+a distinct Source Step, in mapping. The other five run against an assembled
 test, in assembly, because a single step cannot carry a fault that only exists
 between steps. The order is one order over both stages, not two.
 
