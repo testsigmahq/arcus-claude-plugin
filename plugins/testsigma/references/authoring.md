@@ -356,10 +356,54 @@ the work and the person who can do it. Write the source's intent in the
 Operator's language, then the Cause, using the fixed set in
 `migration-directory.md`.
 
-An empty block is legal anywhere a step is legal, so put it **where the step
-would have gone** — same position, same nesting. A marker collected at the end
-of a test loses the one thing it was for, which is showing a reader the point in
-the sequence where the test stops matching its source.
+### A block never contains another block
+
+The tenant has no nested blocks. A block holds steps, and a block is not a step,
+so writing one inside another is **TSF2079**. The server keeps no nesting for a
+block — its id is a number on the block step itself, with no parent pointer — and
+the app refuses to build one, so this is the tenant's rule rather than the CLI's.
+
+The refusal is **transitive**: `block { for { block } }` is refused too, because
+the inner steps inherit the outer block's parent id and the same guard fires.
+
+What stays legal, so this is not over-corrected: a block on its own, blocks side
+by side, a block inside a `for`, `while` or `if`, and a loop inside a block. Only
+another block is an unlawful parent. Where real nesting is needed, a step group is
+the construct that nests — a separate entity with its own file.
+
+A
+marker therefore has exactly one legal position: it **is** the source step's own
+block, standing **where the step would have gone** — same position in the
+sequence, empty body. A marker collected at the end of a test loses the one thing
+it was for, which is showing a reader the point in the sequence where the test
+stops matching its source.
+
+That leaves nowhere to put a nested marker, and nowhere is the right answer: the
+need goes **into the label of the block that would have contained it**, as a
+parenthesised suffix after the source step's text.
+
+```
+block "And the audit record is written (needs a step addon: read the audit
+table and assert one row)" {
+}
+```
+
+The suffix works the same way when the step is *partly* converted. Write what
+the step does convert to in the body, and name the remainder in the suffix:
+
+```
+block "Then I validate the receiving grid (needs a step addon: compare all ten
+column values against the ASN)" {
+  verifyPageHasElement(element.receivingGrid)
+}
+```
+
+This shape is what the coverage check already reads. It matches a block to a
+source step when the label is that step, or that step followed by a parenthesised
+qualifier — so the suffix costs no coverage, while a separate marker block
+labelled only with the need counts as a block matching no source step *and*
+leaves its step accounted for by nothing. One block per source step, always,
+whether it is converted, half converted, or not converted at all.
 
 A marker is not a substitute for a Residue entry, and neither is a substitute for
 the other. The entry carries the reasoning and gets revisited; the marker is what

@@ -70,8 +70,11 @@ the parameter value, which is what that column is for.
 
 ## Step 3: A residue row becomes a marker, not a silence
 
-Every `residue` row that a scenario uses is assembled as an empty inline block,
-in the position the step would have occupied.
+Every `residue` row that a scenario uses is assembled as the source step's own
+block, in the position the step would have occupied, with an empty body and the
+need named in its label. A block never contains another block, so a partly
+converted step carries its remainder the same way — in the label — rather than
+in a nested marker.
 
 This is the difference between Residue and a Divergence, and it is decided here
 rather than in mapping. A step recorded as Residue and then left out of the test

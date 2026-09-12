@@ -48,37 +48,43 @@ def normalise(text):
 def labels(sigma_text):
     """Block labels that *claim* a source step, unescaped, in document order.
 
-    A block nested inside a block that already claims a step is detail, not a
-    claim. The structure a real conversion produced makes the reason concrete:
+    Returns `(claims, nested)`. A block written inside another block is not a
+    second claim, and it is not legal either: the tenant has no nested blocks,
+    so a block holds steps and a block is not a step. It is returned separately
+    so the caller can report it rather than silently absorb it.
+
+    The shape it replaces was a marker tucked inside the step it qualified:
 
         block "Validate list of UI values …"        <- claims the source step
-            block "Needs a step addon: check all 10 values …"   <- explains it
+            block "Needs a step addon: check all 10 values …"   <- refused
 
-    That is better than a flat file — the marker sits where the missing work
-    belongs — and a first version counted all thirteen such markers as blocks
-    matching no source step, so it exited 1 on a complete conversion. The run
-    read the output, correctly called the extras informational, and carried on,
-    which is a check teaching its reader to disregard it.
+    That read well, and the wire rejects it. The need now rides in the claiming
+    block's own label as a parenthesised suffix, which the matching below
+    already tolerates, so a gap costs no coverage and no nesting.
 
-    Nesting still cannot be ignored altogether: a step's own block may sit
-    inside an `if` or a `while`, and only counting top-level blocks would call
-    a correctly nested conversion incomplete. So the rule is about *claiming*
-    parents, not depth — a block under `if` still claims, a block under a
-    claiming block does not.
+    Depth is still not the rule: a step's own block may sit inside an `if` or a
+    `while`, and only counting top-level blocks would call a correctly nested
+    conversion incomplete. The rule is about *claiming parents* — a block under
+    `if` claims, a block under a block does not.
     """
     found = []
+    nested = []
     claiming_depth = None
     depth = 0
     for line in sigma_text.split("\n"):
         m = BLOCK.search(line)
-        if m and claiming_depth is None:
+        if m:
             label = m.group(1).replace('\\"', '"').replace("\\\\", "\\")
-            found.append(re.sub(r"^Step:\s*", "", label))
-            claiming_depth = depth
+            label = re.sub(r"^Step:\s*", "", label)
+            if claiming_depth is None:
+                found.append(label)
+                claiming_depth = depth
+            else:
+                nested.append(label)
         depth += line.count("{") - line.count("}")
         if claiming_depth is not None and depth <= claiming_depth:
             claiming_depth = None
-    return found
+    return found, nested
 
 
 def main():
@@ -91,7 +97,7 @@ def main():
     steps = [s for s in pathlib.Path(args.steps).read_text(
         encoding="utf-8").split("\n") if s.strip()]
     text = pathlib.Path(args.test).read_text(encoding="utf-8", newline="")
-    found = labels(text)
+    found, nested = labels(text)
 
     # Coverage is a multiset, not a set. A scenario may write the same step
     # twice — `Click on Row At First Index` appears twice in the measured one —
@@ -147,8 +153,17 @@ def main():
         print(f"\n{len(extra)} blocks match no source step:")
         for l in extra:
             print(f"  {l}")
+    if nested:
+        print(f"\n{len(nested)} blocks are written inside another block:")
+        for l in nested:
+            print(f"  {l}")
+        print("\nA block holds steps, and a block is not a step, so the tenant")
+        print("refuses this. Where the inner block named work that was needed,")
+        print("put that need in the outer block's label as a parenthesised")
+        print("suffix after the source step's text, and leave the body to hold")
+        print("whatever did convert.")
 
-    return 1 if missing or extra else 0
+    return 1 if missing or extra or nested else 0
 
 
 if __name__ == "__main__":

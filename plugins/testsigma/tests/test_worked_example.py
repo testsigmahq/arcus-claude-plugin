@@ -44,8 +44,8 @@ SHAPES = {
         "tests/Demo/SignIn.test.sigma", 'if elementIs(element["sign in button"], "visible") {'),
     "a setting rides in brackets after the arguments": (
         "tests/Demo/SignIn.test.sigma", "[timeout = 60]"),
-    "a marker is an empty block, never a group": (
-        "tests/Demo/SignIn.test.sigma", 'block "Needs a step addon:'),
+    "a marker is the step's own block, its need in the label": (
+        "tests/Demo/SignIn.test.sigma", '(needs a step addon:'),
     "a test binds a profile": (
         "tests/Demo/SignIn.test.sigma", 'profile = tdp["SignInData"].set('),
 }
@@ -105,3 +105,23 @@ def test_the_authoring_reference_points_at_the_example():
     from support import REFERENCES_DIR
     text = (REFERENCES_DIR / "authoring.md").read_text(encoding="utf-8")
     assert "examples/worked/" in text
+
+
+def test_no_block_contains_another_block():
+    """The tenant has no nested blocks, and the example is what gets copied.
+
+    An earlier version of this file nested the marker inside the step's block,
+    which read well and is refused at the wire. A worked example carrying a
+    shape the CLI rejects teaches the one thing it exists to prevent.
+    """
+    import re
+    text = (VERSION / "tests/Demo/SignIn.test.sigma").read_text(encoding="utf-8")
+    depth = 0
+    block_depth = None
+    for line in text.split("\n"):
+        if re.match(r'^\s*block\s+"', line):
+            assert block_depth is None, f"a block opens inside a block: {line.strip()}"
+            block_depth = depth
+        depth += line.count("{") - line.count("}")
+        if block_depth is not None and depth <= block_depth:
+            block_depth = None

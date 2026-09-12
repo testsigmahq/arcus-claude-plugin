@@ -256,6 +256,19 @@ class TestTheUnconvertedMarkerCarriesItsReason:
             "act on"
         )
 
+    def test_nesting_a_marker_is_refused(self):
+        section = self._section()
+        assert "never contains another block" in section or (
+            "a block is not a step" in section
+        ), "the tenant has no nested blocks, so the reader must be told"
+
+    def test_the_need_rides_in_the_label_instead(self):
+        section = self._section()
+        assert "parenthesised suffix" in section, (
+            "banning the nested marker without naming its replacement leaves "
+            "the reader with nowhere to put the need"
+        )
+
     def test_it_says_where_the_marker_goes(self):
         assert "where the step would have gone" in self._section(), (
             "position is the one thing a marker carries that the Migration "

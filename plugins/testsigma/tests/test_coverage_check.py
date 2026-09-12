@@ -223,6 +223,50 @@ class TestANestedMarkerIsDetailNotAClaim:
 
     STEPS = "Given I am signed in\nAnd Do the thing\n"
 
+    def test_a_block_inside_a_block_is_reported(self, tmp_path):
+        """TSF2079: a block holds steps, and a block is not a step.
+
+        This was the tolerated shape until the tenant named it. It is not an
+        *extra* — the outer block still claims its step — so it is reported as
+        its own fault, with the flattening that repairs it.
+        """
+        nested = '''\
+        test "x" {
+          block "Given I am signed in" { click(element["a"]) }
+          block "And Do the thing" {
+            block "Needs a step addon: no verb for this" {
+            }
+          }
+        }
+        '''
+        r = run(tmp_path, self.STEPS, nested)
+        assert r.returncode == 1, r.stdout
+        assert "2 of 2" in r.stdout, "the outer block still claims its step"
+        assert "match no source step" not in r.stdout
+        assert "inside another block" in r.stdout
+
+    def test_the_refusal_is_transitive_through_a_loop(self, tmp_path):
+        """`block { for { block } }` is refused too.
+
+        The app's blockParentId is inherited by descendants, so a loop between
+        the two does not launder the nesting. A depth-counting walk that reset
+        on the loop would miss exactly this.
+        """
+        nested = '''\
+        test "x" {
+          block "Given I am signed in" { click(element["a"]) }
+          block "And Do the thing" {
+            for row in tdp["D"] {
+              block "Needs a step addon: no verb for this" {
+              }
+            }
+          }
+        }
+        '''
+        r = run(tmp_path, self.STEPS, nested)
+        assert r.returncode == 1, r.stdout
+        assert "inside another block" in r.stdout
+
     def test_a_marker_nested_in_a_claiming_block_is_not_an_extra(self, tmp_path):
         nested = '''\
         test "x" {
@@ -234,7 +278,6 @@ class TestANestedMarkerIsDetailNotAClaim:
         }
         '''
         r = run(tmp_path, self.STEPS, nested)
-        assert r.returncode == 0, r.stdout
         assert "2 of 2" in r.stdout
         assert "match no source step" not in r.stdout
 

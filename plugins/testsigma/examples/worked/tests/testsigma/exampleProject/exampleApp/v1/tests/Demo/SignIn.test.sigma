@@ -19,8 +19,6 @@ test "Sign in and greet" {
     verifyPageHasElement(element["greeting for user"]) [timeout = 60]
   }
 
-  block "And the audit record is written" {
-    block "Needs a step addon: read the audit table and assert one row" {
-    }
+  block "And the audit record is written (needs a step addon: read the audit table and assert one row)" {
   }
 }
