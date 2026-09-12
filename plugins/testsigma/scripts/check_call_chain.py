@@ -35,6 +35,7 @@ softer one: it means the check did not run, and a caller that treats it as a
 failure drowns a real finding in noise.
 """
 import argparse
+import collections
 import pathlib
 import re
 import sys
@@ -106,6 +107,31 @@ def action_calls(body, vocabulary):
         if low.startswith(vocabulary):
             found.append(name)
     return found
+
+
+#: Coarse families, so both sides can be compared despite different spellings.
+#: Counting alone is not enough: every measured defect was the *tail* of a
+#: sequence — a helper's final submit, a scenario's last steps — and a run that
+#: drops two tail actions while adding two of its own scores an equal count and
+#: passes. Comparing families as a multiset catches the drop whatever was added.
+FAMILIES = (
+    ("PRESS", ("press", "key")),
+    ("TYPE", ("sendtext", "entertext", "type", "scan", "enter")),
+    ("CLEAR", ("clear",)),
+    ("CLICK", ("click", "doubleclick", "rightclick", "submit", "choose",
+               "select", "tap")),
+    ("UPLOAD", ("upload",)),
+    ("DRAG", ("dragand",)),
+    ("HOVER", ("hover",)),
+)
+
+
+def family(name):
+    low = name.lower()
+    for label, prefixes in FAMILIES:
+        if low.startswith(prefixes):
+            return label
+    return "OTHER"
 
 
 def definition_body(text, name):
@@ -228,8 +254,16 @@ def main():
         print("action. Nothing was compared, and that is not a pass — check the symbol.")
         return 2
 
-    if len(converted) < len(source):
-        print(f"\nThe source performs {len(source) - len(converted)} more actions than the block.")
+    missing = collections.Counter(family(a) for a in source)
+    missing.subtract(collections.Counter(family(a) for a in converted))
+    missing = {k: v for k, v in missing.items() if v > 0 and k != "OTHER"}
+
+    if len(converted) < len(source) or missing:
+        if missing:
+            shortfall = ", ".join(f"{v}x {k}" for k, v in sorted(missing.items()))
+            print(f"\nThe source performs actions the block does not: {shortfall}")
+        else:
+            print(f"\nThe source performs {len(source) - len(converted)} more actions than the block.")
         print("The last action of a sequence is usually the one that submits it, so")
         print("check the end of the chain first. Either convert what is missing, or")
         print("record it as a Concession on the row and name it in the block's label.")

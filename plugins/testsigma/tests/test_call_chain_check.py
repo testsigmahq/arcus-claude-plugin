@@ -68,7 +68,10 @@ def run(tmp_path, sigma, symbol, block="Search menu", depth=2):
 def test_a_dropped_submit_is_reported(tmp_path):
     r = run(tmp_path, DROPPED, "MenuPage.searchMenu")
     assert r.returncode == 1, r.stdout
-    assert "more actions than the block" in r.stdout
+    # Either phrasing is a report: the families name what is missing when they
+    # can, and the count speaks when every family is accounted for.
+    assert ("actions the block does not" in r.stdout
+            or "more actions than the block" in r.stdout)
 
 
 def test_it_names_the_actions_on_both_sides(tmp_path):
@@ -186,3 +189,48 @@ public class OtherPage {
         capture_output=True, text=True)
     assert r.returncode == 0, r.stdout
     assert "pressEnterKey" not in r.stdout, "resolved the namesake in OtherPage"
+
+
+TAIL_SOURCE = '''\
+public class Form {
+    public static void save(String s) {
+        SeleniumActions.clear(byField, "f");
+        SeleniumActions.sendTextToElement(byField, s, "f");
+        KeyboardActions.pressEnterKey(byField);
+        SeleniumActions.click(bySubmit, "submit");
+    }
+}
+'''
+
+TAIL_DROPPED = '''test "x" {
+  block "Save it" {
+    click(element.openPanel)
+    clearElementValue(element.field)
+    enterText("v", element.field)
+    click(element.someIcon)
+  }
+}
+'''
+
+
+def test_a_dropped_tail_is_caught_even_when_the_counts_match(tmp_path):
+    """Four actions against four, and the whole tail is gone.
+
+    Every measured defect was the tail of a sequence — a helper's final submit,
+    a scenario's last steps. A block that drops two tail actions while adding
+    two of its own scores an equal count, and a check that only counts passes
+    it: blind to the exact fault it exists for. Families are compared as a
+    multiset so the drop shows whatever was added in its place.
+    """
+    src = tmp_path / "src"
+    src.mkdir(exist_ok=True)
+    (src / "Form.java").write_text(TAIL_SOURCE, encoding="utf-8")
+    test = tmp_path / "t.sigma"
+    test.write_text(TAIL_DROPPED, encoding="utf-8")
+    r = subprocess.run(
+        [sys.executable, str(SCRIPT), "--source-root", str(src),
+         "--symbol", "Form.save", "--block", "Save it", str(test)],
+        capture_output=True, text=True)
+    assert r.returncode == 1, r.stdout
+    assert "4 actions" in r.stdout, "the counts really are equal"
+    assert "PRESS" in r.stdout, "the missing family must be named"
