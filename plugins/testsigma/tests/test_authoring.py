@@ -440,17 +440,29 @@ class TestDynamicLocatorsAreVerbSelected:
     def _section(self):
         return " ".join(DOC.section("values, names and layout").split())
 
-    def test_it_says_the_verb_carries_the_locator(self):
-        assert "chosen by verb" in self._section()
+    def test_it_says_the_verb_carries_one_of_the_locators(self):
+        assert "Verb-selected" in self._section()
 
     def test_it_names_the_probe_that_proves_no_binding_exists(self):
         # Without this the reader cannot distinguish "no such binding" from "a
         # name nobody has guessed yet", which is what made the search unbounded.
         assert "list blocks --kind step" in self._section()
 
-    def test_it_warns_off_element_dynamic(self):
+    def test_it_gives_both_shapes(self):
         section = self._section()
-        assert "element.dynamic" in section and "not this" in section
+        assert "Verb-selected" in section
+        assert "stored element carrying a parameter reference" in section
+
+    def test_it_names_the_sigil_and_that_the_format_spelling_is_refused(self):
+        # Backwards from every other position, so a reader who knows the format
+        # will reach for `${param.x}` and be refused. Say both.
+        section = self._section()
+        assert "@|number|" in section and "TSF2013" in section
+
+    def test_it_says_the_parameter_name_is_unchecked(self):
+        # The consequence that outlives the surprise: a typo validates, pushes,
+        # and matches nothing.
+        assert "nothing checks that a parameter of that name exists" in self._section()
 
     def test_it_says_what_to_do_when_no_verb_fits(self):
         assert "step addon" in self._section()

@@ -162,21 +162,37 @@ staleness `README.md` in `adapters/` warns about, and which ADR-0006 refuses.
   escaping: `"${env[\"API_BASE_URL\"]}/path"`. Dotted access working for some
   names is a trap, because any sane naming convention produces names it fails on.
 
-- **A dynamic locator is chosen by verb, not parameterised on the step.** There
-  is no placeholder binding: `testsigma list blocks --kind step` prints all
-  fourteen step settings and none carries one. The catalogue instead holds ~65
-  verbs whose sentence names the locator shape and takes the value in its
-  ordinary test-data slot — `Select option with label ${test-data} in the radio
-  button group #{ui-identifier}`, `Verify that an Alert with text ${test-data}
-  is displayed`. Find one with
+- **A dynamic locator has two shapes, and neither is a step setting.** There is
+  no placeholder binding: `testsigma list blocks --kind step` prints all fourteen
+  step settings and none carries one, which is the listing that ends the search
+  rather than extending it.
+
+  **Verb-selected.** The catalogue holds ~65 verbs whose sentence names the
+  locator shape and takes the value in the ordinary test-data slot — `Select
+  option with label ${test-data} in the radio button group #{ui-identifier}`.
+  The element is synthesised at run time and never stored. Find one with
   `testsigma list verbs --all | grep -i "with label\|with text"`.
 
-  `element.dynamic` is not this. It is a flag on a *stored* element and has
-  nothing to do with supplying a value from a step, which makes it the obvious
-  wrong turning: a measured run found it, wrote a locator with a `{value}` hole
-  beside `dynamic = true`, and got a file that validates and does not do what it
-  looks like it does. Where no verb names the shape the source needs, that is
-  Residue with cause `step addon`, not a binding still to be found.
+  **A stored element carrying a parameter reference**, with `dynamic = true`
+  beside a locator that embeds one. This is a real, product-supported shape:
+
+      element "Adult Details" {
+        locator = "//div[contains(text(),\"Adult @|number|\")]"
+        dynamic = true
+      }
+
+  **The sigil is the wire's, and it is the only spelling that compiles here.**
+  `@|number|` passes; the format-native `${param.number}` is refused with
+  TSF2013. That is backwards from every other position in the format, and it has
+  a consequence worth more than the surprise: the sigil is opaque text to the
+  compiler, so **nothing checks that a parameter of that name exists**. A typo
+  produces a file that validates, pushes, and matches nothing at run time. Check
+  the name against the profile yourself; `validate` will not.
+
+  A `{value}` hole is neither shape. It is literal text, and a locator carrying
+  one compiles cleanly and matches nothing — which is how a measured run reached
+  a file that looked finished and was inert. Where no verb names the shape and
+  no parameter fits, that is Residue with cause `step addon`.
 
 - **Interpolation is legal in few places, and a step's value slot is not one of
   them** (TSF2013). It works where the server keeps the reference inside the
