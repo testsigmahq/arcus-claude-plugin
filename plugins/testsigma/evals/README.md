@@ -31,6 +31,42 @@ fixtures it needs; `sync-fixtures.py` refreshes them and `../tests/test_evals.py
 asserts they are byte-identical to the canonical ones, so drift is a test failure
 rather than an eval quietly measuring a suite nothing else has seen.
 
+## The grader schema, as the runner actually defines it
+
+Taken from the runner rather than from `--help`, after three guesses in a row
+turned out wrong. Guessing is what produced every defect in this suite, so this
+is written down in full even where a field is currently unused.
+
+**Types**: `regex`, `tool_order`, `tool_used`, `file_exists`, `llm`, `baseline`.
+
+**Every grader takes** `weight` (positive, default 1) and `arm`, which is
+`with-only` or `both`. `arm` is real — an earlier note here said it was
+undocumented and told authors not to invent one. A `tool_used: Skill` grader
+declares `arm: with-only`, because a Skill call cannot happen in the no-plugin
+arm and scoring it guarantees a delta that measures nothing.
+
+**`target` (regex) and `focus` (llm)** take the same enum: `trace`,
+`last_message`, `files`, `mock_calls`, or `{source: file, path: ...}`. The
+default is `last_message`. A criterion that judges an artifact the agent *wrote*
+needs `trace` or `files` — under the default the judge never sees it, and the
+grader silently becomes "did the agent restate its work in the final reply".
+
+**`tool_order`** takes `before` and `after`, each either a tool name or
+`{tool, input_match}`. One tool name, no alternation — so the verb it names is
+part of the assertion. Ours name `Edit` for `step-map.md`, not `Write`: survey
+seeds the file, so filling a row is an edit, and the map skill forbids
+rewriting the whole table. A grader demanding `Write` there was penalising the
+plugin for obeying its own instruction, and it passed or failed run to run
+depending on which verb the agent happened to reach for.
+
+**`prompt.md` frontmatter**: `max_turns`, `allowed_tools`, `runs`,
+`timeout_seconds`, `name`, `tags`. Unknown keys are rejected by name, which is
+the one place the runner is loud.
+
+**`case.yaml` `context`**: `scaffold_script`, `history_file`, `add_dirs`. Unknown
+keys are *not* rejected — they are ignored, so a misspelled key looks exactly
+like a working one.
+
 ## How to run them
 
 ```

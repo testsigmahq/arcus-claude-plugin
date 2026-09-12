@@ -1,5 +1,6 @@
 ---
 type: llm
+focus: trace
 criteria: |
   Taking the Step Map row the agent wrote together with anything it reported,
   the step is said to send text only, without submitting or confirming the
@@ -13,3 +14,8 @@ The inverse of the does-more fault, and the one that invents a step the source
 never performed.
 
 Narrowed to: whether the helper was reported as doing less than its line implies.
+
+`focus: trace` because the criterion judges the row the agent *wrote*, and the
+default `last_message` shows the judge only the final reply. A criterion that
+names an artifact the judge cannot see is not a strict grader; it is one that
+fails whenever the agent chose to summarise rather than restate.

@@ -38,9 +38,17 @@ def cases():
 
 
 def wanted(case):
-    """Which fixtures a case's `add_dirs` names, by basename."""
-    text = (case / "case.yaml").read_text(encoding="utf-8")
-    return [name for name in CANONICAL if name in text]
+    """Which fixtures a case's scaffold copies, by basename.
+
+    Read from scaffold.sh, not case.yaml. The names lived in case.yaml's
+    `add_dirs` until the first real run showed add_dirs does not seed the
+    workspace; this script kept reading the old key and cheerfully refreshed
+    nothing, reporting "0 fixture copies refreshed" as though that were a
+    result. The drift test caught it — a sync script that silently syncs
+    nothing is the same shape of fault as a gate that watches the wrong path.
+    """
+    text = (case / "scaffold.sh").read_text(encoding="utf-8")
+    return [name for name in CANONICAL if f"fixtures/{name}/" in text]
 
 
 def main():

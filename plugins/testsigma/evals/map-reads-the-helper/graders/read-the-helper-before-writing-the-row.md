@@ -4,7 +4,7 @@ before:
   tool: Read
   input_match: 'SearchPage\.java'
 after:
-  tool: Write
+  tool: Edit
   input_match: 'step-map\.md'
 ---
 The single most valuable assertion in this suite. The whole composite-step

@@ -91,6 +91,26 @@ def test_what_the_first_real_run_settled_is_written_down(self=None):
     )
 
 
+def test_the_schema_is_written_down_rather_than_guessed(self=None):
+    """Three guesses, three defects. The record is cheaper than a fourth.
+
+    Every fault in this suite came from inferring the schema from `--help` and
+    from the shape of other eval suites. Two of them were silent: an ignored
+    `context` key looks exactly like a working one, and a `focus` left at its
+    default turns a strict criterion into a weak one with no warning.
+    """
+    body = EVAL_README.read_text(encoding="utf-8")
+    for field in ("trace", "last_message", "files", "mock_calls"):
+        assert field in body, f"the focus/target enum is incomplete: {field}"
+    assert "with-only" in body and "both" in body, "the arm values are unrecorded"
+    assert has_paragraph_with(body, "no alternation"), (
+        "tool_order names one tool, so the verb is part of the assertion"
+    )
+    assert has_paragraph_with(body, "are ignored", "misspelled"), (
+        "an ignored context key is the silent failure and must be called out"
+    )
+
+
 def test_the_readme_says_how_to_run_them(self=None):
     body = EVAL_README.read_text(encoding="utf-8")
     # An operator grant on top of each case's allowed_tools. Without it a case
@@ -195,17 +215,25 @@ class TestEveryCase:
                 f"judge the whole response"
             )
 
-    def test_a_skill_grader_relies_on_the_documented_automatic_behaviour(self, case):
-        # `--help` says graders marked with-only, "incl. `tool_used: Skill`",
-        # are a plugin-fired indicator rather than part of the score. The YAML
-        # key that marks one explicitly is NOT documented, so nothing here
-        # invents one: a made-up key would either be ignored or rejected, and
-        # both are worse than relying on the stated automatic behaviour.
+    def test_a_skill_grader_states_its_arm_rather_than_relying_on_a_default(self, case):
+        """The key exists; an earlier test asserted it did not.
+
+        `--help` says only that graders marked with-only, "incl. `tool_used:
+        Skill`", are treated as a plugin-fired indicator. From that this suite
+        concluded the YAML key was undocumented and forbade inventing one —
+        reasonable at the time, and wrong: the runner's own schema takes
+        `arm: with-only | both` on every grader type.
+
+        Stating it matters because a Skill call cannot happen in the no-plugin
+        arm. Scored, it would guarantee a delta that measures nothing about the
+        instructions, which is the one thing the ablation exists to avoid.
+        """
         for grader in _graders(case):
             meta, _ = _frontmatter(grader)
             if meta.get("type") == "tool_used" and meta.get("tool") == "Skill":
-                assert "with_only" not in meta and "withOnly" not in meta, (
-                    "the with-only key is undocumented; do not invent one"
+                assert meta.get("arm") == "with-only", (
+                    f"{grader.name}: a Skill grader must declare arm: with-only, "
+                    "or it scores a delta that only reflects the plugin being loaded"
                 )
 
     def test_it_scaffolds_its_fixture_into_the_run(self, case):
