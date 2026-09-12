@@ -91,6 +91,8 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--steps", required=True,
                         help="the source scenario's steps, one per line")
+    parser.add_argument("--through", type=int, default=0, metavar="N",
+                        help="a slice: only the first N source steps are due yet")
     parser.add_argument("test", help="the assembled .sigma test")
     args = parser.parse_args()
 
@@ -122,8 +124,12 @@ def main():
                 break
         else:
             extra.append(label)
+    # A slice is assembled and checked before the next one starts, so only the
+    # steps due so far are required. Blocks for later steps are not extras —
+    # writing ahead is allowed, leaving a step behind is not.
+    due = steps[:args.through] if args.through else steps
     missing = []
-    for step in steps:
+    for step in due:
         key = normalise(step)
         if remaining.get(key):
             remaining[key] -= 1
@@ -131,9 +137,11 @@ def main():
 
     print(f"source steps: {len(steps)}")
     print(f"blocks:       {len(found)}")
-    print(f"accounted:    {len(steps) - len(missing)} of {len(steps)}")
+    if args.through:
+        print(f"slice:        through step {min(args.through, len(steps))}")
+    print(f"accounted:    {len(due) - len(missing)} of {len(due)}")
 
-    if not found and steps:
+    if not found and due:
         # The measured failure had zero labelled blocks: the test was written as
         # bare statements, so there was nothing to compare and nothing noticed.
         print("\nNo block carries a source step's text. A converted scenario is")

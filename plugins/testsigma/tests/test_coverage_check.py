@@ -28,12 +28,12 @@ And I archive record "A1"
 """
 
 
-def run(tmp_path, steps, sigma):
+def run(tmp_path, steps, sigma, extra=()):
     (tmp_path / "steps.txt").write_text(steps, encoding="utf-8")
     (tmp_path / "t.test.sigma").write_text(textwrap.dedent(sigma), encoding="utf-8")
     return subprocess.run(
         [sys.executable, str(SCRIPT), "--steps", str(tmp_path / "steps.txt"),
-         str(tmp_path / "t.test.sigma")],
+         *extra, str(tmp_path / "t.test.sigma")],
         capture_output=True, text=True,
     )
 
@@ -313,3 +313,47 @@ class TestANestedMarkerIsDetailNotAClaim:
         r = run(tmp_path, self.STEPS, invented)
         assert r.returncode == 1, r.stdout
         assert "nobody asked for" in r.stdout
+
+
+class TestASliceIsCheckedBeforeTheNextOneStarts:
+    """Assembly in slices, so no block is written at the far end of a long run.
+
+    Every measured defect was the tail of a sequence — a helper's last action, a
+    scenario's last steps — and the tail of a long test is written when the
+    session is longest. A slice is assembled, checked and committed before the
+    next begins, which makes the last block of each slice as near the source as
+    the first.
+    """
+
+    STEPS = "Given one\nAnd two\nAnd three\nAnd four\n"
+    HALF = '''\
+    test "x" {
+      block "Given one" { click(element.a) }
+      block "And two" { click(element.b) }
+    }
+    '''
+
+    def test_a_finished_slice_passes(self, tmp_path):
+        r = run(tmp_path, self.STEPS, self.HALF, extra=["--through", "2"])
+        assert r.returncode == 0, r.stdout
+        assert "2 of 2" in r.stdout
+
+    def test_the_same_file_fails_the_whole_scenario(self, tmp_path):
+        """The slice passing must not read as the test being done."""
+        r = run(tmp_path, self.STEPS, self.HALF)
+        assert r.returncode == 1
+        assert "And three" in r.stdout
+
+    def test_writing_ahead_is_allowed(self, tmp_path):
+        """A block for a later step is not an extra — leaving one behind is."""
+        ahead = self.HALF.replace('block "And two" { click(element.b) }',
+                                  'block "And two" { click(element.b) }\n'
+                                  '      block "And four" { click(element.d) }')
+        r = run(tmp_path, self.STEPS, ahead, extra=["--through", "2"])
+        assert r.returncode == 0, r.stdout
+
+    def test_a_step_skipped_inside_the_slice_still_fails(self, tmp_path):
+        skipped = self.HALF.replace('block "Given one" { click(element.a) }', "")
+        r = run(tmp_path, self.STEPS, skipped, extra=["--through", "2"])
+        assert r.returncode == 1
+        assert "Given one" in r.stdout

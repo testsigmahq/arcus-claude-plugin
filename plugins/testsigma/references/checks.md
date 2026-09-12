@@ -18,6 +18,19 @@ Fixed by ADR-0001 and extended by ADR-0010, and not negotiable per Migration:
    scenario, each one either converted or standing as a marker. Machine-decidable
    against the source's step list, and the only check that can see a conversion
    that stopped early. See ADR-0010 for why the other five cannot.
+   **Coverage runs per slice, not once at the end.** Assembly builds about
+   fifteen source steps at a time and checks each slice with `--through N`
+   before starting the next. The reason is measured: every defect ever found in
+   a converted test was the *tail* of a sequence — a helper's final submit, a
+   scenario's last steps, and once a run that converted nine steps of fifty-five
+   and reported the work done. The tail of a long test is written when the
+   session is longest and the source furthest behind. Re-reading the rows for
+   the next fifteen steps costs a fraction of what one dropped submit costs, and
+   it makes the last block of each slice as near its source as the first.
+   Writing ahead of the slice is allowed; leaving a step behind is not.
+   The push still happens once, at the end: a partially assembled test on
+   the tenant reads to everyone who opens it as a complete one.
+
 2. **Validity** — the working copy is legal in the format. Machine-decidable,
    needs nothing but the working copy.
 3. **Compare-to-source** — the converted step does what the source's

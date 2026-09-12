@@ -123,6 +123,15 @@ order is the lexical order and parentage is the lexical nesting, so a correctly
 written file is correct by construction — which is why the fault the next step
 looks for is not visible here.
 
+**Build in slices of about fifteen source steps.** After each slice: `validate`,
+coverage for the slice, then commit —
+
+    python3 ${CLAUDE_PLUGIN_ROOT}/scripts/check_coverage.py \
+      --steps <the scenario's steps> --through <steps done so far> <the test>
+
+A failing slice is finished before the next begins; push once at the end. Why,
+in `${CLAUDE_PLUGIN_ROOT}/references/checks.md`.
+
 ## Step 5: Check that every source step is accounted for
 
 Run `${CLAUDE_PLUGIN_ROOT}/scripts/check_coverage.py --steps <steps> <test>`,
