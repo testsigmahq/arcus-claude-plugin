@@ -154,6 +154,18 @@ one. Establish the one you need by compiling it, the same way as any other
 catalogue fact, rather than copying any part of the list here — which is the
 staleness `README.md` in `adapters/` warns about, and which ADR-0006 refuses.
 
+## What a correct file looks like
+
+`${CLAUDE_PLUGIN_ROOT}/examples/worked/` is one small workspace that validates
+with no errors and no warnings. Read it before authoring the first file of a
+kind you have not written.
+
+It carries what no listing can: the nesting, the quoting, `element.name` against
+`element["name with spaces"]`, an `if` header without parentheses, a setting in
+`[ ]`, an empty `block` as a marker, and a screen's elements ordered by name.
+`list blocks` gives a block's grammar; this gives a file's shape, and measured
+runs spent six `validate` calls rediscovering it.
+
 ## Values, names and layout the validator enforces
 
 - **Environment names need bracket lookup.** An `UPPER_SNAKE` name is not

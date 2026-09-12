@@ -1,0 +1,9 @@
+tdp "SignInData" {
+  column("userName")
+  column("password")
+
+  set "Iteration1" {
+    userName = "ada"
+    password = "hunter2"
+  }
+}

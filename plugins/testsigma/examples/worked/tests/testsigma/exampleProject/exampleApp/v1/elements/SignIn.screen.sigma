@@ -1,0 +1,22 @@
+screen "SignIn" {
+  element "greeting for user" {
+    locator = "//h1[contains(text(),\"Welcome ${param.userName}\")]"
+    locatorType = "xpath"
+    dynamic = true
+  }
+
+  element "passwordField" {
+    locator = "//input[@id='password']"
+    locatorType = "xpath"
+  }
+
+  element "sign in button" {
+    locator = "//button[@type='submit']"
+    locatorType = "xpath"
+  }
+
+  element "usernameField" {
+    locator = "//input[@id='username']"
+    locatorType = "xpath"
+  }
+}

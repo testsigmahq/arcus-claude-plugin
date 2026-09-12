@@ -1,0 +1,26 @@
+test "Sign in and greet" {
+  description = "Every shape a converted test needs, once each."
+  profile = tdp["SignInData"].set("Iteration1")
+
+  block "Given I am on the sign-in page" {
+    navigateTo("https://example.test/signin")
+  }
+
+  block "When I sign in" {
+    enterText(param.userName, element.usernameField)
+    enterText(param.password, element.passwordField)
+
+    if elementIs(element["sign in button"], "visible") {
+      click(element["sign in button"])
+    }
+  }
+
+  block "Then I am greeted by name" {
+    verifyPageHasElement(element["greeting for user"]) [timeout = 60]
+  }
+
+  block "And the audit record is written" {
+    block "Needs a step addon: read the audit table and assert one row" {
+    }
+  }
+}
