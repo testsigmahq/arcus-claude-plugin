@@ -627,6 +627,28 @@ comparison has already been made without it, re-open those rows rather than
 keeping them: a verdict reached from intent is provisional, and a Migration that
 records it as reviewed has recorded something it did not check.
 
+Reading one file for two questions separately fails the same way. On the
+conversion that produced this plugin every locator came out of the page objects,
+those files were opened, they were read for locators, and nobody asked what the
+code did — four of the six faults. A pass that collects locators and defers the
+sequence question has already lost the thing that was expensive to recover, and
+it has lost it while holding the file open.
+
+A delegated reading is the same fault wearing better clothes. Measured on a
+clean-room conversion: four subagents were sent to read the step definitions,
+returned summaries, and the agent then spent a round trip per subagent asking for
+"full verbatim findings" — 35 of 230 tool calls on coordination, no test file
+written. The recovery is the tell. It knew a summary was not evidence, and asking
+a second time still did not open the file.
+
+What separates the two is what a row can be reviewed against later. A row whose
+evidence is a file and a line range survives disagreement, because the reviewer
+can go and look. A row whose evidence is that something reported the method does
+four things cannot be re-checked without doing the reading that was skipped, so
+the disagreement has nowhere to go. The delegated summary also arrives with more
+authority than the Gherkin line ever had, which is what makes it worse than the
+surface it replaced rather than merely equivalent.
+
 ## Record the direction of every finding, not only its size
 
 A conversion is rarely uniformly worse. Recording that a row diverges says less

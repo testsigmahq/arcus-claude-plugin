@@ -161,6 +161,44 @@ staleness `README.md` in `adapters/` warns about, and which ADR-0006 refuses.
   always — `env["APP_BASE_URL"]` — including inside interpolation, where it needs
   escaping: `"${env[\"API_BASE_URL\"]}/path"`. Dotted access working for some
   names is a trap, because any sane naming convention produces names it fails on.
+- **The layout is fixed, and a file in the wrong directory is refused**
+  (TSF2050). It is not guessable and no command prints it, so it is written out
+  here:
+
+      tests/testsigma/
+        <project>/                      project.sigma
+          envs/                         *.env.sigma        (project-scoped)
+          variables.sigma                                  (project variable pool)
+          <application>/                application.sigma
+            <version>/                  version.sigma
+              tests/       <folder>/      *.test.sigma
+              stepGroups/  <folder>/      *.stepGroup.sigma
+              tdps/        <folder>/      *.tdp.sigma
+              elements/                   *.screen.sigma
+              uploads/                    *.upload.sigma
+
+  Three of these catch people out. A screen lives in **`elements/`** and is named
+  `*.screen.sigma` — the directory and the suffix disagree, and `screens/` is
+  the natural guess and wrong. The suffix is part of the name: `foo.test.sigma`
+  is a test, `foo_test.sigma` is not one and lands nowhere. And `tests`,
+  `stepGroups` and `tdps` are **foldered** — they mirror the server's folder
+  tree as directories at arbitrary depth, each carrying a `folder.sigma`, so a
+  file sitting directly in `tests/` belongs to no server folder and has nowhere
+  to push (TSF2058). `elements/` and `uploads/` are flat and take no folder.
+
+- **Probe by adding, never by deleting.** Where a convention has to be
+  established by experiment, write one candidate file and run `validate`.
+  Do not remove directories or files to find out what the compiler wants. A
+  measured run looking for the elements directory ran
+  `for dir in screens Screens elements Elements element screen; do rm -rf "$dir"; done`
+  and then deleted every sibling directory between attempts — inside the
+  Operator's own repository, against work an earlier stage had already produced.
+  The workspace is the Operator's, not a scratch pad, and a wrong guess that
+  only adds a file costs a `validate`, while a wrong guess that deletes one
+  costs work nobody can get back. The same rule holds for the tenant: a spelling
+  is established with `validate` offline, never by pushing something to see what
+  happens.
+
 - **Environments are project-scoped**, not application-scoped: the `envs/`
   directory sits beside the project, not inside the application directory.
 - **`attach` takes positional arguments**: project, application, version. There are

@@ -298,3 +298,102 @@ class TestTheApiGrammarIsProbedNotGuessed:
 
     def test_it_defers_the_reasoning_to_the_decision(self):
         assert "ADR-0009" in self._section()
+
+
+class TestTheWorkspaceLayoutIsWrittenDown:
+    """A fixed convention that nothing prints has to live somewhere.
+
+    Measured on a clean-room run: with the layout undocumented and unprobeable,
+    the agent brute-forced directory names — `screens Screens elements Elements
+    element screen`, then `Tests testCases TestCases suites Suites folder
+    folders group groups module modules` — deleting each candidate with `rm -rf`
+    between attempts to see which one `validate` accepted.
+
+    ADR-0006 refuses to hold the *catalogue* because the build is its authority
+    and a copy goes stale. The layout is not the catalogue: it is a file
+    convention the compiler enforces, no command reports it, and an agent that
+    does not know it cannot write a single file in the right place.
+    """
+
+    def _section(self):
+        return " ".join(DOC.section("values, names and layout").split())
+
+    #: Directory paired with the filename suffix that belongs in it. Asserted as
+    #: pairs rather than as two lists: `elements/` also appears in the prose
+    #: warning below, so a corrupted diagram line still satisfied a presence
+    #: check while telling a reader the wrong directory.
+    KIND_DIRECTORIES = (
+        ("tests/", "*.test.sigma"),
+        ("stepGroups/", "*.stepGroup.sigma"),
+        ("tdps/", "*.tdp.sigma"),
+        ("elements/", "*.screen.sigma"),
+        ("uploads/", "*.upload.sigma"),
+        ("envs/", "*.env.sigma"),
+    )
+
+    @pytest.mark.parametrize("directory,suffix", KIND_DIRECTORIES)
+    def test_it_pairs_each_directory_with_its_suffix(self, directory, suffix):
+        """Read the diagram line by line, not as a flattened string.
+
+        `tests/` occurs first inside `tests/testsigma/`, the workspace root, so
+        a substring search finds the root rather than the entry for the tests
+        kind and reports the pairing missing when it is present.
+        """
+        import re as _re
+        raw = DOC.section("values, names and layout")
+        pattern = _re.compile(
+            r"^\s*" + _re.escape(directory) + r"\s.*" + _re.escape(suffix), _re.M
+        )
+        assert pattern.search(raw), (
+            f"no layout line pairs {directory} with {suffix}; the diagram is "
+            f"the only place a reader learns which suffix goes where"
+        )
+
+    def test_it_warns_that_a_screen_lives_in_elements(self):
+        # The one the measured run got wrong first, because the directory and
+        # the file suffix disagree.
+        section = self._section().lower()
+        assert "screens/" in section and "wrong" in section, (
+            "`screens/` is the natural guess; the layout must say so explicitly"
+        )
+
+    def test_it_says_the_suffix_is_part_of_the_name(self):
+        assert "foo_test.sigma" in self._section(), (
+            "`_test` versus `.test` cost the measured run a cycle on its own"
+        )
+
+    def test_it_says_which_kinds_are_foldered(self):
+        section = self._section()
+        assert "foldered" in section and "TSF2058" in section, (
+            "a file at the root of tests/ validates as misplaced for a second "
+            "reason, and the two are easy to conflate"
+        )
+
+
+class TestProbingIsNonDestructive:
+    """Guessing costs a validate; guessing by deleting costs the work.
+
+    A measured run brute-forced the elements directory with
+    `for dir in screens Screens elements …; do rm -rf "$dir"; done`, inside the
+    Operator's repository, over files an earlier stage had written. The layout
+    being undocumented explains the guessing. It does not explain the `rm -rf`,
+    and documenting the layout would not have prevented the next one.
+    """
+
+    def _section(self):
+        return " ".join(DOC.section("values, names and layout").split()).lower()
+
+    def test_it_forbids_deleting_to_probe(self):
+        section = self._section()
+        assert "never by deleting" in section, (
+            "an agent establishing a convention will experiment; the rule has "
+            "to say which direction is safe"
+        )
+
+    def test_it_says_what_to_do_instead(self):
+        assert "write one candidate file" in self._section()
+
+    def test_it_extends_the_rule_to_the_tenant(self):
+        # The same reasoning, and the more expensive half: a push is not offline
+        # and not undoable the way a local file is.
+        assert "never by pushing" in self._section()

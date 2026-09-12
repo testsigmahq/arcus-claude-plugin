@@ -123,9 +123,8 @@ wrong four times out of six.
 
 The adapter's own Sequence section states where the sequence lives for this
 format and which traps recur in it. Follow it. Four shapes recur across every
-source format met so far, and all four produce a test that runs and passes;
-`${CLAUDE_PLUGIN_ROOT}/references/fault-classes.md#four-shapes-a-helper-takes-and-three-of-them-read-as-one-action`
-describes them.
+source format met so far, all four producing a test that runs and passes:
+`${CLAUDE_PLUGIN_ROOT}/references/fault-classes.md#four-shapes-a-helper-takes-and-three-of-them-read-as-one-action`.
 
 One of the four is an instruction rather than a description, so it is here:
 **treat every helper whose name contains `wait`, `until`, `refresh` or `poll` as
@@ -133,8 +132,8 @@ a loop until the source shows otherwise**, including the shape that reads as an
 assertion, which is where the volume is.
 
 Report what the helper actually does, in the Operator's terms, whenever it
-differs from what the line implies. A difference found and not said is a
-difference that reaches the converted suite.
+differs from what the line implies. A difference found and not said reaches the
+converted suite.
 
 **Ask the locator question in this same reading.** Where the source carries
 locators they are in the same file you have just opened for sequence, so it is
@@ -142,12 +141,15 @@ one reading with two questions rather than two readings. Lift the locators as
 they are declared; do not reinvent them. The adapter's Locators section says
 where they live in this format.
 
-Separating the two readings is the fault, not an inefficiency. On the conversion
-that produced this plugin every locator came out of the page objects, those files
-were opened, they were read for locators, and nobody asked what the code did.
-That is how four of the six faults got through. A pass that collects locators and
-defers the sequence question has already lost the thing that was expensive to
-recover.
+**Read it yourself.** Breadth may be delegated; this reading may not. What comes
+back from a delegated reading is a summary, and a summary of a helper is the
+surface again. Where one already exists, open the file rather than ask for a
+fuller one — `fault-classes.md#a-verdict-given-without-the-implementation`.
+
+Separating the two readings is the fault, not an inefficiency — see
+`fault-classes.md#a-verdict-given-without-the-implementation` for the pass that
+opened every page object, read it for locators, and never asked what the code
+did.
 
 ## Step 4: Resolve the elements a row references
 
@@ -243,13 +245,11 @@ Record its **Standing** too, `gap` or `refusal`. Where you cannot tell, write
 `gap`, because that is the reading that gets looked at again.
 
 The **Cause** is one of a fixed set, not prose;
-`${CLAUDE_PLUGIN_ROOT}/references/migration-directory.md` holds the set and what
-each one means. Two of them are the ones that matter here and are easy to merge:
-a **step addon** is needed when no Verb performs the action, a **data generator
-addon** when no generator produces a value. They feel the same while writing a
-step that will not finish, and they are requests to different people. Deciding
-which of the two it is, is part of recording the entry rather than a detail left
-for whoever reads it later.
+`${CLAUDE_PLUGIN_ROOT}/references/migration-directory.md` holds the set. Two of
+them merge by accident: a **step addon** is wanted when no Verb performs the
+action, a **data generator addon** when no generator produces a value. Both feel
+identical while writing a step that will not finish, and they are requests to
+different people, so decide which while recording the entry.
 
 The reasoning is what lets a ruling be overturned later, so write the reasoning
 and not just the verdict: one case already believed unexpressible turned out to

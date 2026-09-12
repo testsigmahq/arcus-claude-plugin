@@ -820,3 +820,34 @@ class TestResidueRoutesToWhoeverCanCloseIt:
             "a row dropped from step-map.md instead of being given the residue "
             "status takes the step out of every test that used it"
         )
+
+
+class TestTheHelperReadingIsNotDelegated:
+    """A summary of a helper is the surface, which is what this step distrusts.
+
+    Measured on a clean-room run: the agent spawned four subagents to read the
+    step definitions, got summaries, then spent a round trip per subagent asking
+    for "full verbatim findings" — 35 of 230 tool calls on coordination, no
+    `.sigma` file yet. The recovery is the tell: it knew the summaries were not
+    evidence, and asking again still did not open the file.
+    """
+
+    def _section(self):
+        body = document(PLUGIN_ROOT / "skills" / "map" / "SKILL.md").section("open the helper")
+        return " ".join(body.split())
+
+    def test_it_says_the_reading_is_not_delegated(self):
+        assert "read it yourself" in self._section().lower(), (
+            "without this the step says what to read and never who reads it"
+        )
+
+    def test_it_separates_breadth_from_the_reading(self):
+        # A blanket ban would be wrong: finding which files exist is fine to
+        # delegate. The line is drawn at the reading a row is written from.
+        assert "breadth may be delegated" in self._section().lower()
+
+    def test_it_says_what_to_do_when_a_summary_already_exists(self):
+        assert "open the file" in self._section().lower(), (
+            "the measured failure was asking for a better summary; the skill "
+            "must name the cheaper correct move"
+        )
