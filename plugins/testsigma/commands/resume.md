@@ -56,7 +56,7 @@ of Work in `check-record.md` that was checked under the old build is marked as
 not checked against any capability the new build has gained. It does not inherit
 a pass it never earned. Amend `migration.md` with the new build and the date.
 
-`${CLAUDE_PLUGIN_ROOT}/references/checks.md` defines the five checks and
+`${CLAUDE_PLUGIN_ROOT}/references/checks.md` defines the six checks and
 this rule. Report the count of Units now not checked against the new capability,
 so re-checking is the Operator's costed decision rather than an oversight.
 

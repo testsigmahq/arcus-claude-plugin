@@ -255,7 +255,11 @@ recorded as are defined in
 `${CLAUDE_PLUGIN_ROOT}/references/checks.md`. Follow it rather than
 deciding here what counts as checked.
 
-Commit the Migration Directory as tests are assembled, scoped to that directory.
+Commit the Migration Directory *and the assembled working copy* as tests are
+built — scoping the commit to the Migration Directory leaves the .sigma files
+behind, which is half the state. Then run
+`${CLAUDE_PLUGIN_ROOT}/scripts/check_committed.py --suite <the suite>` before the stage ends and
+commit what it lists.
 Put anything unresolved where it belongs before finishing: a question for the
 Operator into `open-questions.md`, something learned about Testsigma into
 `platform-facts.md`, something only they can answer about their application into

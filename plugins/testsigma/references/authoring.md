@@ -399,8 +399,21 @@ table and assert one row)" {
 }
 ```
 
-The suffix works the same way when the step is *partly* converted. Write what
-the step does convert to in the body, and name the remainder in the suffix:
+The suffix works the same way when the step is *partly* converted, and this is
+the case most often missed. A step whose sequence converts except for one action,
+or whose value differs from the source's because the platform cannot reproduce
+it, is a step a reader sees as fully converted — the block has a body, and
+nothing in the file says otherwise. Two measured conversions did exactly that:
+one entered a value the source strips characters from, the other generated an id
+of a different shape. Both were reasoned about and recorded as open questions,
+and both stood in the test as ordinary blocks. A gap the Migration Directory
+knows and the test does not is a Divergence, which is the one thing the term
+exists to prevent, and recording it elsewhere does not repair it.
+
+So the rule is about the *gap*, not about whether the whole step was refused:
+anything the block does not do that its source does carries a suffix, however
+small. Write what the step does convert to in the body, and name the remainder
+in the suffix:
 
 ```
 block "Then I validate the receiving grid (needs a step addon: compare all ten

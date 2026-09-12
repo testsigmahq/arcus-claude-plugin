@@ -84,6 +84,9 @@ Reuse the verdict at every occurrence. A step decided here is not revisited when
 it appears again, in another feature file or scenario; that reuse is the entire
 economics of mapping.
 
+**One exception: when a new scenario first uses a row decided for another, the
+call-chain check runs again** (`${CLAUDE_PLUGIN_ROOT}/references/migration-directory.md`).
+
 Order by occurrence count, highest first: an early wrong verdict on a frequent
 step is the most expensive mistake available. Then the steps that genuinely vary,
 which carry most of the judgement. Singletons amortise nothing and can wait, but
@@ -186,7 +189,11 @@ the measurement behind it.
 **Start with coverage of the call chain, because that is where the defects were.**
 Enumerate every call the step definition makes, transitively through the helpers it
 delegates to, and require each to map to at least one step in the expression.
-Report the calls that map to none. A composite converted partway was the largest
+Report the calls that map to none.
+
+Run it, do not only read it: record the implementing method in the row's
+`Source` column and run the call-chain check in
+`${CLAUDE_PLUGIN_ROOT}/references/checks.md`. A composite converted partway was the largest
 single class of defect in the conversion this plugin came from, and it produces a
 row that reads correctly and is simply short. The same walk settles which locator
 each step reaches, which is the only thing that catches an element lifted from the
@@ -263,17 +270,14 @@ missing from every test that used it.
 
 ## Step 8: Record and commit
 
-Write each decided row into `step-map.md` as you finish it, not in a batch at the
-end. Rows already written survive a session that ends early; rows held in a
-session do not.
-
 Record the comparison in `check-record.md` as each row is reviewed. A reviewed row
 is a Unit of Work that has been checked, and a record covering only assembled tests
 would leave the stage with the strongest evidence of finding faults absent from it.
 Name the CLI build it ran under; `${CLAUDE_PLUGIN_ROOT}/references/checks.md` says
 what a check that could not run is recorded as.
 
-Commit the Migration Directory as rows accumulate, scoped to that directory. Put
+Commit the Migration Directory as rows accumulate, and before the stage ends run
+`${CLAUDE_PLUGIN_ROOT}/scripts/check_committed.py`, committing what it lists. Put
 anything unresolved where it belongs before finishing: a question for the
 Operator into `open-questions.md`, something learned about Testsigma into
 `platform-facts.md`, something only they can answer about their application into

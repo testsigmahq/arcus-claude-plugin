@@ -22,7 +22,24 @@ Fixed by ADR-0001 and extended by ADR-0010, and not negotiable per Migration:
    needs nothing but the working copy.
 3. **Compare-to-source** — the converted step does what the source's
    implementation does, read against the implementation rather than the surface
-   syntax. This is the exit condition of mapping.
+   syntax. This is the exit condition of mapping. Partly machine-assisted:
+   `scripts/check_call_chain.py` counts the actions the source performs against
+   the actions the block performs, given the row's `Source` symbol:
+
+       python3 scripts/check_call_chain.py \
+         --source-root <the suite's source> --symbol Class.method \
+         --block "<a fragment of the block's label>" <the assembled test>
+
+   It names both lists and reports rather than refuses. A matching count is not
+   proof — it cannot see an action converted into the *wrong* action, only one
+   converted into nothing. It is not a substitute for reading the
+   implementation; it is the thing that catches the reading that went wrong, and
+   it caught both dropped submits found by hand.
+
+   Mapping asked for this walk in prose before the script existed, and a row was
+   still written recording four of its source method's five actions. It was
+   marked `reviewed` and reused across every scenario that followed. An
+   instruction a reader believes they followed is not a check.
 4. **Tenant acceptance** — the tenant accepts the work.
 5. **Round trip** — the work survives a push and pull unchanged.
 6. **Render check** — it looks right in the application, judged by a person.

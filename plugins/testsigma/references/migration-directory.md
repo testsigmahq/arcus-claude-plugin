@@ -34,6 +34,32 @@ The largest artifact and the one most read, so it is a table. A row carries the
 source text, its occurrence count, its parameter shapes, the proposed expression,
 and a status. One Source Step may map to several steps.
 
+The **`Source`** column names the symbol the row was derived from — the
+implementing method, as `Class.method`. It is provenance, and it is what makes
+check 3 runnable by a machine: `check_call_chain.py` takes it, finds the
+definition, and compares the actions it performs against the actions the
+assembled block performs.
+
+It exists because a row is trusted forever once it says `reviewed`, and two
+measured defects were rows that were wrong from the start. One recorded four of
+a source method's five actions; every scenario that reused it inherited the
+drop, and the row was used thirty-five times. Without provenance nothing can
+re-derive a row from the source, so a wrong row is only ever found by a person
+reading the implementation again — which is the work the row existed to save.
+
+**A reused row is re-checked once per scenario.** A row decided for one
+scenario is not re-read when another uses it — that reuse is the economics of
+mapping — but the first time a new scenario uses it, the call-chain check runs
+against the newly assembled block. Reuse is what makes a second scenario cheap
+and equally what multiplies a wrong row, and nothing downstream can see the
+difference: the assembled test agrees with the row, and the row is what every
+later check compares against. A row that fails this stops being `reviewed` and
+is worked again, along with every test already assembled from it.
+
+A row with no `Source` is not wrong; some Source Steps have no implementation to
+point at. But a row that *could* name one and does not is a row no check can
+re-examine, so name it whenever there is one.
+
 A row whose expression uses a value that does not come from the test itself
 carries a **`Kind:`** line in its Expression cell, naming the Value Kinds it
 uses — `Kind: runtime, function`. Rows using nothing but raw literals carry none,
@@ -185,7 +211,7 @@ Parameterisation: <n> unparameterised, <n> single-valued, <n> genuinely varying
 ```markdown
 # Step Map
 
-| Source Step | Occurrences | Parameter shapes | Expression | Status |
+| Source Step | Occurrences | Source | Parameter shapes | Expression | Status |
 |---|---|---|---|---|
 ```
 
