@@ -27,6 +27,9 @@ how a later session knows that Phase is still open. Where the adapter carries
 locators the section never appears, because there is no such Phase to finish.
 
 **`step-map.md`** — the reviewed mapping from every Source Step to its expression.
+Seeded by survey with one `unreviewed` row per distinct Source Step, so mapping
+fills rows rather than creating them and *reviewed n of m* is answerable from the
+first minute.
 The largest artifact and the one most read, so it is a table. A row carries the
 source text, its occurrence count, its parameter shapes, the proposed expression,
 and a status. One Source Step may map to several steps.

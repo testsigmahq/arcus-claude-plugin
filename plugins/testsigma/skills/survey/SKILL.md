@@ -216,6 +216,20 @@ rather than statistics. Source Steps occurring once amortise nothing, so a long 
 sets the floor cost. And rows are not equal: the ones that genuinely vary carry most
 of the judgement, so a plan built on an average row will front-load the wrong work.
 
+**Seed `step-map.md` with the distinct Source Steps, every row `unreviewed`.**
+The enumeration just produced them, so this costs one write, and it changes what
+mapping is: filling rows in rather than creating them.
+
+Three things follow, and the third is why it is here rather than left to mapping.
+Progress becomes a number from the first minute — *reviewed 12 of 55*. A session
+that ends early leaves the skeleton and whatever was filled, so the next one
+resumes instead of re-reading. And a run that spends a hundred calls reading
+source without moving the reviewed count is visibly not progressing, where an
+empty map and a full one look identical while the work is held in a session that
+has not written anything down yet. That is not hypothetical: a measured run read
+step definitions for a hundred and eighteen calls, wrote no row, and ended with
+nothing.
+
 Amend `migration.md` with the enumeration and commit again.
 
 ## Step 6: Report, and hand over

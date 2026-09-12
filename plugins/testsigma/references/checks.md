@@ -59,6 +59,23 @@ it did not run.
 Checks 3 and 4 are the only ones that need a tenant. Survey, mapping, element
 resolution from a source, and assembly all run without one.
 
+## A stage's checks are run by whoever performs the stage
+
+ADR-0005 puts each check inside the stage that produces the work. The corollary
+is about delegation: hand an entire stage to an agent whose work cannot be
+inspected, and its check record becomes a claim rather than a record.
+
+Breadth may be delegated — which files exist, which phrasings recur. A whole
+stage may not, because what comes back is a report, and a report is exactly what
+these checks exist to distrust. One measured run handed a conversion to an agent
+and reported "all 7 steps" for a scenario of fifty-five; another handed off the
+whole pipeline, promised to report back when it finished, and ended having
+written nothing. In both the parent had no way to tell, because in both the only
+evidence was prose.
+
+Write into `check-record.md` what ran, against what, under which build — not
+what was reported to have run.
+
 ## A check that could not run is not checked
 
 A check that could not run is recorded as not checked. It is never recorded as a

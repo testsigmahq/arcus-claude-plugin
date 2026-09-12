@@ -8,6 +8,7 @@ import pytest
 
 from support import (
     CONTEXT,
+    document,
     MIGRATION_DIRECTORY,
     MIGRATION_DIRECTORY_FILES,
     PLUGIN_ROOT,
@@ -22,6 +23,7 @@ from support import (
 )
 
 SURVEY = PLUGIN_ROOT / "skills" / "survey" / "SKILL.md"
+MAP = PLUGIN_ROOT / "skills" / "map" / "SKILL.md"
 
 
 def _body(path):
@@ -562,3 +564,47 @@ def test_the_glossary_owns_what_an_addon_is():
         "an Addon that names only the step kind leaves the generator kind with "
         "no word, which is how the two get recorded as one cause"
     )
+
+
+class TestTheStepMapIsSeededBeforeMapping:
+    """Survey writes the rows; mapping fills them.
+
+    A measured run read step definitions across 118 tool calls, wrote no row,
+    and ended with nothing — every resolved locator and traced helper went with
+    the session. An empty map and a map nobody has started look identical, so
+    there was no moment at which the run was visibly not progressing.
+
+    Seeding costs one write, since survey has just enumerated the distinct
+    Source Steps, and it makes `reviewed n of m` answerable from the first
+    minute.
+    """
+
+    def _survey(self):
+        return " ".join(document(SURVEY).flat.split())
+
+    def _map(self):
+        return " ".join(document(MAP).flat.split())
+
+    def test_survey_seeds_the_map(self):
+        body = self._survey()
+        assert "seed `step-map.md`" in body or "seed step-map.md" in body, (
+            "the enumeration already holds the rows; writing them is one step"
+        )
+        assert "unreviewed" in body
+
+    def test_mapping_fills_rows_rather_than_creating_them(self):
+        assert "seeded" in self._map(), (
+            "mapping that still creates rows leaves the count at zero until it "
+            "finishes, which is the state that hid the failure"
+        )
+
+    def test_mapping_writes_a_row_before_opening_the_next(self):
+        body = self._map()
+        assert "before opening the next" in body, (
+            "batching is what lost the work; the instruction has to name the "
+            "boundary, not just recommend writing things down"
+        )
+
+    def test_the_directory_reference_describes_the_seeding(self):
+        body = (REFERENCES_DIR / "migration-directory.md").read_text(encoding="utf-8")
+        assert "Seeded by survey" in body

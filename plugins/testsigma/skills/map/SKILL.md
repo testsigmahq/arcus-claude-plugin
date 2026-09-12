@@ -68,21 +68,26 @@ Those two passes caught three wrong-class locators and a format-string trap befo
 authoring — the two categories that cost the audited conversion the most. The
 per-row comparison below still gates each row; this is what makes it cheap.
 
-## Step 1: Take one distinct Source Step at a time
+## Step 1: Fill one seeded row at a time
 
-Work the distinct Source Steps from the enumeration, not the suite's lines. Each
-distinct step is one Unit of Work, carries its occurrence count from survey, and
-is decided once.
+Survey seeded `step-map.md` with every distinct Source Step, `unreviewed`. Work
+those rows, not the suite's lines. Each is one Unit of Work, carries its
+occurrence count from survey, and is decided once.
+
+**Write the row before opening the next one.** A row is not decided until it is
+written down: reading produces nothing until it lands in one, so a session
+holding twenty resolved steps in its head has twenty units of work that do not
+exist yet, and loses all of them if it ends. The seeded row makes the alternative
+cheap — it is already there, and finishing it is an edit.
 
 Reuse the verdict at every occurrence. A step decided here is not revisited when
-it appears again, in another feature file or another scenario; that reuse is the
-entire economics of mapping, and re-deciding a step per occurrence would cost
-what rewriting the suite by hand costs.
+it appears again, in another feature file or scenario; that reuse is the entire
+economics of mapping.
 
-Order by occurrence count, highest first, because an early wrong verdict on a
-frequent step is the most expensive mistake available. Then deal with the steps
-that genuinely vary, which carry most of the judgement. The singletons amortise
-nothing and can wait, but they set the floor cost and none can be skipped.
+Order by occurrence count, highest first: an early wrong verdict on a frequent
+step is the most expensive mistake available. Then the steps that genuinely vary,
+which carry most of the judgement. Singletons amortise nothing and can wait, but
+none can be skipped.
 
 ## Step 2: What a row carries
 
@@ -173,12 +178,10 @@ implementation — not when the count is large, not when the step looks obvious,
 and not when the session is ending. A row that has not been compared stays
 `unreviewed`, which is what the status is for.
 
-This is second in the check order by ADR-0001 rather than last, and it is not
-replaceable by running anything. The full order, and what a check that could not run
-is recorded as, are in `${CLAUDE_PLUGIN_ROOT}/references/checks.md`. Every fault in
-this class produces a test that runs and passes while testing something weaker or
-different. Compile, tenant preflight and a round trip caught none of the six; this
-comparison caught five in about fifteen minutes.
+It sits third in the check order and is not replaceable by running anything —
+every fault in this class produces a test that runs and passes while testing
+something weaker. `${CLAUDE_PLUGIN_ROOT}/references/checks.md` holds the order and
+the measurement behind it.
 
 **Start with coverage of the call chain, because that is where the defects were.**
 Enumerate every call the step definition makes, transitively through the helpers it
@@ -194,14 +197,11 @@ same order, whether it asserts the same thing, and whether anything the helper
 does is missing from it or invented in it.
 
 The other fault classes are catalogued in
-`${CLAUDE_PLUGIN_ROOT}/references/fault-classes.md#where-to-start-for-the-row-in-hand`,
-which
-came out of a step-by-step comparison of the first conversion against the source
-it was made from. Work through its first part for every row rather than
-trusting recall of it: every entry is there because it already reached a
-converted test that compiled, was accepted, and survived a round trip. It is not
-a list of things that might go wrong. Its index orders that reading by what the
-row shows; it does not license reading less.
+`${CLAUDE_PLUGIN_ROOT}/references/fault-classes.md#where-to-start-for-the-row-in-hand`.
+Work through its first part for every row rather than trusting recall of it —
+every entry is there because it already reached a converted test that compiled,
+was accepted and round-tripped. Its index orders the reading by what the row
+shows; it does not license reading less.
 
 **A wildcard or substring comparison in the source is a question, not a
 licence.** When the source matches loosely, what was being checked is unclear,

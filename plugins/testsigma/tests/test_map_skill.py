@@ -44,7 +44,7 @@ LOOP_NAMES = ("wait", "until", "refresh", "poll")
 
 #: Sections stating absolute rules. A paragraph granting an exception anywhere
 #: in one of these guts the rule while leaving its sentence intact.
-LOAD_BEARING = ("one distinct source step", "helper", "element", "compare", "residue")
+LOAD_BEARING = ("fill one seeded row", "helper", "element", "compare", "residue")
 
 
 class TestTheSkillExists:
@@ -68,17 +68,17 @@ class TestTheSkillExists:
             )
 
 
-class TestOneDistinctSourceStepAtATime:
+class TestOneSeededRowAtATime:
     def test_the_unit_of_work_is_the_distinct_source_step(self):
         assert has_paragraph_with(
-            _section("one distinct source step"), "distinct", "occurrence"
+            _section("fill one seeded row"), "distinct", "occurrence"
         )
 
     def test_a_verdict_is_reused_at_every_occurrence(self):
         # This is the whole economics of the plugin: cost scales with the
         # suite's vocabulary rather than with its line count.
         assert has_paragraph_with(
-            _section("one distinct source step"), "reuse", "every occurrence"
+            _section("fill one seeded row"), "reuse", "every occurrence"
         )
 
     def test_it_keeps_the_two_claims_the_schema_does_not_carry(self):

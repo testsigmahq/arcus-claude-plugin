@@ -243,3 +243,27 @@ def test_the_check_record_table_names_the_build_a_check_ran_under():
     lowered = header.lower()
     assert "checks run" in lowered and "build" in lowered, header
     assert "not covered" in lowered or "not checked" in lowered, header
+
+
+class TestAStageIsNotDelegatedWhole:
+    """A delegated stage returns a report, and a report is not a check record.
+
+    Two measured runs: one handed a conversion to an agent and relayed "all 7
+    steps" for a fifty-five step scenario; one handed off the whole pipeline,
+    said it would report back, and ended having written nothing. The parent
+    could not tell in either case — the only evidence was prose.
+    """
+
+    def _section(self):
+        return " ".join(_section("stage's checks").split())
+
+    def test_the_rule_is_stated(self):
+        assert "cannot be inspected" in self._section()
+
+    def test_it_keeps_breadth_delegable(self):
+        # A blanket ban would be wrong and would be ignored. The line is the
+        # same one map draws: breadth yes, the work a check runs against no.
+        assert "breadth may be delegated" in self._section().lower()
+
+    def test_it_names_the_record_consequence(self):
+        assert "check-record.md" in self._section()
