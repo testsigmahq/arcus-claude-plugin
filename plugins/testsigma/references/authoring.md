@@ -186,8 +186,23 @@ staleness `README.md` in `adapters/` warns about, and which ADR-0006 refuses.
   TSF2013. That is backwards from every other position in the format, and it has
   a consequence worth more than the surprise: the sigil is opaque text to the
   compiler, so **nothing checks that a parameter of that name exists**. A typo
-  produces a file that validates, pushes, and matches nothing at run time. Check
-  the name against the profile yourself; `validate` will not.
+  produces a file that validates, pushes, and matches nothing at run time.
+
+  Checking it by hand is per *test*, not per profile, and the difference is not
+  pedantic. An element belongs to a screen, not to a profile — it is shared by
+  every test that uses it and carries no profile scope of its own. At run time
+  the value comes from whichever profile the executing test is bound to. So a
+  dynamic element used by two tests needs its column in **both** their profiles,
+  and checking one is the phrasing that passes a suite which fails on the second
+  test.
+
+  Note what `validate` does and does not give you here, because the two look
+  alike. A parameter in an ordinary value slot **is** checked, workspace-wide:
+  `param.notInAnyProfile` is refused with **TSF2021**, *"no test data profile
+  column named … in this workspace"*. Workspace-wide means any profile satisfies
+  it — a test bound to profile A may reference a column declared only in profile
+  B and validate cleanly — so even there the check is weaker than the runtime
+  requirement. Inside a locator there is no check at all.
 
   A `{value}` hole is neither shape. It is literal text, and a locator carrying
   one compiles cleanly and matches nothing — which is how a measured run reached

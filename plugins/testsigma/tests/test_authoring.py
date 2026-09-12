@@ -466,3 +466,38 @@ class TestDynamicLocatorsAreVerbSelected:
 
     def test_it_says_what_to_do_when_no_verb_fits(self):
         assert "step addon" in self._section()
+
+
+class TestTheDynamicParameterCheckIsPerTest:
+    """"Check it against the profile" passes a suite that fails on test two.
+
+    An element belongs to a screen, not a profile — shared by every test that
+    uses it, with no profile scope of its own — and at run time the value comes
+    from whichever profile the executing test is bound to.
+
+    `validate` looks like it helps and only half does. An ordinary value slot is
+    checked workspace-wide (TSF2021, verified: a column in no profile is
+    refused, a column in *another* profile is accepted). Inside a locator,
+    nothing is checked at all.
+    """
+
+    def _section(self):
+        return " ".join(DOC.section("values, names and layout").split())
+
+    def test_the_manual_check_is_scoped_per_test(self):
+        section = self._section()
+        assert "per *test*, not per profile" in section
+        assert "both" in section
+
+    def test_it_says_why_an_element_has_no_profile_of_its_own(self):
+        assert "belongs to a screen, not to a profile" in self._section()
+
+    def test_it_distinguishes_the_slot_check_from_the_locator_non_check(self):
+        # The dangerous similarity: one position is checked and the neighbouring
+        # one is not, and both are "a parameter reference" to a reader.
+        section = self._section()
+        assert "TSF2021" in section
+        assert "no check at all" in section
+
+    def test_it_says_the_slot_check_is_weaker_than_runtime(self):
+        assert "any profile satisfies" in self._section()
