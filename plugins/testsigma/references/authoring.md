@@ -214,7 +214,10 @@ staleness `README.md` in `adapters/` warns about, and which ADR-0006 refuses.
   assembled work; it checks each test that declares a profile against that
   profile's own columns. A test declaring none is skipped on purpose — unbound
   `param` is the norm, the profile arriving from a suite or plan, and refusing
-  it would flag most of a healthy workspace.
+  it would flag most of a healthy workspace. A step group's body is out of scope
+  for the same kind of reason and not for caution: a `stepGroup` has a `profile`
+  attribute of its own, so its references resolve against that rather than the
+  caller's, and `override(…)` replaces a value at the call site.
 
   A `{value}` hole is neither shape. It is literal text, and a locator carrying
   one compiles cleanly and matches nothing — which is how a measured run reached

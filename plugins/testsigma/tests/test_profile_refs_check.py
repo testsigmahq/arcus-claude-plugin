@@ -100,3 +100,25 @@ def test_a_profile_the_workspace_does_not_hold_is_reported(tmp_path):
         ''')
     assert r.returncode == 1, r.stdout
     assert "not in this workspace" in r.stdout
+
+
+def test_the_group_scope_limit_is_stated_as_correctness(tmp_path):
+    """Why a group's body is out of scope, written where the rule lives.
+
+    A `stepGroup` carries its own `profile` attribute — verified against the
+    build with `list blocks --kind stepGroup` — so its references resolve
+    against that and not the calling test's, and `override(…)` replaces a value
+    at the call site. Checking a group's body against the caller's profile would
+    report faults that are not faults.
+
+    Asserted because the first draft called it caution pending investigation.
+    That framing invites a later reader to "finish the job" and widen the scope,
+    which would make the check wrong rather than more complete.
+    """
+    # Normalised: the phrase spans a line wrap in the docstring, and a raw
+    # substring check fails on it. Third time today a wrapped phrase defeated a
+    # naive assertion.
+    text = " ".join(SCRIPT.read_text(encoding="utf-8").split())
+    assert "correctness rather than caution" in text
+    assert "own `profile` attribute" in text
+    assert "override" in text

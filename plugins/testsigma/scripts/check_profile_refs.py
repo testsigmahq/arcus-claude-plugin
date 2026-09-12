@@ -19,10 +19,13 @@ This closes the gap for the common case and deliberately not for all of them:
 * A test declaring no profile is skipped. Unbound `param` is the norm rather
   than an edge case — the profile arrives from a suite or plan at run time —
   and refusing it would flag most of a healthy workspace.
-* Only the declaring test's own profile is consulted. Step-group profiles and
-  `override(param.x, …)` need establishing before they can be checked, and a
-  rule applied past where it has been established is how the thing it is
-  checking got into the build.
+* Only the declaring test's own profile is consulted, and what is inside a
+  `group` call is not checked against it. That is correctness rather than
+  caution: a `stepGroup` carries its own `profile` attribute, so its references
+  resolve against that and not against the calling test's, and `override(…)`
+  replaces a value at the call site. Checking a group's body against the caller's
+  profile would report faults that are not faults — which is how a check earns
+  the reputation that gets it ignored.
 
     check_profile_refs.py <workspace root>
 
