@@ -197,12 +197,24 @@ staleness `README.md` in `adapters/` warns about, and which ADR-0006 refuses.
   test.
 
   Note what `validate` does and does not give you here, because the two look
-  alike. A parameter in an ordinary value slot **is** checked, workspace-wide:
-  `param.notInAnyProfile` is refused with **TSF2021**, *"no test data profile
-  column named … in this workspace"*. Workspace-wide means any profile satisfies
-  it — a test bound to profile A may reference a column declared only in profile
-  B and validate cleanly — so even there the check is weaker than the runtime
-  requirement. Inside a locator there is no check at all.
+  alike and neither is what a reader assumes. A parameter in an ordinary value
+  slot is checked for existence **somewhere in the workspace** — every profile's
+  columns pooled into one set — so `param.notInAnyProfile` is refused with
+  **TSF2021** while a test bound to profile A may reference a column declared
+  only in profile B and compile cleanly. Inside a locator there is no check at
+  all. Both are weaker than the runtime requirement, by different amounts, and
+  the syntax does not say which you are looking at.
+
+  **This is not a locator problem.** A slot reference to another profile's
+  column substitutes nothing at run time: the step reads the marker as literal
+  text and the test passes, having checked nothing. That is reachable from any
+  ordinary data-driven test, which makes the dynamic-locator case the rarer
+  instance of the commoner fault. Run
+  `${CLAUDE_PLUGIN_ROOT}/scripts/check_profile_refs.py <workspace>` over
+  assembled work; it checks each test that declares a profile against that
+  profile's own columns. A test declaring none is skipped on purpose — unbound
+  `param` is the norm, the profile arriving from a suite or plan, and refusing
+  it would flag most of a healthy workspace.
 
   A `{value}` hole is neither shape. It is literal text, and a locator carrying
   one compiles cleanly and matches nothing — which is how a measured run reached

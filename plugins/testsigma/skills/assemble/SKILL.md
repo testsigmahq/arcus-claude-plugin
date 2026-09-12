@@ -182,7 +182,20 @@ Running the test cannot replace this. The fault survives compilation, tenant
 preflight and a full round trip: the round trip rebuilds the step tree from
 parentage, and order is not parentage.
 
-## Step 7: Sweep for elements nothing references
+## Step 7: Check every param against the profile its test declares
+
+Run `${CLAUDE_PLUGIN_ROOT}/scripts/check_profile_refs.py <workspace>`.
+
+`validate` pools every profile's columns and checks the pool, so a reference to
+another profile's column compiles. At run time nothing substitutes, the step
+reads the marker as literal text, and the test passes having checked nothing —
+a green test that tests nothing is worse than a failing one, because nobody
+looks at it again.
+
+Tests declaring no profile are skipped, and that is deliberate rather than a
+limitation; `authoring.md` says why.
+
+## Step 8: Sweep for elements nothing references
 
 Cheap, and it earns its place — as a secondary check. The primary one is
 call-chain coverage during mapping, and the difference is measured: in the
@@ -217,7 +230,7 @@ identifier for a later step to read — leaves nothing for this to notice. Those
 caught by the comparison in mapping or not at all, so do not report a clean sweep
 as evidence that no step was dropped.
 
-## Step 8: Report what is out of place
+## Step 9: Report what is out of place
 
 When the check fails, report which steps are out of place and the window each
 one had to fall inside. A report saying only that a test is wrong cannot be acted
@@ -231,7 +244,7 @@ pass. An unchecked step reading as clean is the failure mode ADR-0001 exists to
 prevent: three checks that cannot see the fault class are worse than none,
 because they read as reassurance.
 
-## Step 9: Record the check and commit
+## Step 10: Record the check and commit
 
 Write what ran into `check-record.md`, per test, naming the CLI build in use.
 The five checks, the order they run in, and what a check that could not run is

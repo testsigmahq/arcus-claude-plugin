@@ -500,4 +500,20 @@ class TestTheDynamicParameterCheckIsPerTest:
         assert "no check at all" in section
 
     def test_it_says_the_slot_check_is_weaker_than_runtime(self):
-        assert "any profile satisfies" in self._section()
+        # Pooling is the mechanism and the consequence is the point: a column
+        # from any profile satisfies a check the bound profile will have to
+        # honour at run time.
+        section = self._section()
+        assert "pooled into one set" in section
+
+    def test_it_says_the_fault_is_not_confined_to_locators(self):
+        # The correction that widened this: a slot reference to another
+        # profile's column is the commoner case, and the locator one is rare.
+        section = self._section()
+        assert "not a locator problem" in section.lower()
+        assert "passes, having checked nothing" in section
+
+    def test_it_names_the_check_and_why_unbound_tests_are_skipped(self):
+        section = self._section()
+        assert "check_profile_refs.py" in section
+        assert "unbound `param` is the norm" in section.lower()
