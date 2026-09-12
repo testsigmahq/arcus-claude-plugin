@@ -425,3 +425,32 @@ class TestInterpolationIsBoundedAndSaysWhere:
         # value the test produces. Recorded it is a Concession; unrecorded it is
         # a Divergence, and nothing else separates them.
         assert "Concession" in self._section()
+
+
+class TestDynamicLocatorsAreVerbSelected:
+    """The obvious wrong turning is documented, because a run took it.
+
+    `element.dynamic` exists and is a flag on a stored element. It is not a
+    step-side parameter mechanism, and there is no placeholder binding at all —
+    a run guessed seven names for one, then wrote a locator with a `{value}`
+    hole beside `dynamic = true`, producing a file that validates and does not
+    do what it appears to.
+    """
+
+    def _section(self):
+        return " ".join(DOC.section("values, names and layout").split())
+
+    def test_it_says_the_verb_carries_the_locator(self):
+        assert "chosen by verb" in self._section()
+
+    def test_it_names_the_probe_that_proves_no_binding_exists(self):
+        # Without this the reader cannot distinguish "no such binding" from "a
+        # name nobody has guessed yet", which is what made the search unbounded.
+        assert "list blocks --kind step" in self._section()
+
+    def test_it_warns_off_element_dynamic(self):
+        section = self._section()
+        assert "element.dynamic" in section and "not this" in section
+
+    def test_it_says_what_to_do_when_no_verb_fits(self):
+        assert "step addon" in self._section()

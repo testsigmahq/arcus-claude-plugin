@@ -162,6 +162,22 @@ staleness `README.md` in `adapters/` warns about, and which ADR-0006 refuses.
   escaping: `"${env[\"API_BASE_URL\"]}/path"`. Dotted access working for some
   names is a trap, because any sane naming convention produces names it fails on.
 
+- **A dynamic locator is chosen by verb, not parameterised on the step.** There
+  is no placeholder binding: `testsigma list blocks --kind step` prints all
+  fourteen step settings and none carries one. The catalogue instead holds ~65
+  verbs whose sentence names the locator shape and takes the value in its
+  ordinary test-data slot — `Select option with label ${test-data} in the radio
+  button group #{ui-identifier}`, `Verify that an Alert with text ${test-data}
+  is displayed`. Find one with
+  `testsigma list verbs --all | grep -i "with label\|with text"`.
+
+  `element.dynamic` is not this. It is a flag on a *stored* element and has
+  nothing to do with supplying a value from a step, which makes it the obvious
+  wrong turning: a measured run found it, wrote a locator with a `{value}` hole
+  beside `dynamic = true`, and got a file that validates and does not do what it
+  looks like it does. Where no verb names the shape the source needs, that is
+  Residue with cause `step addon`, not a binding still to be found.
+
 - **Interpolation is legal in few places, and a step's value slot is not one of
   them** (TSF2013). It works where the server keeps the reference inside the
   text: an api step's url, a raw body, a GraphQL variable, a generator argument.
