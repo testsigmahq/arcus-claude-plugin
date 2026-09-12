@@ -509,11 +509,37 @@ class TestTheDynamicParameterCheckIsPerTest:
     def test_it_says_the_fault_is_not_confined_to_locators(self):
         # The correction that widened this: a slot reference to another
         # profile's column is the commoner case, and the locator one is rare.
+        # The old second assertion here checked for the retracted claim that a
+        # cross-profile param passes silently; it throws.
         section = self._section()
         assert "not a locator problem" in section.lower()
-        assert "passes, having checked nothing" in section
+        assert "definitely fail" in section
 
     def test_it_names_the_check_and_why_unbound_tests_are_skipped(self):
         section = self._section()
         assert "check_profile_refs.py" in section
         assert "unbound `param` is the norm" in section.lower()
+
+
+class TestTheThreeReferenceKindsBehaveDifferently:
+    """Only `runtime` is silent. `param` and `env` fail the run.
+
+    An earlier version of this reference said a cross-profile `param` "passes
+    having checked nothing" — a generalisation from runtime-variable behaviour
+    that was passed to me as fact and that I built on. `param` throws.
+    """
+
+    def _section(self):
+        return " ".join(DOC.section("values, names and layout").split())
+
+    def test_it_says_param_fails_the_run(self):
+        assert "fails the run" in self._section()
+
+    def test_it_names_runtime_as_the_silent_one(self):
+        section = self._section()
+        assert "missing **runtime** variable is the silent one" in section
+
+    def test_it_does_not_still_claim_param_passes_silently(self):
+        # The retracted sentence, asserted absent so it cannot drift back.
+        section = self._section()
+        assert "the test passes, having checked nothing" not in section

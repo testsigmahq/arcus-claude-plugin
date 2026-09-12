@@ -205,11 +205,13 @@ staleness `README.md` in `adapters/` warns about, and which ADR-0006 refuses.
   all. Both are weaker than the runtime requirement, by different amounts, and
   the syntax does not say which you are looking at.
 
-  **This is not a locator problem.** A slot reference to another profile's
-  column substitutes nothing at run time: the step reads the marker as literal
-  text and the test passes, having checked nothing. That is reachable from any
-  ordinary data-driven test, which makes the dynamic-locator case the rarer
-  instance of the commoner fault. Run
+  **This is not a locator problem, and only one of the three is silent.** A
+  `param` that resolves nowhere **fails the run** — the lookup throws "test data
+  not found" — and so does a missing `env`. A missing **runtime** variable is the
+  silent one: the marker survives as literal text and the step passes having
+  checked nothing. A cross-profile `param` is therefore a run that will
+  definitely fail, which is a better reason to catch it offline than the one
+  this paragraph used to give. Run
   `${CLAUDE_PLUGIN_ROOT}/scripts/check_profile_refs.py <workspace>` over
   assembled work; it checks each test that declares a profile against that
   profile's own columns. A test declaring none is skipped on purpose — unbound
