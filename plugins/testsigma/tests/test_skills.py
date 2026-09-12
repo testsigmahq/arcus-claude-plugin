@@ -66,6 +66,27 @@ class TestEverySkill:
         # move detail into a reference arrives far too late to act on.
         assert words < 2500, f"skill body is {words} words; move detail into references/"
 
+    def test_body_keeps_room_for_the_next_rule(self, skill):
+        """Warn at 2460, not at 2500, so the wall is seen before it is hit.
+
+        Two skills sat within ten words of the ceiling and every change to them
+        cost a deletion somewhere else. Four separate trims were needed to land
+        sixty words in one, and twice a paragraph could not be moved out because
+        a test held it in place — so the squeeze was discovered mid-edit, under
+        pressure, which is when the wrong sentence gets cut. One was: the clause
+        forbidding batched row writes went, judged a duplicate, and the next run
+        did exactly what only that clause forbade.
+
+        Failing early turns that into a decision made deliberately, with the
+        whole section in view.
+        """
+        words = len(_body(skill).split())
+        assert words < 2460, (
+            f"skill body is {words} words, within {2500 - words} of the hard "
+            "limit. Move a section into references/ *with its tests* before "
+            "adding more, rather than trimming whatever is nearest."
+        )
+
     def test_a_skill_touching_the_migration_directory_points_at_its_definition(self, skill):
         body = _body(skill)
         # Triggered on the prose name as well as the literal path. A skill that

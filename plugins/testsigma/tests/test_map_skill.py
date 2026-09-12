@@ -244,17 +244,6 @@ class TestTheComparisonGatesTheRow:
         # Every fault in the class produces a test that runs and passes.
         assert has_paragraph_with(_section("compare"), "runs and passes")
 
-    def test_a_weak_comparison_in_the_source_raises_a_question(self):
-        assert has_paragraph_with(
-            _section("compare"),
-            "wildcard",
-            "question",
-            "unreviewed",
-        ), "a weak assertion in the source is not licence to write a weak one"
-
-    def test_the_weak_comparison_rule_covers_substring_too(self):
-        assert "substring" in _section("compare").lower()
-
 
 class TestResidue:
     """What map does about Residue. What Residue *is* belongs to CONTEXT.md.

@@ -162,37 +162,14 @@ A number that is only printed when it is wrong is one nobody learns to look for.
 This is the exit condition of this stage. A test is not assembled until it has
 passed this check, and a test that has not been checked is not done.
 
-The check is a property of a whole test, not of a step, because it describes a
-fault that only exists between steps. A conditional whose body is ordered outside
-its own block draws empty and runs its steps late; no single step is wrong.
-
-The property is arithmetic. For every step with a parent, the step's order falls
-strictly between its parent's order and the order of whatever follows the block
-it sits in — the next sibling of the nearest ancestor that has one, which is not
-always the direct parent. Where the parent is an only child the bound comes from
-higher up, and there is no upper bound only where no ancestor has a next sibling
-at all. Siblings increase in document order.
-
-**An id is not the order.** An id is assigned when a step is created, so a step
-authored later carries a higher id while sitting earlier in the document —
-measured on a real conversion, a top-level step numbered 1718 preceded one
-numbered 1604. Reading ids as order reports authoring history as a fault.
-
 Run `${CLAUDE_PLUGIN_ROOT}/scripts/check_step_order.py`. Given a working copy it
 derives the correct order; given the order numbers the platform reports, it
-checks them and names every step out of place. The arithmetic lives there and is
-not restated here, so there is one implementation of it.
+checks them and names every step out of place.
 
-**The plugin computes this itself rather than asking the CLI.** The check has to
-hold whatever the installed build happens to verify, and this is the concrete
-case behind ADR-0003: a fault class caught by eye became an automatic refusal in
-the CLI inside about a day, and work converted before that had never been
-checked for it. A check that depends on the build being new enough is a check
-that silently was not run.
-
-Running the test cannot replace this. The fault survives compilation, tenant
-preflight and a full round trip: the round trip rebuilds the step tree from
-parentage, and order is not parentage.
+What the property is, why an id is not the order, why the plugin computes it
+rather than asking the CLI, and why running the test cannot replace it, are in
+`${CLAUDE_PLUGIN_ROOT}/references/checks.md` under *where a step sits among its
+siblings*.
 
 ## Step 7: Check every param against the profile its test declares
 

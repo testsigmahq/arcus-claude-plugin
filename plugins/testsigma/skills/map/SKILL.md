@@ -112,16 +112,12 @@ Directory reference. A row is `unreviewed` from the moment it is written.
 
 ### Before a row is proposed: the slot decides the value
 
-Naming the right verb does not make a row legal. A slot declares which **value
-kinds** it will hold, and a value of any other kind is refused there however
-sensible it reads, so where a source value comes from is part of choosing the
-expression. `${CLAUDE_PLUGIN_ROOT}/references/authoring.md` carries the kinds and
-how to ask the build what a slot accepts. Never settle a mismatch with a raw
-literal: freezing a generated or captured value into a constant passes every check
-and is a Divergence.
-
-Where a row's value is not a raw literal, record a `Kind:` line in its Expression
-cell naming the kinds it uses, as
+Naming the right verb does not make a row legal: a slot declares which **value
+kinds** it will hold, and the kinds, and how to ask the build what a slot
+accepts, are in `${CLAUDE_PLUGIN_ROOT}/references/authoring.md`. Never settle a
+mismatch with a raw literal — freezing a generated or captured value into a
+constant passes every check and is a Divergence. Where a row's value is not a
+raw literal, record a `Kind:` line in its Expression cell, as
 `${CLAUDE_PLUGIN_ROOT}/references/migration-directory.md` defines.
 
 ## Step 3: Open the helper behind the line and read its sequence
@@ -207,17 +203,10 @@ same order, whether it asserts the same thing, and whether anything the helper
 does is missing from it or invented in it.
 
 The other fault classes are catalogued in
-`${CLAUDE_PLUGIN_ROOT}/references/fault-classes.md#where-to-start-for-the-row-in-hand`.
-Work through its first part for every row rather than trusting recall of it —
-every entry is there because it already reached a converted test that compiled,
-was accepted and round-tripped. Its index orders the reading by what the row
-shows; it does not license reading less.
-
-**A wildcard or substring comparison in the source is a question, not a
-licence.** When the source matches loosely, what was being checked is unclear,
-and writing an equally loose comparison in Testsigma propagates a weakness that
-may never have been intended. Raise a question about what the assertion is meant
-to establish, record it, and leave the row `unreviewed` until it is answered.
+`${CLAUDE_PLUGIN_ROOT}/references/fault-classes.md#where-to-start-for-the-row-in-hand`;
+work through its first part for every row rather than trusting recall of it. A
+loose comparison in the source is a question rather than a licence — both are
+stated in `${CLAUDE_PLUGIN_ROOT}/references/checks.md`.
 
 ## Step 6: Concessions, for what the format expresses differently
 

@@ -216,3 +216,53 @@ The record is read, not reconstructed: it is a file in the Migration Directory,
 readable without running anything and without a tenant. That is the point of
 writing it down rather than inferring the state of verification from what exists
 on disk.
+
+## Where a step sits among its siblings, and inside its parent
+
+The check is a property of a whole test, not of a step, because it describes a
+fault that only exists between steps. A conditional whose body is ordered outside
+its own block draws empty and runs its steps late; no single step is wrong.
+
+The property is arithmetic. For every step with a parent, the step's order falls
+strictly between its parent's order and the order of whatever follows the block
+it sits in — the next sibling of the nearest ancestor that has one, which is not
+always the direct parent. Where the parent is an only child the bound comes from
+higher up, and there is no upper bound only where no ancestor has a next sibling
+at all. Siblings increase in document order.
+
+**An id is not the order.** An id is assigned when a step is created, so a step
+authored later carries a higher id while sitting earlier in the document —
+measured on a real conversion, a top-level step numbered 1718 preceded one
+numbered 1604. Reading ids as order reports authoring history as a fault.
+
+`scripts/check_step_order.py` holds the arithmetic, and it is not restated
+anywhere else so that there is one implementation of it.
+
+**The plugin computes this itself rather than asking the CLI.** The check has to
+hold whatever the installed build happens to verify, and this is the concrete
+case behind ADR-0003: a fault class caught by eye became an automatic refusal in
+the CLI inside about a day, and work converted before that had never been
+checked for it. A check that depends on the build being new enough is a check
+that silently was not run.
+
+Running the test cannot replace this. The fault survives compilation, tenant
+preflight and a full round trip: the round trip rebuilds the step tree from
+parentage, and order is not parentage.
+
+## Reading for the row in hand, and what a loose source comparison means
+
+Two rules that belong to compare-to-source, moved out of the mapping stage when
+it ran out of word budget.
+
+The fault classes are catalogued in
+[fault-classes.md](fault-classes.md#where-to-start-for-the-row-in-hand). Work
+through its first part for every row rather than trusting recall of it — every
+entry is there because it already reached a converted test that compiled, was
+accepted and round-tripped. Its index orders the reading by what the row shows;
+it does not license reading less.
+
+**A wildcard or substring comparison in the source is a question, not a
+licence.** When the source matches loosely, what was being checked is unclear,
+and writing an equally loose comparison in Testsigma propagates a weakness that
+may never have been intended. Raise a question about what the assertion is meant
+to establish, record it, and leave the row `unreviewed` until it is answered.

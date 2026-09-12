@@ -78,49 +78,25 @@ class TestAnUnresolvedElementRefusesTheTest:
 
 
 class TestTheOrderCheck:
+    """What the *stage* still owns: that the check gates it, and names its tool.
+
+    The property itself, why an id is not the order, why the plugin computes it
+    rather than asking the CLI, and why a round trip cannot find it, moved to
+    checks.md when this skill ran out of its word budget — with their tests, in
+    test_checks.py. A rule's statement and its test belong in the same place.
+    """
+
     def test_it_is_the_exit_condition_of_this_stage(self):
         assert has_paragraph_with(_section("nesting"), "exit condition")
-
-    def test_it_runs_against_a_whole_test(self):
-        assert has_paragraph_with(
-            _section("nesting"),
-            "whole test",
-            absent=("per step", "each step alone"),
-        ), "the fault only exists between steps, so a single step cannot carry it"
-
-    def test_the_property_is_computed_here_and_not_delegated_to_the_cli(self):
-        assert has_paragraph_with(
-            _section("nesting"),
-            "cli",
-            absent=("delegate", "let the cli", "rely on the cli"),
-        ), "the check must hold whatever the installed build happens to verify"
 
     def test_it_names_the_script_that_computes_it(self):
         assert "check_step_order.py" in _body()
         assert SCRIPT.is_file(), "the skill names a script that does not exist"
 
-    def test_it_states_the_property_arithmetically(self):
-        section = _section("nesting")
-        assert has_paragraph_with(section, "parent", "next sibling")
-        # The clause this test used to pin was wrong, and pinning it kept the
-        # script wrong too: "no upper bound where the parent has no next
-        # sibling" gives a step whose parent is an only child no bound at all,
-        # so at three levels deep the primary fault class went unreported. The
-        # bound comes from the nearest *ancestor* that has a next sibling.
-        assert has_paragraph_with(section, "ancestor", "next sibling"), (
-            "the upper bound is not the direct parent's next sibling"
+    def test_it_points_at_where_the_property_is_stated(self):
+        assert "checks.md" in _section("nesting"), (
+            "moving the detail out must leave a way to reach it"
         )
-        assert has_paragraph_with(section, "no upper bound", "no ancestor"), (
-            "and there is no bound only when no ancestor has one at all"
-        )
-
-    def test_it_says_an_id_is_not_an_order(self):
-        # The correction measured on real data: ids are assigned at creation, so
-        # a step authored later carries a higher id while sitting earlier.
-        assert has_paragraph_with(_section("nesting"), "id", "not the order")
-
-    def test_it_says_why_a_round_trip_cannot_find_this(self):
-        assert has_paragraph_with(_section("nesting"), "round trip", "parentage")
 
 
 class TestReportingAFailure:

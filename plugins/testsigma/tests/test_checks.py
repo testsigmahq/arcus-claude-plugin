@@ -293,3 +293,70 @@ class TestResidueChecksHaveAKnownBlindSpot:
 
     def test_it_gives_the_rule_for_adding_a_check(self):
         assert "say which kind it is" in self._section()
+
+
+class TestWhereAStepSitsAmongItsSiblings:
+    """The order property, moved here from the assemble skill with its tests.
+
+    It is a check, and checks.md is where checks are defined; it moved when the
+    stage ran out of word budget, and these came with it rather than being
+    rewritten or dropped.
+    """
+
+    def _section(self):
+        return DOC.section("siblings")
+
+    def test_it_runs_against_a_whole_test(self):
+        assert has_paragraph_with(
+            self._section(), "whole test",
+            absent=("per step", "each step alone"),
+        ), "the fault only exists between steps, so a single step cannot carry it"
+
+    def test_the_property_is_computed_here_and_not_delegated_to_the_cli(self):
+        assert has_paragraph_with(
+            self._section(), "cli",
+            absent=("delegate", "let the cli", "rely on the cli"),
+        ), "the check must hold whatever the installed build happens to verify"
+
+    def test_it_states_the_property_arithmetically(self):
+        section = self._section()
+        assert has_paragraph_with(section, "parent", "next sibling")
+        # The clause this once pinned was wrong, and pinning it kept the script
+        # wrong too: the bound comes from the nearest *ancestor* with a next
+        # sibling, not the direct parent.
+        assert has_paragraph_with(section, "ancestor", "next sibling")
+        assert has_paragraph_with(section, "no upper bound", "no ancestor")
+
+    def test_it_says_an_id_is_not_an_order(self):
+        assert has_paragraph_with(self._section(), "id", "not the order")
+
+    def test_it_says_why_a_round_trip_cannot_find_this(self):
+        assert has_paragraph_with(self._section(), "round trip", "parentage")
+
+
+class TestReadingForTheRowInHand:
+    """Two compare-to-source rules, moved here from the mapping stage.
+
+    They moved with their tests when that skill ran out of word budget; a rule's
+    statement and the test holding it belong in the same place, or the next
+    person to move the rule will not know the test exists.
+    """
+
+    def _section(self):
+        return DOC.section("row in hand")
+
+    def test_a_weak_comparison_in_the_source_raises_a_question(self):
+        assert has_paragraph_with(
+            self._section(), "question", "not a licence"
+        ), "a weak assertion in the source is not licence to write a weak one"
+
+    def test_the_weak_comparison_rule_covers_substring_too(self):
+        assert "substring" in self._section()
+
+    def test_the_row_stays_unreviewed_until_the_question_is_answered(self):
+        assert has_paragraph_with(self._section(), "unreviewed", "answered")
+
+    def test_the_fault_class_catalogue_is_read_not_recalled(self):
+        assert has_paragraph_with(
+            self._section(), "rather than trusting recall"
+        ), "the index orders the reading; it does not license reading less"
