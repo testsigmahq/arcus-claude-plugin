@@ -268,3 +268,33 @@ class TestTheUnconvertedMarkerCarriesItsReason:
             "either alone leaves a gap nobody can find, or one nobody can "
             "explain"
         )
+
+
+class TestTheApiGrammarIsProbedNotGuessed:
+    """The api block's spellings are not guessable, and were guessed.
+
+    Measured on a clean-room conversion before `list blocks` existed: 18
+    brute-force loops piping candidate spellings through `validate`, 274 tool
+    calls, no test. `verify` conditions are named arguments rather than calls —
+    `status(equals = 200)`, not `verifyStatusCode(200)` — and `verify body`
+    takes at most one of path/file/storedObject, which nothing in the prose
+    implies. ADR-0009 carries the reasoning.
+    """
+
+    def _section(self):
+        return " ".join(DOC.section("api block").split())
+
+    def test_it_names_the_probe(self):
+        assert "list blocks --kind api" in self._section(), (
+            "prose about what an api block can do, with no way to learn how to "
+            "spell it, is what produced the guessing"
+        )
+
+    def test_it_shows_that_a_condition_is_a_named_argument(self):
+        assert "status(equals = 200)" in self._section(), (
+            "the shape a reader would never guess is worth one example, since "
+            "it is the one the measured run got wrong"
+        )
+
+    def test_it_defers_the_reasoning_to_the_decision(self):
+        assert "ADR-0009" in self._section()

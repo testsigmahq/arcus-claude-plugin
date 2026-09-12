@@ -226,6 +226,16 @@ can explain.
 
 ## Api blocks, and a Residue cause overturned
 
+**Read the grammar before writing one**: `testsigma list blocks --kind api
+--json`, and `--kind verify` or `--kind store` for a sub-block. The prose below
+says what an api block can do; only the probe says how to spell it, and the
+spellings are not guessable. A condition is a named argument rather than a call,
+so a status check is `status(equals = 200)` and a path check is
+`bodyPath("$.id", isNotNull = true)`. `verify body` additionally takes at most
+one of `path`, `file` or `storedObject`, where naming one replaces the value
+compared against — which no amount of trying would suggest. `cli-probe.md` holds
+the commands and ADR-0009 the reasoning.
+
 An api block expresses method, url, headers, query, several body kinds, most
 common authentication schemes, verification of status, timing, size, body and
 **body path**, and storing values out of a response body, header, cookie or

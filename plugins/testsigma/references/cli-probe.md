@@ -114,7 +114,43 @@ ADR-0003 exists for.
 The code belongs here and in the Migration Directory; the Operator hears which
 platforms can be converted, never a diagnostic.
 
-## Fifth: notice when it changes
+## Fifth: ask the build what it can say
+
+Two commands enumerate the format. Run them before composing anything, and
+record in `platform-facts.md` that this build answers them.
+
+    testsigma list verbs                     every category, with counts
+    testsigma list verbs --category <name>   the verbs in one
+    testsigma list verbs --all
+
+    testsigma list blocks                    every block kind, and what it contains
+    testsigma list blocks --kind <name>      its attributes, sub-blocks and calls
+    testsigma list blocks --kind <name> --json
+
+`list verbs` covers steps a web test speaks. It does **not** cover a block's
+interior: a test's calls are the catalogue, so an api step's body hangs off the
+step-body table rather than off any entity kind, and `list verbs --category api`
+is refused because no such category exists. That refusal is not evidence that
+api steps are unexpressible. It is the wrong question, and `list blocks` is the
+right one.
+
+Prefer `--json` when building a step. It returns the subtree recursively with
+each call's arguments inlined, so one invocation answers what the text form
+takes several to cover.
+
+**Enumerate first, then compile to confirm.** A compile answers whether one
+spelling is legal; these answer which spellings exist. Composing a candidate and
+running `validate` to find out whether it was right is only sound once the list
+has been read — before that it is guessing, and guessing against a validator is
+slow, looks like progress, and is how a conversion spends hundreds of calls
+producing nothing. ADR-0009 records the measurement.
+
+A build that does not answer these is still workable: fall back to ADR-0006's
+one-question-at-a-time interrogation, and record that the probe was absent rather
+than that the format lacks the capability. Absence of a probe is absence of
+evidence.
+
+## Sixth: notice when it changes
 
 Compare the recorded build against what is installed now. If they differ, say so
 before doing any work, and mark every Unit of Work checked under the old build as
