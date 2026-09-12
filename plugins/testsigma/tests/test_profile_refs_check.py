@@ -76,19 +76,35 @@ def test_the_bracket_form_is_caught_too(tmp_path):
     assert r.returncode == 1, r.stdout
 
 
-def test_a_test_declaring_no_profile_is_skipped(tmp_path):
-    """Unbound `param` is the norm, not an edge case.
+def test_a_test_using_parameters_with_no_profile_is_reported(tmp_path):
+    """Nothing supplies a profile at run time, so these resolve against nothing.
 
-    The profile arrives from a suite or plan at run time. Refusing it would
-    flag most of a healthy workspace, which is how a check gets disabled.
+    This was skipped for a while, on the belief that a suite or plan supplied
+    one. Nothing does — the only run-time knob pins which *row* of a profile is
+    used, not which profile.
+
+    Counted before the behaviour changed, because "this never happens" deserves
+    a number: 135 of 135 parameter-using tests in a hand-authored customer
+    estate declare a profile, and 16 of 17 on a vendor tenant. 151 of 152.
     """
     r = build(tmp_path, '''\
         test "t" {
           storeValue(param.onlyInB, "x")
         }
         ''')
+    assert r.returncode == 1, r.stdout
+    assert "declares no profile" in r.stdout
+
+
+def test_a_test_with_no_parameters_at_all_is_not_reported(tmp_path):
+    # The exemption that remains: no parameters, nothing to resolve.
+    r = build(tmp_path, '''\
+        test "t" {
+          click(element["a"])
+        }
+        ''')
     assert r.returncode == 0, r.stdout
-    assert "skipped (no profile declared): 1" in r.stdout
+    assert "skipped (no parameters): 1" in r.stdout
 
 
 def test_a_profile_the_workspace_does_not_hold_is_reported(tmp_path):

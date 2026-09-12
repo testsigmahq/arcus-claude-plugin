@@ -267,3 +267,29 @@ class TestAStageIsNotDelegatedWhole:
 
     def test_it_names_the_record_consequence(self):
         assert "check-record.md" in self._section()
+
+
+class TestResidueChecksHaveAKnownBlindSpot:
+    """A check built on what the output shows cannot see what left nothing.
+
+    The element sweep finds a dropped step by its orphaned element. A measured
+    conversion dropped a submit click whose button was never lifted, so there
+    was no orphan — and it passed validate, coverage 55 of 55, push and a clean
+    round trip.
+    """
+
+    def _section(self):
+        return " ".join(_section("residue").split())
+
+    def test_the_blind_spot_is_stated(self):
+        assert "took its element with it" in self._section()
+
+    def test_it_separates_presence_from_completeness(self):
+        # Coverage answers one and reads as if it answered both, which is how
+        # 55 of 55 sat beside a step missing its final action.
+        section = self._section()
+        assert "is every source step present" in section
+        assert "not *is every source step complete*" in section
+
+    def test_it_gives_the_rule_for_adding_a_check(self):
+        assert "say which kind it is" in self._section()

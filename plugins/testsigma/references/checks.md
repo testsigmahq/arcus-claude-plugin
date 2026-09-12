@@ -59,6 +59,31 @@ it did not run.
 Checks 3 and 4 are the only ones that need a tenant. Survey, mapping, element
 resolution from a source, and assembly all run without one.
 
+## A check built on residue can only find what leaves residue
+
+The element sweep detects a dropped step by the element it orphaned. So it finds
+a drop that left an element behind, and cannot find one that took its element
+with it. That is not a weakness to tighten — it is the shape of the method, and
+every check built the same way inherits it.
+
+Measured. A conversion dropped the submit click at the end of a composite: the
+source's quantity helper is clear, click, type, **click Go**, and the converted
+block had the first three. The button's locator was never lifted, so there was
+no orphan to notice. The file validated, covered 55 of 55 source steps, pushed,
+and pulled back identical.
+
+Coverage did not catch it either, and for a reason worth separating: coverage
+asks *is every source step present*, not *is every source step complete*. A block
+existed and held statements, so the step was accounted for. Presence and
+completeness are different questions and one number cannot answer both.
+
+The rule that falls out: **a check that asks what the output contains can only
+find faults the output still shows. A check that asks what the source required
+can find the rest.** When adding one, say which kind it is. The five before this
+section are output checks except compare-to-source, which is the one that reads
+the source — and which is the only one that could have caught this, run by a
+person, in mapping.
+
 ## A stage's checks are run by whoever performs the stage
 
 ADR-0005 puts each check inside the stage that produces the work. The corollary

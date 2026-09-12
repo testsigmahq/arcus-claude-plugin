@@ -30,9 +30,18 @@ cover it.
 Deliberately not covered, each because checking it would report faults that are
 not faults:
 
-* A test declaring no profile. Unbound `param` is the norm rather than an edge
-  case — the profile arrives from a suite or plan at run time — and refusing it
-  would flag most of a healthy workspace, which is how a check gets switched off.
+(The one thing that *was* on this list and is not any more: a test declaring no
+profile. That was skipped on the belief that a suite or plan supplies one at run
+time. Nothing does — the only run-time knob pins which *row* of a profile is
+used, not which profile — so a parameter in such a test resolves against nothing
+and throws. It is reported, separately, because it is a different fault from a
+cross-profile reference and wants a different fix.
+
+Measured before changing it, since "this never happens" is the kind of claim
+that should be counted rather than asserted: 135 of 135 parameter-using tests in
+a hand-authored customer estate declare a profile, and 16 of 17 on a vendor
+tenant, the exception being a draft probe. 151 of 152 across two independent
+estates, so reporting it costs approximately nothing and catches a real break.)
 
 * A step group's body. The reason is the **caller**: resolution walks to the
   step-group step in the calling test and on to the root test's profile, so a
@@ -141,11 +150,15 @@ def main():
 
     checked = skipped = 0
     faults = []
+    unbound = []
     for f in sorted(root.rglob("*.test.sigma")):
         text = read(f)
         bound = PROFILE.search(text)
         if not bound:
-            skipped += 1
+            if REF_BRACKET.search(text) or REF_DOT.search(text):
+                unbound.append(f)
+            else:
+                skipped += 1
             continue
         checked += 1
         name = bound.group(1)
@@ -156,7 +169,11 @@ def main():
         if missing:
             faults.append((f, name, missing))
 
-    print(f"tests checked: {checked}   skipped (no profile declared): {skipped}")
+    print(f"tests checked: {checked}   skipped (no parameters): {skipped}")
+    for f in unbound:
+        print(f"\n{f}")
+        print("  uses parameters and declares no profile, so they resolve against")
+        print("  nothing. No suite or plan supplies one — the run throws.")
     for f, name, missing in faults:
         print(f"\n{f}")
         print(f"  binds profile `{name}`, and references columns it does not have:")
@@ -166,7 +183,7 @@ def main():
         print("\n`validate` accepts these: it checks the workspace, not the profile.")
         print("At run time the lookup throws — \"test data not found\" — so each of")
         print("these is a run that will definitely fail, found here instead of there.")
-    return 1 if faults else 0
+    return 1 if faults or unbound else 0
 
 
 if __name__ == "__main__":
