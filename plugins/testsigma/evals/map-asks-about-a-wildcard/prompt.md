@@ -2,7 +2,7 @@
 name: map-asks-about-a-wildcard
 tags: [map, tosca, questions]
 runs: 3
-max_turns: 25
+max_turns: 45
 timeout_seconds: 600
 allowed_tools: [Read, Glob, Grep, Write, Edit, Bash, Skill]
 ---

@@ -12,6 +12,8 @@ does what its author meant. That is what the gate is for.
 """
 
 import pytest
+import subprocess
+
 import yaml
 
 from support import PLUGIN_ROOT, FIXTURES_DIR, has_paragraph_with, hedges_in, preamble
@@ -221,6 +223,64 @@ class TestEveryCase:
         assert script, f"{case.name} scaffolds no fixture into the run"
         resolved = case / script
         assert resolved.is_file(), f"{script} does not exist (resolved {resolved})"
+
+    def test_its_turn_budget_clears_what_the_plugin_arm_actually_uses(self, case):
+        """Measured, not guessed. The budget was 20 and biased the ablation.
+
+        In the first real ablation every with-plugin run reached or passed 20
+        turns (17, 20, 34, 33, 21) while the no-plugin arm sat well under it
+        (21, 15, 23, 15, 20). That is the plugin working — it sends the agent to
+        open the helper the source line hides — and a budget set at the
+        baseline's cost cuts off exactly the behaviour the case exists to
+        measure, then scores the truncation as a failure.
+
+        A budget that penalises one arm is worse than no budget: the number it
+        produces reads as evidence about the plugin.
+        """
+        meta, _ = _frontmatter(case / "prompt.md")
+        assert meta.get("max_turns", 0) >= 40, (
+            f"{case.name}: max_turns is {meta.get('max_turns')}; the with-plugin "
+            "arm has been measured at up to 34 turns, so this truncates the arm "
+            "under test and scores the truncation against it"
+        )
+
+    def test_its_scaffold_is_valid_bash_that_finds_its_own_directory(self, case):
+        """Both halves were broken at once, by one careless generator.
+
+        A templating pass that substituted the fixture name replaced it inside
+        `${BASH_SOURCE[0]}` too, giving `${BASH_cucumber-java[0]}`. Bash reads
+        that as the default-value form `${var-default}` — so it expanded to the
+        string `java[0]`, `dirname` returned `.`, and every path resolved
+        against the workspace instead of the case directory. It is valid bash,
+        it fails no syntax check, and `set -u` does not catch it because the
+        default-value form is exactly how you avoid an unset variable.
+
+        The whole suite failed this way with a scaffold error and no model
+        turns, which is the cheap version of the failure. The expensive version
+        is a scaffold that half-works.
+        """
+        script = case / "scaffold.sh"
+        assert script.is_file()
+        body = script.read_text(encoding="utf-8")
+        assert "${BASH_SOURCE[0]}" in body, (
+            f"{case.name}/scaffold.sh does not resolve its own directory from "
+            "BASH_SOURCE; a mangled expansion resolves against the workspace"
+        )
+        assert subprocess.run(["bash", "-n", str(script)]).returncode == 0
+
+    def test_its_scaffold_actually_populates_a_directory(self, case, tmp_path):
+        # Run it. Every check above reads the script; none of them would catch
+        # a cp that silently copies nothing, and "the eval ran and measured an
+        # empty workspace" is the failure mode that reads as a plugin defect.
+        result = subprocess.run(["bash", str((case / "scaffold.sh").resolve())],
+                                cwd=tmp_path, capture_output=True, text=True)
+        assert result.returncode == 0, result.stderr
+        assert (tmp_path / ".testsigma" / "migration").is_dir(), (
+            f"{case.name}/scaffold.sh left no Migration Directory in the workspace"
+        )
+        assert any(tmp_path.glob("*/*")), (
+            f"{case.name}/scaffold.sh copied no source suite into the workspace"
+        )
 
     def test_every_fixture_its_scaffold_copies_exists(self, case):
         script = (case / ((_case_yaml(case).get("context") or {})

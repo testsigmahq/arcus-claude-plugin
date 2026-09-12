@@ -2,7 +2,7 @@
 name: assemble-refuses-an-unresolved-element
 tags: [assemble, residue, refusal]
 runs: 3
-max_turns: 20
+max_turns: 45
 timeout_seconds: 600
 allowed_tools: [Read, Glob, Grep, Write, Edit, Skill]
 ---
