@@ -335,7 +335,9 @@ class TestTheWorkspaceLayoutIsAsked:
         failure, a map consulted *when the probe is missing* is not.
         """
         section = self._section()
-        assert "tests/<folder>/ *.test.sigma" in section
+        # The diagram pads its columns, so whitespace-normalising leaves a
+        # space between the directory and the pattern.
+        assert "tests/ <folder>/ *.test.sigma" in section
         assert "Where that command is absent" in section
         assert "Prefer the probe whenever it answers" in section
 
