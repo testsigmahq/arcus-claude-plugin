@@ -230,3 +230,65 @@ def test_the_group_scope_limit_is_stated_as_correctness(tmp_path):
     assert "correctness rather than caution" in text or "not faults" in text
     assert "the **caller**" in text
     assert "override" in text
+
+
+class TestEverySpellingOfAReferenceIsSeen:
+    """Three spellings reach the same lookup and throw the same way.
+
+    A real converted test carried four parameter references: two in slots, two
+    inside a JSON raw body where the quotes arrive backslash-escaped. The first
+    version matched only the slot form, read two of four, and reported a clean
+    pass — a check that examines half its input and says nothing about the rest.
+    Both missed names happened to be valid, so nothing failed and nothing said
+    the coverage was partial.
+    """
+
+    STEPS = 'test "t" {\n  profile = tdp["ProfileA"].set("I")\n%s\n}\n'
+
+    def test_an_escaped_reference_inside_a_body_is_checked(self, tmp_path):
+        body = '''\
+        test "t" {
+          profile = tdp["ProfileA"].set("I")
+          api "x" {
+            method = "POST"
+            url = "https://example.test"
+            rawBody {
+              type = "JSON"
+              content = "{\\"a\\": \\"${param[\\"onlyInB\\"]}\\"}"
+            }
+          }
+        }
+        '''
+        r = build(tmp_path, body)
+        assert r.returncode == 1, r.stdout
+        assert "onlyInB" in r.stdout
+
+    def test_the_wire_marker_spelling_is_checked(self, tmp_path):
+        # `@|name|` is what pull writes into a locator, and a conversion may
+        # emit it directly. Same processor, same throw.
+        marked = '''\
+        test "t" {
+          profile = tdp["ProfileA"].set("I")
+          enterText("prefix @|onlyInB| suffix", element["a"])
+        }
+        '''
+        r = build(tmp_path, marked)
+        assert r.returncode == 1, r.stdout
+        assert "onlyInB" in r.stdout
+
+    def test_a_valid_escaped_reference_still_passes(self, tmp_path):
+        ok = '''\
+        test "t" {
+          profile = tdp["ProfileA"].set("I")
+          api "x" {
+            method = "POST"
+            url = "https://example.test"
+            rawBody {
+              type = "JSON"
+              content = "{\\"a\\": \\"${param[\\"onlyInA\\"]}\\"}"
+            }
+          }
+        }
+        '''
+        r = build(tmp_path, ok)
+        assert r.returncode == 0, r.stdout

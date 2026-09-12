@@ -67,8 +67,18 @@ import sys
 PROFILE = re.compile(r'profile\s*=\s*tdp\["([^"]+)"\]')
 TDP_NAME = re.compile(r'^\s*tdp\s+"([^"]+)"', re.M)
 COLUMN = re.compile(r'column\("([^"]+)"\)')
-REF_BRACKET = re.compile(r'param\["([^"]+)"\]')
+#: `param["x"]` as written in a slot, and the same reference inside an
+#: interpolated string — an api url or raw body — where the quotes arrive
+#: backslash-escaped. Matching only the first form read two of the four
+#: references in a real converted test and reported a clean pass, which is a
+#: check that examines half its input and says nothing about the half it skipped.
+REF_BRACKET = re.compile(r'param\[\\?"([^"\\]+)\\?"\]')
 REF_DOT = re.compile(r"param\.([A-Za-z_][A-Za-z0-9_]*)")
+
+#: The wire's own spelling, which `pull` writes into a locator and which a
+#: conversion may emit directly. It resolves through the same processor and
+#: throws the same way, so it is the same reference wearing a different sigil.
+REF_MARKER = re.compile(r"@\|([^|]+)\|")
 
 
 FOR_OVER_TDP = re.compile(r'^\s*for\s+\w+\s+in\s+tdp\["([^"]+)"\]')
@@ -120,8 +130,10 @@ def unresolved(text, declared, profiles):
                 in_scope = set()
                 for scope, _ in scopes:
                     in_scope |= profiles.get(scope, set())
-                names = set(REF_BRACKET.findall(line)) | set(
-                    REF_DOT.findall(OVERRIDE.sub("", line))
+                names = (
+                    set(REF_BRACKET.findall(line))
+                    | set(REF_DOT.findall(OVERRIDE.sub("", line)))
+                    | set(REF_MARKER.findall(line))
                 )
                 out |= names - in_scope
 
@@ -155,7 +167,8 @@ def main():
         text = read(f)
         bound = PROFILE.search(text)
         if not bound:
-            if REF_BRACKET.search(text) or REF_DOT.search(text):
+            if (REF_BRACKET.search(text) or REF_DOT.search(text)
+                    or REF_MARKER.search(text)):
                 unbound.append(f)
             else:
                 skipped += 1
