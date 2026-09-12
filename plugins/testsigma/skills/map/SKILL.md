@@ -80,6 +80,9 @@ holding twenty resolved steps in its head has twenty units of work that do not
 exist yet, and loses all of them if it ends. The seeded row makes the alternative
 cheap — it is already there, and finishing it is an edit.
 
+Not in a batch at the end, and not via a generated script that rewrites the
+whole table — one run lost every row to a syntax error in exactly that.
+
 Reuse the verdict at every occurrence. A step decided here is not revisited when
 it appears again, in another feature file or scenario; that reuse is the entire
 economics of mapping.
