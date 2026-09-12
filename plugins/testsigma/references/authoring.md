@@ -367,9 +367,20 @@ The refusal is **transitive**: `block { for { block } }` is refused too, because
 the inner steps inherit the outer block's parent id and the same guard fires.
 
 What stays legal, so this is not over-corrected: a block on its own, blocks side
-by side, a block inside a `for`, `while` or `if`, and a loop inside a block. Only
-another block is an unlawful parent. Where real nesting is needed, a step group is
-the construct that nests — a separate entity with its own file.
+by side, a block inside a `for`, `while`, `if`, `else` or `else if`, a loop inside
+a block, and an `if` inside a block. Only another block is an unlawful parent —
+`else` and `else if` are parents like any other. Reading that list as exhaustive
+costs the same as over-drawing the rule: a run avoids a shape it could have used.
+Where real nesting is needed, a step group is the construct that nests — a
+separate entity with its own file.
+
+The empty block carrying a suffix was checked against a real tenant rather than
+reasoned about, because the shape it replaces has a near neighbour that fails: an
+empty **group** is TSS1102 at push with `validate` silent beforehand. An empty
+block is not the same case. A group invocation must resolve to a step group that
+exists on the server, and preflight cannot find one; an empty block resolves to
+nothing because it *is* the row — a `BLOCK` with its own id, no children, the long
+parenthesised label stored intact, and `pull` reporting no difference.
 
 A
 marker therefore has exactly one legal position: it **is** the source step's own
