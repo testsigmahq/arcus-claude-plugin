@@ -234,3 +234,33 @@ def test_a_dropped_tail_is_caught_even_when_the_counts_match(tmp_path):
     assert r.returncode == 1, r.stdout
     assert "4 actions" in r.stdout, "the counts really are equal"
     assert "PRESS" in r.stdout, "the missing family must be named"
+
+
+def test_a_value_returning_helper_is_not_walked_into(tmp_path):
+    """A getter returns a locator; it does not perform the step.
+
+    Recursing into one found an action in something it called and reported
+    three correct verify blocks as missing an action nothing performs.
+    """
+    src = tmp_path / "src"
+    src.mkdir(exist_ok=True)
+    (src / "Glue.java").write_text('''\
+public class Glue {
+    public void verify(String s) {
+        By by = Glue.locatorFor(s);
+        SeleniumActions.VerifyText(by, s);
+    }
+    public static By locatorFor(String s) {
+        SeleniumActions.click(byCache, "warm the cache");
+        return By.id(s);
+    }
+}
+''', encoding="utf-8")
+    test = tmp_path / "t.sigma"
+    test.write_text('test "x" {\n  block "Verify it" {\n    verifyElementText(element.a, "b")\n  }\n}\n',
+                    encoding="utf-8")
+    r = subprocess.run(
+        [sys.executable, str(SCRIPT), "--source-root", str(src),
+         "--symbol", "Glue.verify", "--block", "Verify it", str(test)],
+        capture_output=True, text=True)
+    assert "click" not in r.stdout, "walked into the getter"

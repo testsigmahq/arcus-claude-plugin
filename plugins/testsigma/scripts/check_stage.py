@@ -88,7 +88,11 @@ def main():
         r = subprocess.run(
             [sys.executable, str(HERE / "check_call_chain.py"),
              "--source-root", args.source_root, "--symbol", symbol,
-             "--block", plain[:60], "--depth", str(args.depth), args.test],
+             # The raw label, not the unescaped one: block bodies are found by
+             # substring against the label as written, and a label holding
+             # `\"` stops matching the moment the quotes are unescaped. That
+             # alone accounted for most of the blocks this could not compare.
+             "--block", label[:60], "--depth", str(args.depth), args.test],
             capture_output=True, text=True)
         if r.returncode not in (0, 1, 2) or "Traceback" in r.stderr:
             # A crashing child exits 1, which is indistinguishable from "the

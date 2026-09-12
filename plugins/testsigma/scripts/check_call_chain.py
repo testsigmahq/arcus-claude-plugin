@@ -36,6 +36,7 @@ failure drowns a real finding in noise.
 """
 import argparse
 import collections
+import functools
 import pathlib
 import re
 import sys
@@ -134,6 +135,55 @@ def family(name):
     return "OTHER"
 
 
+@functools.lru_cache(maxsize=8)
+def source_files(root):
+    """Every file the walk may look in, listed once.
+
+    Listing the tree at every node made a two-level walk over a few hundred
+    files take minutes; with the cycle guard widened it stopped finishing at
+    all. The walk is called once per block and recurses, so the tree is listed
+    hundreds of times for an answer that never changes.
+    """
+    return tuple(p for p in pathlib.Path(root).rglob("*")
+                 if p.is_file() and p.suffix in
+                 (".java", ".cs", ".js", ".ts", ".py", ".rb"))
+
+
+@functools.lru_cache(maxsize=4096)
+def read(path):
+    try:
+        return path.read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return ""
+
+
+#: A signature whose return type is not `void` — a getter. `By getByFromPage(...)`
+#: returns a locator; it does not perform the step. Recursing into it found a
+#: `click` in something it called and reported three correct verify blocks as
+#: missing an action nothing performs.
+RETURNS_VALUE = "returns-value"
+
+
+@functools.lru_cache(maxsize=65536)
+def returns_value(text, name):
+    """Whether `name`'s definition declares a non-void return type.
+
+    Only meaningful where a language writes return types. Where it does not —
+    Python, JavaScript, Ruby — this answers False and the walk recurses as
+    before, which is the safe direction: a missed skip adds noise a reader can
+    see, a wrong skip hides an action.
+    """
+    m = re.search(r"\b(?:public|private|protected|static|final|\s)*"
+                  r"([A-Za-z_][A-Za-z0-9_<>\[\].]*)\s+"
+                  + re.escape(name) + r"\s*\(", text)
+    if not m:
+        return False
+    kind = m.group(1)
+    return kind not in ("void", "def", "function", "public", "private",
+                        "protected", "static", "final")
+
+
+@functools.lru_cache(maxsize=65536)
 def definition_body(text, name):
     """The body of `name`'s definition, by brace matching. None if absent.
 
@@ -164,16 +214,14 @@ def walk(root, symbol, depth, seen=None, depth_is_top=True, near=None):
     """
     seen = seen if seen is not None else set()
     name = symbol.split(".")[-1]
-    if name in seen or depth < 0:
+    if depth < 0:
         return []
-    seen.add(name)
     # When the symbol names a class, prefer a file that declares it. Matching on
     # the method name alone let `NoSuchClass.searchMenu` resolve to the real
     # `searchMenu` elsewhere and report a confident result for a symbol that
     # does not exist — a check answering a question it was not asked.
     owner = symbol.split(".")[0] if "." in symbol else None
-    candidates = [p for p in pathlib.Path(root).rglob("*")
-                  if p.is_file() and p.suffix in (".java", ".cs", ".js", ".ts", ".py", ".rb")]
+    candidates = list(source_files(root))
     if owner:
         preferred = [p for p in candidates if p.stem == owner]
         if preferred:
@@ -192,17 +240,27 @@ def walk(root, symbol, depth, seen=None, depth_is_top=True, near=None):
         # the inverse fault again, from ambiguity rather than from comments.
         candidates = [near] + [c for c in candidates if c != near]
     for path in candidates:
-        try:
-            text = path.read_text(encoding="utf-8", errors="replace")
-        except OSError:
-            continue
-        body = definition_body(text, name)
+        body = definition_body(read(path), name)
         if body is None:
             continue
+        # The cycle guard keys on file *and* name. Keying on the name alone
+        # meant a step definition delegating to an identically named page
+        # method — `WMS_Web.navigateToItemsPage` calling
+        # `HomePage.navigateToItemsPage` — was blocked by its own entry, so the
+        # walk reported zero actions and the block went unchecked. That naming
+        # is the common case in this kind of suite, not an edge.
+        key = (path, name)
+        if key in seen:
+            continue
+        seen.add(key)
         actions = action_calls(body, SOURCE_ACTIONS)
         if depth:
             for callee in re.findall(r"\b([A-Za-z_][A-Za-z0-9_]*)\s*\(", body):
                 if callee.lower().startswith(SOURCE_ACTIONS):
+                    continue
+                if any(returns_value(read(c), callee) for c in candidates
+                       if definition_body(read(c), callee) is not None):
+                    # A getter's job is to return something, not to act.
                     continue
                 actions += walk(root, callee, depth - 1, seen,
                                 depth_is_top=False, near=path)
