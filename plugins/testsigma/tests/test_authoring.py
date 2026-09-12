@@ -320,21 +320,24 @@ class TestTheWorkspaceLayoutIsAsked:
             "the next run guesses directory names"
         )
 
-    def test_it_does_not_transcribe_the_map(self):
-        # The failure this guards is a well-meant re-add. A transcribed map
-        # goes stale silently, and a stale map is worse than no map because it
-        # is consulted instead of the probe.
+    def test_the_map_is_present_as_a_fallback_and_marked_as_one(self):
+        """The map is back, deliberately, and must stay subordinate.
+
+        `list layout` is recent, and a build without it is one this plugin still
+        has to work against. Deleting the map on the assumption the probe had
+        shipped left such a build with nothing — and the general
+        compile-a-candidate fallback does not reach a directory name, so
+        "interrogate instead" means the destructive experimenting a measured run
+        already did.
+
+        The guard is now that it stays labelled as the fallback rather than that
+        it is absent: a map consulted *instead of* the probe is the stale-copy
+        failure, a map consulted *when the probe is missing* is not.
+        """
         section = self._section()
-        transcribed = sum(
-            1 for path in ("tests/<folder>/*.test.sigma",
-                           "stepGroups/<folder>/*.stepGroup.sigma",
-                           "tdps/<folder>/*.tdp.sigma",
-                           "uploads/*.upload.sigma")
-            if path in section
-        )
-        assert transcribed == 0, (
-            "the map is back in the reference; name the probe instead"
-        )
+        assert "tests/<folder>/ *.test.sigma" in section
+        assert "Where that command is absent" in section
+        assert "Prefer the probe whenever it answers" in section
 
     def test_it_keeps_the_one_fact_the_probe_does_not_volunteer(self):
         # `list layout` reports `elements` for a `screen`, but nothing tells a

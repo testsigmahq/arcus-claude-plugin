@@ -249,6 +249,29 @@ staleness `README.md` in `adapters/` warns about, and which ADR-0006 refuses.
   kind. Read `path`; the other fields are its parts, and assembling them is the
   step that goes wrong.
 
+  **Where that command is absent, use the map below rather than experimenting.**
+  `list layout` is recent and a build without it is one this plugin still has to
+  work against. The general fallback in `cli-probe.md` — compile a candidate and
+  read the refusal — does not apply here: there is nothing to compile against,
+  so "interrogate instead" means trying directory names, and a measured run
+  doing that deleted each candidate between attempts inside the Operator's own
+  repository. A copy that goes stale is the lesser fault.
+
+      tests/testsigma/<project>/            project.sigma
+        envs/                               *.env.sigma        (project-scoped)
+        variables.sigma
+        <application>/                      application.sigma
+          <version>/                        version.sigma
+            tests/       <folder>/          *.test.sigma
+            stepGroups/  <folder>/          *.stepGroup.sigma
+            tdps/        <folder>/          *.tdp.sigma
+            elements/                       *.screen.sigma
+            uploads/                        *.upload.sigma
+
+  Prefer the probe whenever it answers, and record in `platform-facts.md` which
+  of the two the installed build gave you — a row converted against the map is a
+  row checked against something that may have moved.
+
   Three things decide a file's home and a file can miss any of them: the
   directory, the `.<kind>.sigma` sub-extension, and for a foldered kind a folder
   directory carrying `folder.sigma`. They do not always agree with the entity —
