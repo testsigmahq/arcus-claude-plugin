@@ -7,9 +7,7 @@ timeout_seconds: 600
 allowed_tools: [Read, Glob, Grep, Write, Edit, Skill]
 ---
 
-This folder holds a Cucumber suite and a Migration part-way through:
-`.testsigma/migration/step-map.md` has reviewed rows and `residue.md` has one
-entry.
+This folder holds a Cucumber suite and a Migration part-way through.
 
 Assemble the Testsigma test for the scenario "A record appears after processing"
 in `features/journal.feature`.

@@ -252,6 +252,34 @@ class TestEveryCase:
         resolved = case / script
         assert resolved.is_file(), f"{script} does not exist (resolved {resolved})"
 
+    def test_its_prompt_does_not_name_the_file_a_grader_checks_it_opened(self, case):
+        """A prompt that names the artifact hands the baseline arm the answer.
+
+        Measured. The refusal case's prompt said "`residue.md` has one entry",
+        and a grader added to test whether the agent thought to open residue.md
+        passed in *both* arms — because the prompt told both of them it was
+        there. The grader was sound and the case leaked it.
+
+        This is the ablation's characteristic failure and it always looks like
+        good news: every grader green, Δ zero, nothing learned. A prompt
+        describes the task; anything it describes stops being evidence.
+        """
+        body = (case / "prompt.md").read_text(encoding="utf-8").split("---", 2)[-1]
+        opened = set()
+        for grader in _graders(case):
+            meta, _ = _frontmatter(grader)
+            if meta.get("type") == "tool_used" and meta.get("tool") in ("Read", "Glob"):
+                match = meta.get("input_match") or ""
+                name = match.replace("\\", "").strip("'\"")
+                if name:
+                    opened.add(name)
+        for name in opened:
+            assert name not in body, (
+                f"{case.name}: the prompt names {name}, which a grader checks the "
+                "agent opened — so the baseline arm is told where to look and the "
+                "grader measures the prompt rather than the plugin"
+            )
+
     def test_its_turn_budget_clears_what_the_plugin_arm_actually_uses(self, case):
         """Measured, not guessed. The budget was 20 and biased the ablation.
 
