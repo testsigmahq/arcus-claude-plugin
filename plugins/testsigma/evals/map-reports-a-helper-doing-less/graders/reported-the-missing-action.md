@@ -8,7 +8,8 @@ criteria: |
   fails, and so does an expression that adds a submit or confirm action the
   source never performs. Judge only what the step is said to do; ignore
   formatting and the choice of Testsigma verbs.
-focus: whether the helper was reported as doing less than its line implies
 ---
 The inverse of the does-more fault, and the one that invents a step the source
 never performed.
+
+Narrowed to: whether the helper was reported as doing less than its line implies.

@@ -8,7 +8,8 @@ criteria: |
   Judge only what the step is said to do; ignore formatting, the choice of
   Testsigma verbs, and anything about other steps. The prompt did not ask what
   the step does, so silence about the real sequence counts as failing.
-focus: whether the helper's real sequence was reported rather than the source line's implication
 ---
 Deliberately narrow. A broad criterion here becomes a coin flip, and this is one
 of only three model-judged graders in the suite.
+
+Narrowed to: whether the helper's real sequence was reported rather than the source line's implication.

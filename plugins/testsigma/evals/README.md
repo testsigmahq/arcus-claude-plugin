@@ -4,22 +4,42 @@ The pytest suite in `../tests/` proves the plugin's documents *say* the right
 things. It cannot prove they *steer an agent*, and every fault this plugin exists
 to prevent is behavioural. These cases are the higher seam.
 
-## They do not run yet, and that is not a misconfiguration
+## They run
 
-`claude plugin eval` is in early access and is not enabled for this account.
-Running it prints:
+Early access opened, and the first real run settled three things the cases had
+guessed at. All three had been written from `--help` and from the shape of other
+eval suites, and all three were wrong in the same direction: plausible, and never
+executed.
+
+**`focus:` on an llm grader is an enum, not prose.** The cases carried a sentence
+there. The runner's own report shows `"focus": "last_message"`, and any other
+value is rejected with `graders.N.focus: Invalid input` — which is what stopped
+every case from loading. The narrowing sentence now sits in the grader's body,
+where it documents the criterion without pretending to be a field.
+
+**`add_dirs` grants read access; it does not seed the workspace.** The runner
+first refused a path containing `..` — "it must name something inside the case
+directory" — which settled a question this file recorded as open. Fixing the
+paths was not enough: the agent then globbed an empty working directory and
+correctly refused to map anything, scoring zero in **both** arms. A case that
+fails identically with and without the plugin has measured nothing.
+
+**`scaffold_script` is what puts files in cwd**, and it needs `--scaffold` on the
+command line because it runs author-supplied bash. Each case has one. Because the
+runner refuses a path containing `..`, each case also holds its own copy of the
+fixtures it needs; `sync-fixtures.py` refreshes them and `../tests/test_evals.py`
+asserts they are byte-identical to the canonical ones, so drift is a test failure
+rather than an eval quietly measuring a suite nothing else has seen.
+
+## How to run them
 
 ```
-`plugin eval` is currently in early access
+claude plugin eval evals --allow-tools Write Edit --scaffold --trust-plugin
 ```
 
-Early access here is an **entitlement**, not a version. The installed Claude
-Code is 2.1.260, well past any version minimum, and `claude plugin eval --help`
-prints the full option surface — the command exists and is complete, and the
-account is not enrolled. There is no settings file that turns this on: the gate
-is server-side, so the only way through it is to have the account enrolled.
-Until then these cases are files, checked for well-formedness by
-`../tests/test_evals.py`, and they begin running the day the gate opens.
+`--allow-tools` is an operator grant on top of each case's `allowed_tools`: a
+case may list `Write` and still not get it, and the runner warns when a grader
+cannot pass without a tool the run withheld.
 
 ## Why ablation is the whole point
 

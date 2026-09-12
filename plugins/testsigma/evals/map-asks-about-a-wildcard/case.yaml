@@ -1,6 +1,6 @@
 schema_version: "1.1"
 name: map-asks-about-a-wildcard
 context:
-  add_dirs:
-    - ../fixtures/migration-part-done
-    - ../../tests/fixtures/tosca-subset-export
+  # The workspace starts empty and add_dirs only grants read access, so
+  # the fixture suite is copied in. Settled by running it.
+  scaffold_script: scaffold.sh

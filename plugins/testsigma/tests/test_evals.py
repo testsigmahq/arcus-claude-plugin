@@ -62,21 +62,39 @@ def test_there_are_cases():
     assert CASES, "no eval cases found; every check below would prove nothing"
 
 
-def test_the_gate_is_documented_beside_the_cases(self=None):
-    assert EVAL_README.is_file(), (
-        "the next person needs to know why these do not run"
-    )
+def test_what_the_first_real_run_settled_is_written_down(self=None):
+    """The three guesses the cases shipped with, and what each turned out to be.
+
+    All three were written from `--help` and from the shape of other eval
+    suites, and all three were plausible. The value of recording them is that
+    each one failed *silently* in a different way — one refused to load, one
+    loaded and measured nothing, and one needed a flag nobody would guess — and
+    a suite that has never been run carries an unknown number more.
+    """
+    assert EVAL_README.is_file(), "the next person needs to know how to run these"
     body = EVAL_README.read_text(encoding="utf-8")
-    assert has_paragraph_with(body, "early access", "entitlement"), (
-        "it must say the gate is an entitlement rather than a version"
+
+    # An enum, not prose. This is what stopped every case from loading.
+    assert has_paragraph_with(body, "focus", "enum"), (
+        "it must say an llm grader's focus is an enum rather than a sentence"
     )
-    # Positive, not an absent guard: the guard I first wrote ("enable it by
-    # editing") matched the document's own "do not try to enable it by editing a
-    # settings file", which is the correct instruction. That is the sixth time
-    # an absent guard has rejected honest prose in this suite.
-    assert has_paragraph_with(
-        body, "no settings file", "server-side"
-    ), "it must say the gate is server-side and no setting turns it on"
+    # The dangerous one: the cases loaded, ran, and scored zero in both arms.
+    # A case that fails identically with and without the plugin measures
+    # nothing, and reads as a plugin failure rather than a case failure.
+    assert has_paragraph_with(body, "add_dirs", "does not seed"), (
+        "it must say add_dirs grants access rather than seeding the workspace"
+    )
+    assert has_paragraph_with(body, "scaffold_script", "--scaffold"), (
+        "it must say what puts files in cwd, and that it needs the flag"
+    )
+
+
+def test_the_readme_says_how_to_run_them(self=None):
+    body = EVAL_README.read_text(encoding="utf-8")
+    # An operator grant on top of each case's allowed_tools. Without it a case
+    # listing Write still does not get one, and the tool_order graders that
+    # need a Write in the trace cannot pass.
+    assert "--allow-tools" in body and "--scaffold" in body
 
 
 def test_the_readme_explains_why_ablation_is_the_point(self=None):
@@ -188,12 +206,59 @@ class TestEveryCase:
                     "the with-only key is undocumented; do not invent one"
                 )
 
-    def test_every_path_it_points_at_exists(self, case):
-        directories = ((_case_yaml(case).get("context") or {}).get("add_dirs")) or []
-        assert directories, f"{case.name} copies no fixture into the run"
-        for entry in directories:
-            resolved = (case / entry).resolve()
-            assert resolved.exists(), f"{entry} does not exist (resolved {resolved})"
+    def test_it_scaffolds_its_fixture_into_the_run(self, case):
+        # Settled by running the suite for the first time. The workspace starts
+        # empty, and `add_dirs` grants read access to a path rather than seeding
+        # it — a case carrying only add_dirs had the agent glob an empty cwd and
+        # correctly refuse to map anything, scoring zero in both arms and
+        # measuring nothing. `scaffold_script` is what puts files in cwd.
+        context = _case_yaml(case).get("context") or {}
+        assert "add_dirs" not in context, (
+            f"{case.name} uses add_dirs to seed the workspace; it only grants "
+            "read access, so the agent sees an empty working directory"
+        )
+        script = context.get("scaffold_script")
+        assert script, f"{case.name} scaffolds no fixture into the run"
+        resolved = case / script
+        assert resolved.is_file(), f"{script} does not exist (resolved {resolved})"
+
+    def test_every_fixture_its_scaffold_copies_exists(self, case):
+        script = (case / ((_case_yaml(case).get("context") or {})
+                          .get("scaffold_script") or "scaffold.sh"))
+        for line in script.read_text(encoding="utf-8").splitlines():
+            if not line.strip().startswith("cp "):
+                continue
+            source = line.split('"$here/')[1].split('"')[0].rstrip("/.")
+            assert (case / source).is_dir(), (
+                f"{case.name} scaffolds {source}, which does not exist"
+            )
+
+    def test_its_fixtures_match_the_canonical_ones(self, case):
+        # The cases hold their own copies because the runner refuses an
+        # add_dirs or scaffold path containing `..`. One fixture edited in the
+        # repository and not here would leave the eval measuring a suite
+        # nothing else has seen, silently.
+        EVALS = EVALS_DIR
+        canonical = {
+            "migration-part-done": EVALS / "fixtures" / "migration-part-done",
+            "cucumber-java": PLUGIN_ROOT / "tests" / "fixtures" / "cucumber-java",
+            "tosca-subset-export": (PLUGIN_ROOT / "tests" / "fixtures"
+                                    / "tosca-subset-export"),
+        }
+        for copy in sorted((case / "fixtures").glob("*")):
+            source = canonical[copy.name]
+            ours = sorted(p.relative_to(copy) for p in copy.rglob("*") if p.is_file())
+            theirs = sorted(p.relative_to(source) for p in source.rglob("*")
+                            if p.is_file())
+            assert ours == theirs, (
+                f"{case.name}/fixtures/{copy.name} has drifted from {source}; "
+                "run evals/sync-fixtures.py"
+            )
+            for relative in ours:
+                assert (copy / relative).read_bytes() == (source / relative).read_bytes(), (
+                    f"{case.name}/fixtures/{copy.name}/{relative} differs from "
+                    "the canonical fixture; run evals/sync-fixtures.py"
+                )
 
 
 # --- how they are run ---------------------------------------------------------
