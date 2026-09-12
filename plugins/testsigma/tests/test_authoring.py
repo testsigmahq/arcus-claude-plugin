@@ -376,3 +376,52 @@ class TestProbingIsNonDestructive:
         # The same reasoning, and the more expensive half: a push is not offline
         # and not undoable the way a local file is.
         assert "never by pushing" in self._section()
+
+
+class TestInterpolationIsBoundedAndSaysWhere:
+    """One example of interpolation, with no statement of where it is legal.
+
+    The reference showed `"${env[\\"API_BASE_URL\\"]}/path"` under a rule about
+    bracket lookup and said "including inside interpolation" — true of that
+    slot, and readable as licence for any slot. A measured run wrote
+    `storeValue("SRL080${random(4)}", …)`, which compiled and was refused at the
+    wire. The CLI's own tour taught the same spelling, so the shape was not this
+    plugin's invention; the omission that let it through was.
+    """
+
+    def _section(self):
+        return " ".join(DOC.section("values, names and layout").split())
+
+    def test_it_says_where_interpolation_is_legal(self):
+        section = self._section()
+        assert "TSF2013" in section
+        for legal in ("url", "raw body", "generator argument"):
+            assert legal in section, f"{legal} is not named as a place it works"
+
+    def test_it_says_a_value_slot_is_not_one_of_them(self):
+        assert "value slot is not one of" in self._section().lower()
+
+    def test_it_explains_why_bare_passes_and_interpolated_does_not(self):
+        # Without the reason this reads as an arbitrary prohibition, and an
+        # arbitrary prohibition is one an agent works around.
+        section = self._section()
+        assert "kind column" in section
+
+    def test_it_does_not_blame_generators(self):
+        # The narrow reading — "generators cannot appear in strings" — was mine,
+        # and it is wrong: `"x${param.prefix}"` fails the same way.
+        assert "param.prefix" in self._section(), (
+            "the non-generator counterexample is what stops the rule being "
+            "remembered as a fact about generators"
+        )
+
+    def test_it_gives_the_unique_id_recipe(self):
+        section = self._section()
+        assert "whole value" in section.lower()
+        assert "runtime variable" in section
+
+    def test_dropping_the_prefix_is_named_as_a_concession(self):
+        # The measured run recovered by deleting the prefix, which changes the
+        # value the test produces. Recorded it is a Concession; unrecorded it is
+        # a Divergence, and nothing else separates them.
+        assert "Concession" in self._section()

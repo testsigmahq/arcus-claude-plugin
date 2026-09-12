@@ -161,6 +161,31 @@ staleness `README.md` in `adapters/` warns about, and which ADR-0006 refuses.
   always — `env["APP_BASE_URL"]` — including inside interpolation, where it needs
   escaping: `"${env[\"API_BASE_URL\"]}/path"`. Dotted access working for some
   names is a trap, because any sane naming convention produces names it fails on.
+
+- **Interpolation is legal in few places, and a step's value slot is not one of
+  them** (TSF2013). It works where the server keeps the reference inside the
+  text: an api step's url, a raw body, a GraphQL variable, a generator argument.
+  Everywhere else a value stands alone with its kind recorded in a column beside
+  it, and a slot that already has a kind column has nowhere to put a second
+  reference inside the same string.
+
+  That is the whole rule, and it explains a pair that otherwise looks arbitrary:
+  `storeValue(random(8), …)` pushes and `storeValue("x${random(8)}", …)` does
+  not. The bare one has a kind column to live in. It is not about generators —
+  `"x${param.prefix}"` fails identically.
+
+- **A per-run unique id is a whole value, never a prefix plus a suffix.** This
+  one matters out of proportion to its size, because appending a timestamp or a
+  random tail to a fixed prefix is how source suites make ids unique, so a
+  migration meets it constantly. The spellings that push are whole-value:
+  `random(8)`, or a generator bare such as `gen.date.currentTimestamp()`.
+
+  Where the source genuinely needs `PREFIX` joined to a generated tail, do the
+  joining where interpolation is legal — inside an api step's body or url — or
+  store the generated part in a runtime variable and let the step that consumes
+  it do the joining. Dropping the prefix to make the file compile changes the
+  value the test produces, and that is a Concession: it is recorded, with the
+  platform limit that forced it, or it is a Divergence.
 - **The layout is fixed, and a file in the wrong directory is refused**
   (TSF2050). Ask for it — `testsigma list layout`, or `--json` for a `path` per
   kind. Read `path`; the other fields are its parts, and assembling them is the
