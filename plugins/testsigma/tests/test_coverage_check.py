@@ -135,3 +135,72 @@ def test_a_block_matching_no_source_step_is_reported(tmp_path):
     r = run(tmp_path, STEPS, invented)
     assert r.returncode == 1
     assert "nobody asked for" in r.stdout
+
+
+class TestADuplicatedStepIsCountedTwice:
+    """Coverage is a multiset. The first version treated it as a set.
+
+    `Click on Row At First Index` occurs twice in the measured scenario. With
+    set membership, converting it once satisfied both occurrences — the check
+    reported "4 of 4" while printing "blocks: 3" two lines above, which is the
+    failure it exists to refuse, reproduced inside it.
+    """
+
+    STEPS = "Given I am signed in\nAnd Click a row\nAnd Something else\nAnd Click a row\n"
+
+    def test_converting_a_duplicated_step_once_is_refused(self, tmp_path):
+        once = '''\
+        test "x" {
+          block "Given I am signed in" { click(element["a"]) }
+          block "And Click a row" { click(element["b"]) }
+          block "And Something else" { click(element["c"]) }
+        }
+        '''
+        r = run(tmp_path, self.STEPS, once)
+        assert r.returncode == 1, r.stdout
+        assert "3 of 4" in r.stdout
+
+    def test_converting_it_twice_passes(self, tmp_path):
+        twice = '''\
+        test "x" {
+          block "Given I am signed in" { click(element["a"]) }
+          block "And Click a row" { click(element["b"]) }
+          block "And Something else" { click(element["c"]) }
+          block "And Click a row" { click(element["d"]) }
+        }
+        '''
+        r = run(tmp_path, self.STEPS, twice)
+        assert r.returncode == 0, r.stdout
+        assert "4 of 4" in r.stdout
+
+    def test_a_disambiguating_suffix_still_claims_its_step(self, tmp_path):
+        # Two identical steps in one scenario read better with a qualifier, and
+        # the measured run wrote `… (PIX Visibility)` for the second. Good
+        # authoring must not be scored as an unmatched block.
+        suffixed = '''\
+        test "x" {
+          block "Given I am signed in" { click(element["a"]) }
+          block "And Click a row" { click(element["b"]) }
+          block "And Something else" { click(element["c"]) }
+          block "And Click a row (PIX Visibility)" { click(element["d"]) }
+        }
+        '''
+        r = run(tmp_path, self.STEPS, suffixed)
+        assert r.returncode == 0, r.stdout
+        assert "4 of 4" in r.stdout
+
+    def test_an_unrelated_block_is_not_absorbed_by_a_shared_prefix(self, tmp_path):
+        # The suffix rule must stay narrow: only a trailing bracketed qualifier.
+        # Anything looser and a block that merely starts the same way would
+        # silently claim a step it never converted.
+        looser = '''\
+        test "x" {
+          block "Given I am signed in" { click(element["a"]) }
+          block "And Click a row" { click(element["b"]) }
+          block "And Something else" { click(element["c"]) }
+          block "And Click a row and then do three other things" { click(element["d"]) }
+        }
+        '''
+        r = run(tmp_path, self.STEPS, looser)
+        assert r.returncode == 1, r.stdout
+        assert "3 of 4" in r.stdout

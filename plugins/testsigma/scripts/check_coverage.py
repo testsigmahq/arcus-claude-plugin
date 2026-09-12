@@ -25,6 +25,7 @@ compares them against the test's block labels.
 Exit 0 when every source step is accounted for, 1 otherwise.
 """
 import argparse
+import collections
 import pathlib
 import re
 import sys
@@ -73,9 +74,35 @@ def main():
     text = pathlib.Path(args.test).read_text(encoding="utf-8", newline="")
     found = labels(text)
 
-    claimed = {normalise(l) for l in found}
-    missing = [s for s in steps if normalise(s) not in claimed]
-    extra = [l for l in found if normalise(l) not in {normalise(s) for s in steps}]
+    # Coverage is a multiset, not a set. A scenario may write the same step
+    # twice — `Click on Row At First Index` appears twice in the measured one —
+    # and set membership says both are covered when only one block exists. A
+    # first version scored exactly that as "4 of 4" while reporting "blocks: 3"
+    # two lines above, which is the shape of failure this whole check exists to
+    # refuse, reproduced inside it.
+    #
+    # A label may also carry a disambiguating suffix, which is good authoring:
+    # two identical steps in one scenario read better as `… (PIX Visibility)`.
+    # So a block claims a step when its label equals the step or begins with it
+    # followed by a bracketed qualifier — nothing looser, or an unrelated block
+    # whose label happens to share a prefix would absorb a step it never did.
+    remaining = collections.Counter(normalise(s) for s in steps)
+    extra = []
+    for label in found:
+        key = normalise(label)
+        base = re.sub(r"\s*\([^()]*\)$", "", key).strip()
+        for candidate in (key, base):
+            if remaining.get(candidate):
+                remaining[candidate] -= 1
+                break
+        else:
+            extra.append(label)
+    missing = []
+    for step in steps:
+        key = normalise(step)
+        if remaining.get(key):
+            remaining[key] -= 1
+            missing.append(step)
 
     print(f"source steps: {len(steps)}")
     print(f"blocks:       {len(found)}")
