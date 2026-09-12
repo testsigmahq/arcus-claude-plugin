@@ -196,6 +196,25 @@ could not run is recorded as not checked, never as a pass. When the CLI gains a
 check it did not have, the Units converted before it are marked as not checked
 against that capability rather than inheriting a pass they never earned.
 
+## Where the working copy lives
+
+The `.sigma` files a Migration authors go inside the source suite, at a path
+`migration.md` records on its **`Working copy:`** line (ADR-0011).
+`tests/testsigma/` at the suite root is the default, and the recorded path — not
+the default — is what every later stage and gate reads.
+
+Unstated is not neutral. Two measured runs of the same plugin chose differently,
+one writing inside the suite and one to a sibling directory, and both readings
+were consistent with a plugin that said nothing. The sibling was not a git
+repository, so those tests had no history; `migration.md` did not name it, so a
+resumed session could not find them; and `check_committed.py` reported two
+modified files while missing more than forty untracked `.sigma` files.
+
+Inside the suite for the same reason the Migration Directory is (ADR-0002): the
+suite's own version control is the only thing that keeps either of them. A
+working copy beside the suite is the unversioned temp directory that ADR-0002
+exists to prevent, arriving under a different name.
+
 ## `existing/`, which is evidence rather than state
 
 `.testsigma/migration/existing/` holds working copies of what the target project
@@ -230,6 +249,9 @@ Started: <date>
 Source snapshot: <commit> on <branch, or "detached HEAD">
 Source adapter: <name> — <why this one>
   hides-sequence: <value>  carries-locators: <value>  value-language: <value>
+Working copy: <path, relative to the suite root>
+Existing project: <what was pulled into existing/, or "empty — the Operator said so">
+Writable: <yes, or "no — adopt by reference only">
 
 ## CLI build
 Program: <resolved path>

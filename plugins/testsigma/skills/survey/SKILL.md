@@ -83,16 +83,13 @@ all. If that is what this suite drives, stop. Tell the Operator which platforms
 can be converted today and that theirs is not yet among them, so nothing produced
 here could be attached.
 
-Take the answer from the Operator rather than from the source. A suite's own code
-is weak evidence of the platform it drives — the same driver spelling appears in
-both — and the target application is a thing in their tenant, so this is an
-Application Fact and they are the only ones who can settle it.
+Take the answer from the Operator, not from the source: a suite's own code is weak
+evidence of the platform it drives, and the target application is a thing in their
+tenant.
 
-Which platforms have a catalogue is a property of the installed build and it grows;
-`${CLAUDE_PLUGIN_ROOT}/references/cli-probe.md` says how to read it, and the answer
-is recorded in `platform-facts.md` with how it was established. So this stop turns
-on what the probe found, and never on the pair named above: if this build converts
-something the plugin does not list, the list is what is out of date.
+Which platforms have a catalogue is a property of the installed build and it grows,
+so this stop turns on what `cli-probe.md` found and never on the pair named above,
+and the answer is recorded in `platform-facts.md` with how it was established.
 
 ## Step 1: Choose the Source Adapter, and say why
 
@@ -151,6 +148,11 @@ Create `.testsigma/migration/` at the suite root and write its files, one per
 concern. The file set, what each holds, and a skeleton for each are defined in
 `${CLAUDE_PLUGIN_ROOT}/references/migration-directory.md`. Do
 not restate the list here or invent a file that is not in it.
+
+**Settle where the working copy will go, and write it down** on `migration.md`'s
+`Working copy:` line — inside the suite, never beside it, per ADR-0011 and the
+reference above. Left to assembly, each session picks again, and a path nothing
+recorded is one a resumed session cannot find.
 
 Write `migration.md` with what Steps 0 to 3 established. Create the other six from
 their skeletons. Then commit just this directory, with `git add .testsigma/migration`

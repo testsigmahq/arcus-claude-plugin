@@ -62,6 +62,12 @@ says how. Treating `residue` as "not `reviewed`, therefore skip" is the reading
 that drops the step, and it is the natural reading of the rule above, which is
 why it is written out here.
 
+Write every test under the path `migration.md` records on its `Working copy:`
+line. Read it, do not choose one: the path is a decision survey already made, and
+a stage that picks again produces a layout nothing else can find (ADR-0011). Where
+the line is absent, the Migration predates this rule — say so, settle the path with
+the Operator, and write it to `migration.md` before assembling anything.
+
 ## Step 2: Refuse a test that references an unresolved element
 
 Read `residue.md`. It is keyed by Source Step and element, so an unresolved
