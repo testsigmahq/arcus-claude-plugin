@@ -468,6 +468,9 @@ class TestDynamicLocatorsAreVerbSelected:
         section = self._section()
         assert "TSF2065" in section and "TSF2021" in section
         assert "Re-probe before relying on it" in section
+        # An inverted fact is worse than an absent one, which is the sharper
+        # argument for the re-probe instruction than staleness is.
+        assert "worse than having no entry at all" in section
 
     def test_it_says_what_to_do_when_no_verb_fits(self):
         assert "step addon" in self._section()

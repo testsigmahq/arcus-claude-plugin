@@ -189,10 +189,16 @@ staleness `README.md` in `adapters/` warns about, and which ADR-0006 refuses.
 
   That paragraph said the exact opposite this morning, and the build changed
   under it within the day — sigil accepted and format spelling refused, then the
-  reverse, with the parameter name going from unchecked to checked. Re-probe
-  before relying on it. A `pull` of an older element may still bring the sigil
-  down, which is then a file the current compiler refuses; rewrite it rather
-  than reading the refusal as a pull fault.
+  reverse, with the parameter name going from unchecked to checked. **Re-probe
+  before relying on it.** A stale entry here does not merely lag: a reader
+  trusting the old one would have written the spelling now refused and avoided
+  the one now required, which is worse than having no entry at all.
+
+  `pull` decodes, so the sigil does not arrive from the server — an element
+  stored with `@|number|` comes down as `${param.number}` and round-trips with
+  no difference (verified by pushing the format spelling and pulling it back).
+  A file holding the sigil was written by hand or pulled by an older build, and
+  the current compiler refuses it; rewrite it.
 
   **The check is workspace-wide, so it is weaker than run time.** TSF2021 asks
   whether any profile in the workspace declares the column, not whether the
