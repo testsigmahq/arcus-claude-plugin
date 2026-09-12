@@ -300,73 +300,52 @@ class TestTheApiGrammarIsProbedNotGuessed:
         assert "ADR-0009" in self._section()
 
 
-class TestTheWorkspaceLayoutIsWrittenDown:
-    """A fixed convention that nothing prints has to live somewhere.
+class TestTheWorkspaceLayoutIsAsked:
+    """The layout is asked for, not transcribed.
 
-    Measured on a clean-room run: with the layout undocumented and unprobeable,
-    the agent brute-forced directory names — `screens Screens elements Elements
-    element screen`, then `Tests testCases TestCases suites Suites folder
-    folders group groups module modules` — deleting each candidate with `rm -rf`
-    between attempts to see which one `validate` accepted.
-
-    ADR-0006 refuses to hold the *catalogue* because the build is its authority
-    and a copy goes stale. The layout is not the catalogue: it is a file
-    convention the compiler enforces, no command reports it, and an agent that
-    does not know it cannot write a single file in the right place.
+    It was written down here for one commit, deliberately and marked interim,
+    because a clean-room run brute-forced directory names with no probe and no
+    documentation to go on. `testsigma list layout` now projects it from the
+    same table the walk enforces, so the copy is deleted — which is the whole
+    shape ADR-0009 describes: write down what cannot be asked, and delete it
+    when it can.
     """
 
     def _section(self):
         return " ".join(DOC.section("values, names and layout").split())
 
-    #: Directory paired with the filename suffix that belongs in it. Asserted as
-    #: pairs rather than as two lists: `elements/` also appears in the prose
-    #: warning below, so a corrupted diagram line still satisfied a presence
-    #: check while telling a reader the wrong directory.
-    KIND_DIRECTORIES = (
-        ("tests/", "*.test.sigma"),
-        ("stepGroups/", "*.stepGroup.sigma"),
-        ("tdps/", "*.tdp.sigma"),
-        ("elements/", "*.screen.sigma"),
-        ("uploads/", "*.upload.sigma"),
-        ("envs/", "*.env.sigma"),
-    )
-
-    @pytest.mark.parametrize("directory,suffix", KIND_DIRECTORIES)
-    def test_it_pairs_each_directory_with_its_suffix(self, directory, suffix):
-        """Read the diagram line by line, not as a flattened string.
-
-        `tests/` occurs first inside `tests/testsigma/`, the workspace root, so
-        a substring search finds the root rather than the entry for the tests
-        kind and reports the pairing missing when it is present.
-        """
-        import re as _re
-        raw = DOC.section("values, names and layout")
-        pattern = _re.compile(
-            r"^\s*" + _re.escape(directory) + r"\s.*" + _re.escape(suffix), _re.M
-        )
-        assert pattern.search(raw), (
-            f"no layout line pairs {directory} with {suffix}; the diagram is "
-            f"the only place a reader learns which suffix goes where"
+    def test_it_names_the_probe(self):
+        assert "testsigma list layout" in self._section(), (
+            "without the probe named, the layout is undiscoverable again and "
+            "the next run guesses directory names"
         )
 
-    def test_it_warns_that_a_screen_lives_in_elements(self):
-        # The one the measured run got wrong first, because the directory and
-        # the file suffix disagree.
-        section = self._section().lower()
-        assert "screens/" in section and "wrong" in section, (
-            "`screens/` is the natural guess; the layout must say so explicitly"
-        )
-
-    def test_it_says_the_suffix_is_part_of_the_name(self):
-        assert "foo_test.sigma" in self._section(), (
-            "`_test` versus `.test` cost the measured run a cycle on its own"
-        )
-
-    def test_it_says_which_kinds_are_foldered(self):
+    def test_it_does_not_transcribe_the_map(self):
+        # The failure this guards is a well-meant re-add. A transcribed map
+        # goes stale silently, and a stale map is worse than no map because it
+        # is consulted instead of the probe.
         section = self._section()
-        assert "foldered" in section and "TSF2058" in section, (
-            "a file at the root of tests/ validates as misplaced for a second "
-            "reason, and the two are easy to conflate"
+        transcribed = sum(
+            1 for path in ("tests/<folder>/*.test.sigma",
+                           "stepGroups/<folder>/*.stepGroup.sigma",
+                           "tdps/<folder>/*.tdp.sigma",
+                           "uploads/*.upload.sigma")
+            if path in section
+        )
+        assert transcribed == 0, (
+            "the map is back in the reference; name the probe instead"
+        )
+
+    def test_it_keeps_the_one_fact_the_probe_does_not_volunteer(self):
+        # `list layout` reports `elements` for a `screen`, but nothing tells a
+        # reader that the directory and the entity disagree on purpose. That is
+        # the trip hazard, and it costs a cycle every time it is hit.
+        section = self._section()
+        assert "a `screen` lives in `elements/`" in section
+
+    def test_it_says_which_field_to_read_from_json(self):
+        assert "`path`" in self._section(), (
+            "the four component fields are there to be assembled wrongly"
         )
 
 

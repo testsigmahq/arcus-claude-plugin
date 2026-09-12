@@ -162,29 +162,16 @@ staleness `README.md` in `adapters/` warns about, and which ADR-0006 refuses.
   escaping: `"${env[\"API_BASE_URL\"]}/path"`. Dotted access working for some
   names is a trap, because any sane naming convention produces names it fails on.
 - **The layout is fixed, and a file in the wrong directory is refused**
-  (TSF2050). It is not guessable and no command prints it, so it is written out
-  here:
+  (TSF2050). Ask for it — `testsigma list layout`, or `--json` for a `path` per
+  kind. Read `path`; the other fields are its parts, and assembling them is the
+  step that goes wrong.
 
-      tests/testsigma/
-        <project>/                      project.sigma
-          envs/                         *.env.sigma        (project-scoped)
-          variables.sigma                                  (project variable pool)
-          <application>/                application.sigma
-            <version>/                  version.sigma
-              tests/       <folder>/      *.test.sigma
-              stepGroups/  <folder>/      *.stepGroup.sigma
-              tdps/        <folder>/      *.tdp.sigma
-              elements/                   *.screen.sigma
-              uploads/                    *.upload.sigma
-
-  Three of these catch people out. A screen lives in **`elements/`** and is named
-  `*.screen.sigma` — the directory and the suffix disagree, and `screens/` is
-  the natural guess and wrong. The suffix is part of the name: `foo.test.sigma`
-  is a test, `foo_test.sigma` is not one and lands nowhere. And `tests`,
-  `stepGroups` and `tdps` are **foldered** — they mirror the server's folder
-  tree as directories at arbitrary depth, each carrying a `folder.sigma`, so a
-  file sitting directly in `tests/` belongs to no server folder and has nowhere
-  to push (TSF2058). `elements/` and `uploads/` are flat and take no folder.
+  Three things decide a file's home and a file can miss any of them: the
+  directory, the `.<kind>.sigma` sub-extension, and for a foldered kind a folder
+  directory carrying `folder.sigma`. They do not always agree with the entity —
+  a `screen` lives in `elements/` — which is why this is asked rather than
+  guessed. TSF2050 names the home it wanted, so a refusal is usually enough on
+  its own.
 
 - **Probe by adding, never by deleting.** Where a convention has to be
   established by experiment, write one candidate file and run `validate`.

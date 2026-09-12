@@ -123,6 +123,9 @@ record in `platform-facts.md` that this build answers them.
     testsigma list verbs --category <name>   the verbs in one
     testsigma list verbs --all
 
+    testsigma list layout                    where each entity kind's file lives
+    testsigma list layout --json             a `path` per kind
+
     testsigma list blocks                    every block kind, and what it contains
     testsigma list blocks --kind <name>      its attributes, sub-blocks and calls
     testsigma list blocks --kind <name> --json
