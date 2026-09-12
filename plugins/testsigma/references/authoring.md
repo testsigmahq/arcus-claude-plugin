@@ -177,49 +177,37 @@ staleness `README.md` in `adapters/` warns about, and which ADR-0006 refuses.
   beside a locator that embeds one. This is a real, product-supported shape:
 
       element "Adult Details" {
-        locator = "//div[contains(text(),\"Adult @|number|\")]"
+        locator = "//div[contains(text(),\"Adult ${param.number}\")]"
         dynamic = true
       }
 
-  **The sigil is the wire's, and it is the only spelling that compiles here.**
-  `@|number|` passes; the format-native `${param.number}` is refused with
-  TSF2013. That is backwards from every other position in the format, and it has
-  a consequence worth more than the surprise: the sigil is opaque text to the
-  compiler, so **nothing checks that a parameter of that name exists**. A typo
-  produces a file that validates, pushes, and matches nothing at run time.
+  **Write the format's own spelling, and let the compiler check it.**
+  `${param.number}` is the reference; the wire's `@|number|` is refused with
+  **TSF2065** — *"a marker the run substitutes, so this text cannot mean
+  itself"*. The name is checked: a column that exists validates clean, and a
+  typo is refused with **TSF2021**.
 
-  Checking it by hand is per *test*, not per profile, and the difference is not
-  pedantic. An element belongs to a screen, not to a profile — it is shared by
-  every test that uses it and carries no profile scope of its own. At run time
-  the value comes from whichever profile the executing test is bound to. So a
-  dynamic element used by two tests needs its column in **both** their profiles,
-  and checking one is the phrasing that passes a suite which fails on the second
-  test.
+  That paragraph said the exact opposite this morning, and the build changed
+  under it within the day — sigil accepted and format spelling refused, then the
+  reverse, with the parameter name going from unchecked to checked. Re-probe
+  before relying on it. A `pull` of an older element may still bring the sigil
+  down, which is then a file the current compiler refuses; rewrite it rather
+  than reading the refusal as a pull fault.
 
-  Note what `validate` does and does not give you here, because the two look
-  alike and neither is what a reader assumes. A parameter in an ordinary value
-  slot is checked for existence **somewhere in the workspace** — every profile's
-  columns pooled into one set — so `param.notInAnyProfile` is refused with
-  **TSF2021** while a test bound to profile A may reference a column declared
-  only in profile B and compile cleanly. Inside a locator there is no check at
-  all. Both are weaker than the runtime requirement, by different amounts, and
-  the syntax does not say which you are looking at.
+  **The check is workspace-wide, so it is weaker than run time.** TSF2021 asks
+  whether any profile in the workspace declares the column, not whether the
+  profile that will supply it does. Verifying that is per *test*, not per
+  profile: an element belongs to a screen, not to a profile — it is shared by
+  every test that uses it and carries no profile scope of its own — and at run
+  time the value comes from whichever profile the executing test is bound to. A
+  dynamic element used by two tests needs its column in **both**.
+  `${CLAUDE_PLUGIN_ROOT}/scripts/check_profile_refs.py` does that pass.
 
-  **This is not a locator problem, and only one of the three is silent.** A
-  `param` that resolves nowhere **fails the run** — the lookup throws "test data
-  not found" — and so does a missing `env`. A missing **runtime** variable is the
-  silent one: the marker survives as literal text and the step passes having
-  checked nothing. A cross-profile `param` is therefore a run that will
-  definitely fail, which is a better reason to catch it offline than the one
-  this paragraph used to give. Run
-  `${CLAUDE_PLUGIN_ROOT}/scripts/check_profile_refs.py <workspace>` over
-  assembled work; it checks each test that declares a profile against that
-  profile's own columns. A test declaring none is skipped on purpose — unbound
-  `param` is the norm, the profile arriving from a suite or plan, and refusing
-  it would flag most of a healthy workspace. A step group's body is out of scope
-  for the same kind of reason and not for caution: a `stepGroup` has a `profile`
-  attribute of its own, so its references resolve against that rather than the
-  caller's, and `override(…)` replaces a value at the call site.
+  **Only one of the three reference kinds is silent when it misses.** A `param`
+  that resolves nowhere fails the run — the lookup throws "test data not found" —
+  and so does a missing `env`. A missing **runtime** variable is the silent one:
+  the marker survives as literal text and the step passes having checked
+  nothing.
 
   A `{value}` hole is neither shape. It is literal text, and a locator carrying
   one compiles cleanly and matches nothing — which is how a measured run reached

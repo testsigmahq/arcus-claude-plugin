@@ -453,16 +453,21 @@ class TestDynamicLocatorsAreVerbSelected:
         assert "Verb-selected" in section
         assert "stored element carrying a parameter reference" in section
 
-    def test_it_names_the_sigil_and_that_the_format_spelling_is_refused(self):
-        # Backwards from every other position, so a reader who knows the format
-        # will reach for `${param.x}` and be refused. Say both.
+    def test_it_shows_the_example_in_the_spelling_that_compiles(self):
+        # The worked element carried the sigil while the prose said to write the
+        # format spelling. An example contradicting its own rule is the half a
+        # reader copies.
         section = self._section()
-        assert "@|number|" in section and "TSF2013" in section
+        assert "${param.number}" in section
 
-    def test_it_says_the_parameter_name_is_unchecked(self):
-        # The consequence that outlives the surprise: a typo validates, pushes,
-        # and matches nothing.
-        assert "nothing checks that a parameter of that name exists" in self._section()
+    def test_it_says_the_name_is_checked_and_which_spelling_to_write(self):
+        # Reversed within a day: the sigil was the only spelling that compiled
+        # and the name was unchecked; now the sigil is refused (TSF2065) and the
+        # format spelling is checked (TSF2021). The entry carries both codes so
+        # a reader meeting either knows which side of the change they are on.
+        section = self._section()
+        assert "TSF2065" in section and "TSF2021" in section
+        assert "Re-probe before relying on it" in section
 
     def test_it_says_what_to_do_when_no_verb_fits(self):
         assert "step addon" in self._section()
@@ -492,33 +497,29 @@ class TestTheDynamicParameterCheckIsPerTest:
     def test_it_says_why_an_element_has_no_profile_of_its_own(self):
         assert "belongs to a screen, not to a profile" in self._section()
 
-    def test_it_distinguishes_the_slot_check_from_the_locator_non_check(self):
-        # The dangerous similarity: one position is checked and the neighbouring
-        # one is not, and both are "a parameter reference" to a reader.
+    def test_it_says_the_check_is_workspace_wide(self):
         section = self._section()
         assert "TSF2021" in section
-        assert "no check at all" in section
+        assert "workspace-wide" in section
 
     def test_it_says_the_slot_check_is_weaker_than_runtime(self):
         # Pooling is the mechanism and the consequence is the point: a column
         # from any profile satisfies a check the bound profile will have to
         # honour at run time.
-        section = self._section()
-        assert "pooled into one set" in section
+        assert "weaker than run time" in self._section()
 
-    def test_it_says_the_fault_is_not_confined_to_locators(self):
-        # The correction that widened this: a slot reference to another
-        # profile's column is the commoner case, and the locator one is rare.
-        # The old second assertion here checked for the retracted claim that a
-        # cross-profile param passes silently; it throws.
+    def test_it_names_runtime_as_the_only_silent_kind(self):
+        # The retracted claim was that a cross-profile `param` passes silently.
+        # It throws; only a missing runtime variable is silent.
         section = self._section()
-        assert "not a locator problem" in section.lower()
-        assert "definitely fail" in section
+        assert "only one of the three reference kinds is silent" in section.lower()
+        assert "fails the run" in section
 
-    def test_it_names_the_check_and_why_unbound_tests_are_skipped(self):
-        section = self._section()
-        assert "check_profile_refs.py" in section
-        assert "unbound `param` is the norm" in section.lower()
+    def test_it_names_the_script_that_does_the_per_test_pass(self):
+        # The "why unbound tests are skipped" half of this assertion went when
+        # the skip did — nothing supplies a profile at run time, so those are
+        # reported now rather than exempted.
+        assert "check_profile_refs.py" in self._section()
 
 
 class TestTheThreeReferenceKindsBehaveDifferently:
