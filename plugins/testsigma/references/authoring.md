@@ -70,6 +70,29 @@ each covers. This loop answers the other question — *is this spelling legal in
 this slot* — which no enumeration answers, because what the build has for it is
 a compiler that names what it refuses.
 
+**Say which catalogue you are asking for.** `list verbs` and `list blocks` answer
+from the Web catalogue regardless of what is attached, and say nothing about
+which platform the list is for. There is no inference to rely on: the grammar
+kinds answer from the catalogue compiled into the build and never open the
+marker, so standing inside an attached Unified version and enumerating still
+gives Web. Against a Unified
+application, pass `--dialect unified`:
+
+    testsigma list verbs --dialect unified
+    testsigma list blocks --kind step --dialect unified
+
+Omitting it does not fail quietly for long, and it does not fail cheaply either.
+`attach` wrote `applicationType` into the marker, and the working copy compiles
+against the catalogue that names, so a web verb written into a Unified
+application is refused at `validate` with `TSF2001` — offline, first run, after
+the steps are written. The cost is a Conversion's work and a reader sent hunting
+for spellings that were never going to resolve.
+
+The flag is read-side and belongs to the grammar kinds, the ones that answer
+without reading the workspace at all. Its values are `web` and
+`unified`, lowercase, and `web` is the default. A value that is neither prints
+the accepted set and **exits 0**, so read the line rather than the exit code.
+
 **Build a scratch workspace.** `validate` reads a workspace, and a workspace is
 three marker files under `tests/testsigma/`. Write them by hand; the ids and the
 names are both arbitrary because nothing offline checks either — but **all three

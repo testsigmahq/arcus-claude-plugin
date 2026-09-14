@@ -103,6 +103,36 @@ the answer in `platform-facts.md` with how it was established:
   with the build identity beside it, and never as a fact about the installed
   build.
 
+**The two catalogues barely overlap, so which one answered is not a detail.**
+Roughly seven of every eight verb names in the larger catalogue are absent from
+the smaller one, and the verb a reader reaches for first is among them. Recording
+that web and unified are both writable and stopping there reads as though the
+choice were administrative. It decides most of the vocabulary.
+
+The figures behind that, as **this reference last measured them**, against
+`testsigma-cli` at commit `2477ab0`: web 315 verbs in 27 categories, unified 110
+in 20, 42 names in both, and `click(` web-only. They are here to give the
+paragraph above a size, not to be relied on — a build that adds a verb makes them
+wrong, and the rule this section opened with applies to them as much as to the
+platform set. Establish your own and record them in `platform-facts.md`.
+
+Which catalogue answers is chosen by a flag and never inferred. `list verbs` and
+`list blocks` read Web unless told otherwise, even inside an attached Unified
+version, because the grammar kinds answer from the catalogue compiled into the
+build and never open the marker. So enumerate a Unified application with
+`--dialect unified`, and record beside the counts which dialect produced them: a
+count with no dialect beside it is a number nobody can re-establish.
+
+Enumerating the wrong one is not caught at enumeration. It is caught at
+`validate`, once the steps are written —
+`${CLAUDE_PLUGIN_ROOT}/references/authoring.md` says what that costs.
+
+The flag belongs to the grammar kinds — `verbs`, `generators`, `blocks` and
+`layout` — though `layout` answers identically for both today. A tenant read such
+as `list applications` parses it and then ignores it, which is worth knowing
+precisely because nothing complains. A value other than `web` or `unified` prints
+the accepted set and **exits 0**, so read the line rather than the exit code.
+
 A platform absent from the set is a **gap** in the Residue sense and not a
 refusal: the format's owners track the three missing catalogues as work still to
 do, so a build change can close one, and recording it as permanent would tell a

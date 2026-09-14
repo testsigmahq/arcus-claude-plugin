@@ -185,3 +185,115 @@ def test_checks_says_why_validity_needs_no_tenant():
     assert has_paragraph_with(body, "validity", "marker") or has_paragraph_with(
         body, "workspace", "fabricat"
     ), "Validity needs a workspace, and that it can be made without a tenant is load-bearing"
+
+
+# --- which catalogue answered ------------------------------------------------
+
+#: The documents that put a grammar-kind command in front of a reader. Those
+#: commands answer from the catalogue compiled into the build, so they never
+#: read the marker and can never infer which platform the reader is on.
+CATALOGUE_READING_DOCUMENTS = (AUTHORING, PROBE)
+
+#: Anything that tells a reader Unified is supported. Such a document either
+#: names the flag that reads the Unified catalogue, or points at one that does.
+UNIFIED_CLAIMING_DOCUMENTS = tuple(
+    path
+    for path in (*REFERENCES_DIR.glob("*.md"), *skill_files())
+    if "unified" in path.read_text(encoding="utf-8").lower()
+)
+
+
+class TestTheDialectIsNamedWhereTheCatalogueIsRead:
+    """`list verbs` answers Web unless `--dialect unified` says otherwise.
+
+    There is no inference. The grammar kinds answer from the catalogue compiled
+    into the build and never open the marker, so standing inside an attached
+    Unified version and enumerating gives Web — against a catalogue that shares
+    only a fraction of its names with the one being written.
+
+    The plugin said Unified was writable and never said this, which is the whole
+    of the fault: two correct statements with the join between them missing.
+    """
+
+    @pytest.mark.parametrize(
+        "path", CATALOGUE_READING_DOCUMENTS, ids=lambda p: p.stem
+    )
+    def test_a_document_holding_the_command_names_the_flag(self, path):
+        assert "--dialect unified" in document(path).body
+
+    @pytest.mark.parametrize(
+        "path", UNIFIED_CLAIMING_DOCUMENTS, ids=lambda p: p.stem
+    )
+    def test_claiming_unified_means_naming_the_dialect_or_pointing_at_it(self, path):
+        # The fault was a claim of Unified support with no route to the Unified
+        # catalogue anywhere near it. A document may carry the flag itself or
+        # defer, but it may not leave the reader with neither.
+        body = document(path).body
+        assert "--dialect" in body or "cli-probe.md" in body or "authoring.md" in body
+
+    def test_authoring_names_it_where_it_tells_the_reader_to_enumerate(self):
+        assert has_paragraph_with(
+            document(AUTHORING).body, "list verbs", "--dialect unified"
+        )
+
+    def test_the_absence_of_inference_is_stated(self):
+        assert has_paragraph_with(
+            document(AUTHORING).body,
+            "regardless of what is attached",
+            absent=("inferred from",),
+        )
+
+    def test_the_consequence_says_where_the_work_lands(self):
+        # A Unified working copy compiles against the Unified catalogue whatever
+        # its author read, so the cost is a refusal after the steps are written
+        # — not a weaker test that passes.
+        assert has_paragraph_with(
+            document(AUTHORING).body, "TSF2001", "validate", absent=("harmless",)
+        )
+
+
+class TestTheProbeRecordsWhatTheChoiceCosts:
+    def test_the_flag_is_recorded_in_the_platform_section(self):
+        assert "--dialect unified" in document(PROBE).body
+
+    def test_the_size_of_the_difference_is_given(self):
+        # A probe recording "web and unified are both writable" and stopping
+        # reads as though the choice were administrative.
+        assert has_paragraph_with(document(PROBE).body, "seven of every eight")
+
+    def test_measured_figures_carry_the_build_they_came_from(self):
+        # ADR-0003: probe, never pin. This section's own rule is to record a
+        # measurement as what it last measured, with the build beside it, and
+        # never as a fact about the installed build. Asserting the integers
+        # themselves would pin them here too, and fail on a build that adds
+        # a verb — so what is asserted is the framing, not the numbers.
+        assert has_paragraph_with(
+            document(PROBE).body, "this reference last measured them", "2477ab0"
+        )
+
+    def test_the_reader_is_sent_to_establish_their_own(self):
+        assert has_paragraph_with(document(PROBE).body, "platform-facts.md", "your own")
+
+
+class TestTheFlagIsNotOverstated:
+    @pytest.mark.parametrize(
+        "path", CATALOGUE_READING_DOCUMENTS, ids=lambda p: p.stem
+    )
+    def test_no_document_claims_a_tenant_read_honours_it(self, path):
+        # `list applications --dialect unified` parses and is then ignored.
+        # Documenting it as accepted would teach a reader it did something.
+        assert "list applications --dialect" not in document(path).body
+
+    def test_the_probe_says_a_tenant_read_ignores_it(self):
+        assert has_paragraph_with(
+            document(PROBE).body, "list applications", "ignores it"
+        )
+
+    @pytest.mark.parametrize(
+        "path", CATALOGUE_READING_DOCUMENTS, ids=lambda p: p.stem
+    )
+    def test_the_exit_code_of_a_bad_value_is_disclaimed(self, path):
+        # A rejected value prints the accepted set and exits 0. A reader who
+        # gated on the exit code would conclude the read had succeeded, so both
+        # halves have to sit together: what it does, and what to read instead.
+        assert has_paragraph_with(document(path).body, "exits 0", "read the line")
