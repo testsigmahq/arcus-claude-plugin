@@ -28,8 +28,15 @@ Directory at `.testsigma/migration/` inside the suite itself.
 and a session starts blank; resume reads the Migration Directory and says where
 the work stands, including whether the installed CLI has changed under it.
 
-Then, as the work requires: `map` proposes and reviews rows, and `assemble`
-builds tests from reviewed rows.
+**`convert`** — run once per scenario. It takes the next scenario off the queue,
+maps the Source Steps it reaches, resolves their elements, assembles and checks
+the test, commits, and reports how many tests are delivered of how many
+scenarios. One Conversion per invocation, so a Migration delivers a working test
+on its first day rather than in its third week.
+
+`convert` calls `map`, which proposes and reviews rows, and `assemble`, which
+builds tests from reviewed rows. Either can be run on its own where the work
+calls for it.
 
 Two skills cover a source that describes what tests do but not how to find the
 controls, and which one you want depends on what is missing.
