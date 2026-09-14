@@ -56,14 +56,20 @@ rather than left to be inferred from its absence.
 cannot be confined to the target version, because the working copy lives under
 the application and no route takes a version. A Migration may create a new upload
 freely, since nothing references it yet. It may add a version to an *existing*
-upload only where the Operator says so for that upload, with the versions that
-would be repointed named first. "The Operator agreed to a push" is not that
-consent; the consent is per upload.
+upload only where the Operator says so for that upload. "The Operator agreed to a
+push" is not that consent; the consent is per upload.
 
-**The Operator inherits a decision the plugin cannot make.** Only a person knows
-whether another version of the application is in use. The plugin's job is to put
-the affected versions in front of them, not to guess that the blast radius is
-empty.
+**The Operator inherits a decision the plugin cannot make, and is told so.** An
+earlier draft of this ADR required the versions that would be repointed to be
+named before consent was asked for. They cannot be: nothing in the build or the
+server maps an upload to the steps that reference it, and the only list that can
+be assembled — the tests in the workspace — holds exactly the steps that are *not*
+at risk, since the damage lands in the application's other versions.
+
+So the plugin names none of them and says that is what it is doing. Only a person
+knows whether another version of the application is in use. A blast radius
+reported as empty because nobody could look is the failure this plugin exists to
+prevent, arriving at the scale of another team's test run.
 
 **Delivery gains no inventory precondition.** The live preflight already refuses a
 binding from the wrong tenant — absent (`TSS1101`) or resolving to a different

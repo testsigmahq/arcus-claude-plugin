@@ -101,6 +101,88 @@ push completes.
 No `pull --write` is required after adopting. The drift it would guard against is
 what the dry run below surfaces, at the moment it matters.
 
+## Uploads, the one send that escapes the Target Project
+
+Everything else Delivery sends lands in the version the working copy is attached
+to. Uploads do not. They are application-scoped: the working copy sits under the
+application directory, no route takes a version, and when a new upload version
+lands the server repoints **every referencing step** at it — including steps in
+the application's *other* versions. A step somewhere else that pinned that upload
+now resolves to bytes this Migration sent.
+
+So the two cases are not one case:
+
+**A new upload is free.** Nothing references it yet, so nothing can be repointed.
+Create one and the blast radius is empty by construction.
+
+**A new version of an existing upload is not.** It is the write above, and it
+reaches past the Target Project.
+
+### An id-less upload line is always a new upload
+
+An `upload` line with no `[id = N]` is a create, every time. There is no filename
+matching, no name matching and no heuristic behind it: if the application already
+holds an upload of that name, you get a second one beside it. With `[id = N]` it
+is a PUT, and each id-less `version` block under it mints a new version of that
+upload.
+
+So the way to bind to an upload the target already holds is to read it, not to
+guess at it: `pull uploads --write` against the target application writes a bound
+reference file per upload, and the new `version` block goes in the file that came
+back. Authoring an upload file by hand and hoping the name matches is how a
+Migration leaves a twin behind — the same failure adoption exists to prevent,
+arriving at the scale of a file the tests depend on.
+
+### What cannot be listed, and what is said instead
+
+The steps a new upload version would repoint **cannot be listed**. Nothing maps an
+upload to the steps that reference it: the build's usages mechanism covers step
+groups, test data profiles and elements, and uploads are absent from it.
+
+The one list that *can* be assembled is worse than none. The workspace holds the
+tests of the version the Operator is attached to, and those are the steps **not at
+risk** — the damage lands in the application's other versions, which no query
+reaches. A list drawn from the workspace would read as a survey of the blast
+radius while containing none of it.
+
+So the plugin names none of them, and says that is what it is doing. It asks the
+Operator for a new version of an existing upload knowing it cannot tell them what
+would be repointed, and the Operator decides on that footing. **The consent is per
+upload**: agreeing to the Delivery is not that consent, and neither is agreeing to
+one upload's version standing for the next.
+
+### The refusals
+
+`TSS1157` — the block is bound and carries a path. A version's bytes cannot be
+replaced; put the path in a new id-less block instead.
+
+`TSS1156` — the block is id-less and carries no path. Nothing mints an empty
+version.
+
+`TSS1117` — two id-less blocks of one name. A step pins a version by name, and two
+of one name resolves to neither.
+
+`TSS1201` — the baseline does not match. For an upload this is terminal: every
+upload write appends a version, so a flag could only append while claiming it had
+overwritten, and none is offered.
+
+Two more can refuse an upload push, and both are described above rather than here:
+`TSS1101`, where the `[id = N]` names no upload in this application — the
+wrong-tenant case, and the deleted-upload one — and `TSS1138`, which arrives only
+under `--dry-run` and means run it once for real.
+
+### When there is nothing to send
+
+A pushed upload file is the canonical pulled form: the minted id is bound and
+`localFilePath` is gone in the same write, so nothing in it offers bytes any more.
+Pushing it again sends nothing, and says so — *every version in this file is one
+the server already holds, so there is nothing to send*.
+
+Read the sentence rather than the code. The notice code that carries it also
+carries three other meanings, one of which is "used by N other tests" — which
+never fires for an upload at all. An Operator who looked the number up would find
+the wrong one of the four.
+
 ## The flags
 
 **`--dry-run` runs before every push.** Not where there is reason to doubt the
@@ -112,10 +194,8 @@ would write, so the Operator sees what this workspace would send before any
 bytes move.
 
 Those rows are what is sent, not what is reached. Where they include a new
-version of an existing upload, the steps repointed across the application's
-other versions are not among them and cannot be listed at all. An upload version
-therefore needs the Operator's say-so for that upload specifically, which one
-trigger for the whole Delivery does not supply.
+version of an existing upload, what that reaches is not among them — see
+**Uploads** below, which owns that rule.
 
 It is not a perfect rehearsal. A step whose visual check compares against a local
 golden refuses under it with `TSS1138`, because the upload mints the id the

@@ -151,6 +151,98 @@ class TestTheFlags:
         assert has_paragraph_with(_text(), "version block", "deletes nothing")
 
 
+# --- uploads -----------------------------------------------------------------
+
+class TestTheUploadThatEscapesTheTarget:
+    """The one write a Migration cannot confine to the Target Project.
+
+    Everything else Delivery sends lands in the version the working copy is
+    attached to. A new version of an existing upload does not: the server
+    repoints every referencing step at it, across the application's other
+    versions, where nobody is watching and nothing connects the change back.
+    """
+
+    def test_a_new_upload_is_free(self):
+        # "A new upload is not free even though nothing references it yet"
+        # satisfies a co-occurrence of the two halves, so assert the claim.
+        assert has_paragraph_with(_text(), "a new upload is free")
+
+    def test_a_new_version_of_an_existing_upload_is_not(self):
+        assert has_paragraph_with(_text(), "reaches past the Target Project")
+
+    def test_an_id_less_upload_line_is_always_a_new_upload(self):
+        # "always" and "new upload" both appear in the heading above this rule,
+        # and in "not always a new upload". The absence of matching is the fact.
+        assert has_paragraph_with(_text(), "is a create, every time")
+        assert has_paragraph_with(_text(), "no filename matching")
+
+    def test_pulling_the_target_uploads_is_named_as_how_to_avoid_a_twin(self):
+        # The command alone is satisfied by "do not run `pull uploads --write`".
+        # What it is for has to be in the same paragraph as the command.
+        assert has_paragraph_with(_text(), "pull uploads --write", "twin")
+
+    def test_consent_is_per_upload_rather_than_per_delivery(self):
+        assert has_paragraph_with(_text(), "consent is per upload")
+
+    def test_agreeing_to_the_delivery_is_stated_not_to_be_that_consent(self):
+        # Otherwise one trigger for the whole Delivery reads as sufficient.
+        assert has_paragraph_with(_text(), "is not that consent")
+
+
+class TestTheBlastRadiusIsNotEnumerable:
+    def test_it_says_the_repointed_steps_cannot_be_listed(self):
+        assert has_paragraph_with(_text(), "cannot be listed")
+
+    def test_it_says_the_plugin_asks_anyway(self):
+        # An unanswerable question asked honestly beats a blast radius reported
+        # as empty because nobody could look.
+        assert has_paragraph_with(_text(), "names none of them")
+
+    def test_the_workspace_is_not_offered_as_the_blast_radius(self):
+        # The tests on disk are the ones NOT at risk, so listing them would read
+        # as a survey containing none of the thing surveyed. An existence check
+        # on "not at risk" would still pass with such a list added beside it.
+        assert has_paragraph_with(
+            _text(), "a survey of the blast radius while containing none of it"
+        )
+
+
+class TestTheUploadRefusals:
+    def test_a_bound_block_carrying_a_path_is_named(self):
+        assert has_paragraph_with(_text(), "TSS1157", "cannot be replaced")
+
+    def test_the_remaining_upload_refusals_are_named_with_their_meaning(self):
+        # A code with no meaning beside it is a string to search for, not
+        # something an Operator can act on.
+        assert has_paragraph_with(_text(), "TSS1156", "empty version")
+        assert has_paragraph_with(_text(), "TSS1117", "resolves to neither")
+
+    def test_uploads_cannot_be_forced_past_a_baseline_mismatch(self):
+        # "a flag appends past TSS1201" keeps both terms. That none is offered
+        # is the rule.
+        assert has_paragraph_with(_text(), "TSS1201", "none is offered")
+
+    def test_the_two_refusals_described_elsewhere_are_cross_referenced(self):
+        # An Operator meeting one of these under an upload push has nothing to
+        # look up if the upload section lists only the four the plan raises.
+        assert has_paragraph_with(_text(), "TSS1101", "names no upload")
+        assert has_paragraph_with(_text(), "TSS1138", "once for real")
+
+    def test_an_unchanged_push_is_described_by_what_it_says_not_by_its_code(self):
+        # The code that carries this is overloaded: one number covers four
+        # different notices, including "used by N other tests", which never
+        # fires for an upload. The sentence identifies the outcome; the code
+        # does not, so quoting the number would mislead whoever looked it up.
+        assert has_paragraph_with(_text(), "already holds", "nothing to send")
+
+    def test_the_overloaded_notice_code_is_never_cited(self):
+        # A regression guard rather than a description: the code is absent today
+        # because citing it was decided against, and the number looks
+        # authoritative enough that a later editor would add it back in good
+        # faith. This fails the moment they do.
+        assert "TSS1110" not in _text()
+
+
 # --- the rules stay rules ----------------------------------------------------
 
 class TestNothingGrantsItselfAnException:
