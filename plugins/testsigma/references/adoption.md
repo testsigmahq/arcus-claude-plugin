@@ -38,6 +38,77 @@ what the project holds at the snapshot the Migration started from, and an edited
 one has stopped saying that. A Migration authors under the suite's own test
 directory and never under `existing/`.
 
+## The bytes an upload holds, and what they are evidence of
+
+`pull uploads --write` says an upload exists and what it is called. It does not
+produce the file. Where the question is what the bytes actually are — whether the
+fixture this project holds is the one the suite feeds its steps — `url` fetches
+them:
+
+    testsigma pull uploads --write                       # first, and in the same sitting
+    testsigma url upload "invoice.pdf"                   # the link, and the version it is for
+    testsigma url upload 512                             # by id, where a name matches more than one
+    testsigma url upload "invoice.pdf" --output existing/uploads/
+
+It prints the upload with its id, the version it resolved, the link, and how long
+that link lasts. `upload` is the only kind it takes: every other entity's content
+is already in the workspace, so there is nothing to fetch.
+
+The order matters, and so does the sitting. **`url` reads this workspace, not the
+tenant.** The version it signs is the file's newest — its first version block —
+and `--version "<name>"`, which is how any other version is chosen, is matched
+against the file's blocks too, never against the server's. A name the file does
+not hold is `TSS1425`, and the refusal lists the names it does. That is deliberate: the workspace was reconciled against a particular
+version, and signing whatever is latest would hand back bytes the workspace never
+named.
+
+What follows has to be said out loud. Pull on Monday, someone adds a version on
+Tuesday, run `url` on Wednesday, and you get Monday's bytes — correctly, and the
+output says nothing about a newer version existing. Meanwhile every step
+referencing that upload was repointed to Tuesday's the moment it landed
+(ADR-0014). So a file fetched from a stale workspace is evidence of something no
+part of the target still runs.
+
+Two things keep it honest, and both are cheap. Pull immediately before fetching,
+because the pull is the only one of the two that re-reads the tenant. And
+**record the version name beside the bytes** — `url` prints it on its first line.
+Evidence whose version is recorded stays true however old it gets; a bare file
+quietly becomes a claim about the present that nobody checked.
+
+Fetched bytes go under `existing/` and take its rule unchanged: evidence, never
+edited. `--output` writes exactly the stored bytes and touches no `.sigma` and no
+baseline, which is what makes filing them there sound. Given
+a directory it uses the server's own name for the file, and a trailing separator
+is how you name a directory that does not exist yet.
+
+`--force` overwrites a file already sitting at that path, and means nothing else —
+it does not reach the fetch. Without it an existing file stops the download
+untouched, and `TSS1426` gives the reason in its own words: a download is the one
+thing this CLI writes that it cannot write again from the workspace, so the file
+it would land on is yours. `--force` with no `--output` is refused
+rather than ignored.
+
+The refusal a Migration actually meets is `TSS1407`: the Target Project holds the
+upload and this workspace holds no reference file for it, which the exit closes by naming
+the pull that would create one. `TSS1406` is the tenant not having it at all,
+`TSS1402` a name matching more than one, and `TSS1425` a version name the file
+does not hold, listing the ones it does.
+
+The link itself is a presigned object-store URL, and it is **not single-use**:
+anyone holding it can fetch until it expires. It carries no credentials for the
+project — the signature is the whole authorisation — so it is safe to paste in the
+sense that it **cannot open the tenant**, and unsafe in the sense that it is an
+**unauthenticated** link to a real file until it expires. Treat it as the file,
+not as a reference to it.
+
+How long it lasts is a property of the build, so read it rather than assume it:
+the command prints the validity, and `--json` carries `expiresInSeconds` as a
+number so nothing has to parse the URL.
+
+`url` performs **no writes through the API**: it resolves a version and follows a
+redirect, and mints nothing. What a tenant records server-side is not visible from
+here, so that is the whole of the claim.
+
 `existing/` is not one of the Migration Directory's nine files and survey does
 not create it when there is nothing to pull. Its absence means the project was
 empty, or that nobody looked — which is why survey records which of the two.

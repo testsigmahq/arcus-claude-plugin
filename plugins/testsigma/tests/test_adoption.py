@@ -207,6 +207,117 @@ class TestTheProhibitionIsScoped:
         assert "no Conversion" not in _text()
 
 
+# --- fetching the bytes an upload holds --------------------------------------
+
+class TestUrlFetchesWhatTheWorkspaceNames:
+    """`url` reads the workspace's memory of the tenant, not the tenant.
+
+    The version it signs is the file's newest, not the server's latest. So bytes
+    fetched as evidence can be bytes nothing in the target runs any more: the
+    server gained a version, every referencing step was repointed at it
+    (ADR-0014), and this workspace still names the old one.
+
+    That is the same shape as the rename notice in delivery.md — a command that
+    looks like it reads the tenant and reads a snapshot instead.
+    """
+
+    def test_the_inventory_section_describes_it(self):
+        assert has_paragraph_with(_text(), "testsigma url upload")
+
+    def test_it_takes_no_kind_but_upload(self):
+        # Every other entity's content is in the workspace already, so there is
+        # nothing for this to fetch.
+        assert has_paragraph_with(_text(), "the only kind it takes")
+
+    def test_it_says_what_the_pull_does_not_answer(self):
+        # The pull says an upload exists and what it is called. Only `url`
+        # produces bytes, and only of the version this workspace names. A
+        # co-occurrence of the command and "bytes" passes with that reversed.
+        assert has_paragraph_with(_text(), "It does not produce the file")
+
+    def test_the_version_signed_is_the_files_not_the_servers(self):
+        # The `absent=` form of this banned a phrasing nobody would write, so
+        # prose saying it signs the server's latest passed. The document has to
+        # make the negative claim itself.
+        assert has_paragraph_with(_text(), "the file's newest")
+        assert has_paragraph_with(_text(), "never against the")
+
+    def test_version_is_named_as_how_another_version_is_chosen(self):
+        assert has_paragraph_with(_text(), "--version", "any other version")
+
+    def test_a_version_the_file_lacks_is_refused_and_the_names_listed(self):
+        assert has_paragraph_with(_text(), "TSS1425", "lists the names")
+
+    def test_the_staleness_that_follows_is_stated(self):
+        assert has_paragraph_with(_text(), "a newer version", "says nothing")
+
+    def test_the_pull_that_closes_it_runs_first(self):
+        # "same sitting" alone also appears in a comment inside the fenced
+        # block, so the rule's prose could be deleted with the test still green.
+        assert has_paragraph_with(_text(), "Pull immediately before fetching")
+
+    def test_the_version_is_recorded_beside_the_bytes(self):
+        # Evidence whose version is recorded stays true later. A bare file
+        # decays into a claim about the present that was never checked.
+        assert has_paragraph_with(_text(), "record the version name")
+
+    def test_the_fetched_bytes_fall_under_the_evidence_rule(self):
+        # The `or` form of this passed off the pre-existing inventory rule
+        # rather than the new section, so deleting the clause it names changed
+        # nothing.
+        assert has_paragraph_with(_text(), "take its rule unchanged")
+
+
+class TestTheLinkIsDescribedHonestly:
+    def test_both_halves_of_the_link_are_stated(self):
+        # Safe in that it cannot open the tenant; unsafe in that it is an
+        # unauthenticated link to a real file. Either half alone misleads.
+        body = _text()
+        assert has_paragraph_with(body, "cannot open the tenant")
+        assert has_paragraph_with(body, "unauthenticated")
+
+    def test_how_long_the_link_lasts_is_read_rather_than_stated(self):
+        # ADR-0003: a diagnostic code is a name the build can be asked about, so
+        # citing one is sound. A duration is not — nothing probes it and nothing
+        # degrades when the build changes it. Naming the number here would pin
+        # it in the suite as well as the prose.
+        assert has_paragraph_with(_text(), "read it rather than assume it")
+        assert has_paragraph_with(_text(), "expiresInSeconds")
+        assert "three hours" not in _text()
+
+    def test_the_link_is_not_single_use(self):
+        assert has_paragraph_with(_text(), "not single-use")
+
+    def test_read_only_is_claimed_no_more_strongly_than_it_holds(self):
+        # "Performs no writes through the API" is supportable. "Nothing is
+        # recorded anywhere" is a claim about the tenant's logging that nobody
+        # on this side can make.
+        assert has_paragraph_with(_text(), "no writes through the API")
+        assert "nothing is recorded" not in _text().lower()
+
+
+class TestTheUrlFlags:
+    def test_output_is_named_with_what_it_writes(self):
+        assert has_paragraph_with(_text(), "--output", "exactly the stored bytes")
+
+    def test_output_is_stated_not_to_touch_the_workspace(self):
+        # This is what makes filing the bytes under `existing/` sound.
+        assert has_paragraph_with(_text(), "--output", "no baseline")
+
+    def test_force_overwrites_the_output_file_and_nothing_else(self):
+        # `absent=("the fetch",)` cannot express this: the correct prose says
+        # the flag "does not reach the fetch", and the guard would ban its own
+        # answer. The scope of the flag is the positive claim to assert.
+        assert has_paragraph_with(_text(), "--force", "means nothing else")
+
+    def test_force_without_output_is_refused_rather_than_ignored(self):
+        assert has_paragraph_with(_text(), "--force", "refused rather than ignored")
+
+    def test_the_refusal_a_migration_actually_meets_is_named(self):
+        # The tenant has the upload and this workspace has no reference file.
+        assert has_paragraph_with(_text(), "TSS1407", "reference file")
+
+
 def test_the_reference_states_rules_rather_than_granting_permission():
     # A rule is most often gutted by adding a paragraph that grants permission,
     # not by editing the rule.
