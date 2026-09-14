@@ -306,3 +306,48 @@ def test_no_document_calls_element_resolution_a_phase():
         f"these still frame element resolution as a Phase: {offenders}. Survey "
         "is the only Phase; resolution happens inside a Conversion."
     )
+
+
+# --- the glossary does not order the first two places (ADR-0013) -------------
+
+def test_the_adr_that_separates_looking_first_from_winning_is_tracked():
+    from support import adr_files
+
+    matching = [p for p in adr_files() if p.name.startswith("0013")]
+    assert len(matching) == 1, (
+        f"no ADR-0013 among {[p.name for p in adr_files()]}; the ordering was "
+        "reversed once already and the reason must outlive this session"
+    )
+    body = matching[0].read_text(encoding="utf-8").lower()
+    assert "target project, then the source" in body
+    assert "last resort" in body
+
+
+class TestTheGlossaryDefersTheOrdering:
+    """One term was carrying two rules, and they pointed opposite ways.
+
+    Where you *look* first is the project, so a name collision is noticed at
+    all; which answer is *written* is the source, because that is what the test
+    actually drove. The glossary stated a single order and was wrong as either.
+    """
+
+    def _entry(self):
+        body = document(PLUGIN_ROOT / "CONTEXT.md").body
+        start = body.index("**Element Resolution**:")
+        return " ".join(body[start:body.index("\n\n", start)].split()).lower()
+
+    def test_it_names_all_three_places(self):
+        entry = self._entry()
+        for place in ("target project", "source", "operator capture"):
+            assert place in entry, f"the glossary does not name {place}"
+
+    def test_it_states_only_that_operator_capture_is_last(self):
+        entry = self._entry()
+        assert "last resort" in entry
+        assert "in that order" not in entry, (
+            "ordering the first two places here contradicts the procedure; "
+            "references/element-resolution.md owns it"
+        )
+
+    def test_it_points_at_the_decision_rather_than_repeating_it(self):
+        assert "adr-0013" in self._entry()

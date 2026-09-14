@@ -88,13 +88,14 @@ occurrence count, parameter shapes, the proposed expression, and a status. One
 Source Step may map to several `.sigma` steps.
 
 **Element Resolution**:
-The act of satisfying the element names a Step Map references — from the source,
-from the target project, or by Operator capture, in that order. It happens
-inside a Conversion, never as a stage of its own. Where the source carries
-locators they sit in the files that carry sequence, so resolution and mapping
-are one reading. Where it carries none, the first place is empty and the second
-answers most of what is left; only when all three are exhausted does the
-Conversion park on the Operator.
+The act of satisfying the element names a Step Map references — from the target
+project, from the source, or by Operator capture. It happens inside a
+Conversion, never as a stage of its own. Where the source carries locators they
+sit in the files that carry sequence, so resolution and mapping are one reading.
+Operator capture is the last resort: a Conversion reaches them only where
+neither of the other two can answer, and parks when it does. Which of those two
+is consulted first, and which wins where they disagree, are fixed by the
+procedure (ADR-0013).
 
 **Residue**:
 The Source Steps a migration could not express, each with a stated cause.
