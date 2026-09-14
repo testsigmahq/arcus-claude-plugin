@@ -15,6 +15,7 @@ from support import (
     document,
     PLUGIN_ROOT,
     has_paragraph_with,
+    hedges_in,
     read_frontmatter,
 )
 
@@ -213,3 +214,91 @@ def test_the_glossary_defines_the_term_this_skill_is_named_for():
     # differently; the queue's four statuses depend on the term.
     body = CONTEXT.read_text(encoding="utf-8")
     assert "**Conversion**:" in body, "convert is named for a term the glossary never defines"
+
+
+class TestParking:
+    """A Conversion needing the Operator is parked; the Migration is not stalled.
+
+    Under Phases one unanswered question could hold up a whole Migration. For a
+    customer onboarding onto Testsigma that is weeks of silence traceable to a
+    single question nobody chased, and it is the failure parking exists to
+    prevent.
+    """
+
+    def _parking(self):
+        return DOC.section("Park")
+
+    def _report(self):
+        return DOC.section("Report")
+
+    def test_no_hedge_grants_permission_to_stop_instead(self):
+        # A permissive sentence added beside the rule is how "park rather than
+        # stop" becomes "park where convenient".
+        assert not hedges_in(self._parking()), "parking must not be optional"
+
+    def test_it_parks_rather_than_stopping_the_migration(self):
+        assert has_paragraph_with(
+            self._parking(),
+            "park",
+            "only the operator",
+            absent=("stop the migration", "wait for the answer"),
+        ), "a Conversion that stops on an unanswered question stalls the Migration"
+
+    def test_parking_sets_the_status_and_records_what_it_waits_on(self):
+        assert has_paragraph_with(
+            self._parking(), "`parked`", "`reason`", "waits on"
+        )
+
+    def test_the_reason_is_in_the_operators_terms_and_is_bound_by_the_rule(self):
+        # `scenarios.md` is read back to the Operator by `resume`, so a Reason
+        # holding a file path is a file path put in front of them. The four
+        # forbidden kinds are not relisted here: `asking.md` decides them and
+        # says a skill restating them need not.
+        assert has_paragraph_with(
+            self._parking(), "`reason`", "operator", "terms"
+        ), "a Reason outside the rule is diagnostic detail shown to the Operator"
+
+    def test_the_question_itself_goes_to_the_open_questions(self):
+        # `Reason` says what is outstanding; `open-questions.md` is where the
+        # Operator answers it. Without the second, parking records a wait with
+        # nowhere to end it.
+        assert has_paragraph_with(self._parking(), "`open-questions.md`", "answer")
+
+    def test_having_parked_the_invocation_ends(self):
+        # Parking is not a way around one-and-stop: the next Conversion is the
+        # next invocation's, not this window's.
+        assert has_paragraph_with(
+            self._parking(),
+            "ends",
+            "another conversion",
+            absent=("take the next scenario now", "continue with the next"),
+        )
+
+    def test_a_parked_conversion_is_taken_up_again_once_the_thing_clears(self):
+        assert has_paragraph_with(
+            self._parking(), "`pending`", "cleared"
+        ), "a parked scenario nothing returns to pending is a scenario forgotten"
+
+    def test_a_re_taken_conversion_goes_through_the_same_loop(self):
+        assert has_paragraph_with(
+            self._parking(),
+            "same loop",
+            absent=("resume where it left off", "second path"),
+        )
+
+    def test_residue_never_parks_a_conversion(self):
+        assert has_paragraph_with(
+            self._parking(),
+            "residue",
+            "never parks",
+            "marker",
+            absent=("parks the conversion",),
+        ), "losing a whole test to a correctly declined step would be a regression"
+
+    def test_the_operator_is_told_what_parked_and_why(self):
+        # Told what parked and what it waits on — not a status the Operator
+        # then has to go and decode somewhere else.
+        report = self._report().lower()
+        assert "parked" in report and "waits on" in report, (
+            "a status the Operator must go and decode is not a report"
+        )

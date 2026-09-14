@@ -55,7 +55,56 @@ If it is present, read it before working. `migration.md` names the adapter, the
 pinned snapshot and where the working copy goes; `scenarios.md` is the queue;
 `step-map.md` holds what has already been decided.
 
+## Parking: when only the Operator can answer
+
+**Where a Conversion needs something only the Operator can supply, park it rather
+than stopping.** Something only the Operator can supply is a question about their
+application that nothing in the source or the target project answers, or an
+element the source does not carry, the target project does not hold and only they
+can capture. Before Conversions, one such question could hold up an entire
+Migration; for a customer onboarding onto Testsigma that is weeks of silence
+traceable to a single question nobody chased, and it is the failure parking exists
+to prevent.
+
+To park it: set the scenario's status in `scenarios.md` to `parked`, and write in
+`Reason` what it waits on, in one line. Put the question itself in
+`open-questions.md` as well, because `Reason` says what is outstanding and
+`open-questions.md` is where the Operator answers it.
+
+`Reason` is read back to the Operator by `resume`, so it is written in their
+terms and under the rule above, like everything else put in front of them.
+"Waiting on which of the two Submit controls on the checkout screen is the live
+one" is a Reason; a locator is not.
+
+**Having parked, this invocation ends.** Do not go on to another Conversion in the
+same window. Parking is not a way around one Conversion per invocation: the loop
+takes the next one in the next invocation, which is how a Migration keeps moving
+without a session's judgement calls piling up behind one another.
+
+A parked scenario becomes selectable again as soon as the thing it waited on has
+cleared, by returning to `pending` in Step 1. It then goes through the same loop
+as any other Conversion, from the top — mapped, resolved, assembled, checked,
+recorded. There is one path to a delivered test, not a second one for scenarios
+that were once parked.
+
+**Residue never parks a Conversion.** A Source Step the format cannot express is
+a decided outcome rather than an outstanding one, and it assembles as its marker
+so the step is never silently absent. Losing a whole test to a step that was
+correctly declined would be a regression.
+
+The two are told apart by who is owed something. Parking waits on the Operator and
+names what for; Residue waits on nobody, because someone has already ruled. An
+element the source does not carry is one or the other by the same test: parked
+while the Operator has yet to capture it, Residue once the ruling is that it cannot
+be had.
+
 ## Step 1: Take the next scenario
+
+Before selecting, look at the parked rows in `scenarios.md`. Where what a row
+waits on has cleared — the Operator has answered the open question, or the element
+it needed is now available — set that scenario back to `pending` so the ordering
+can reach it. A parked scenario nothing returns to `pending` is a scenario the
+Operator unblocked and the Migration forgot.
 
 Run `${CLAUDE_PLUGIN_ROOT}/scripts/next_conversion.py --suite <the suite>`. It
 names the pending scenario introducing the most Source Steps nobody has judged
@@ -141,6 +190,8 @@ Tell the Operator, in this order:
 - how many rows this Conversion decided new versus reused — this is what explains
   why the third Conversion took an hour and the three-hundredth took minutes
 - any Concession or Residue recorded, and what each one costs in practice
+- whether anything parked, and what it waits on — the one part of the report the
+  Operator alone can act on
 
 Then stop. Anything unresolved goes where it belongs first: a question for the
 Operator into `open-questions.md`, something learned about Testsigma into
