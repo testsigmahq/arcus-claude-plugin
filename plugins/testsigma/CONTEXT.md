@@ -34,6 +34,10 @@ the snapshot pinned and the vocabulary enumerated. Mapping, element resolution
 and assembly are not Phases — they are the steps inside a Conversion, and they
 run once per Conversion rather than once per Migration.
 
+A skill calling its own work a *stage* means the step it performs inside a
+Conversion, which is why the word survives where the term does not. What makes
+something a Phase is blocking the rest of the Migration, and only survey does.
+
 **Conversion**:
 The end-to-end work on one source scenario: mapping the Source Steps it reaches,
 resolving the elements those steps name, assembling the test, checking it and

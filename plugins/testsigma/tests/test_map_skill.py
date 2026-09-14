@@ -186,9 +186,12 @@ class TestResolvingAnElement:
         )
 
     def test_it_runs_here_only_where_the_source_carries_locators(self):
-        # Whether this is a Phase of its own is a property of the source, not
-        # of the Migration.
-        assert has_paragraph_with(_section("element"), "carries-locators", "phase")
+        # Whether this step applies is a property of the source, not of the
+        # Migration — and where it does not, the elements are still resolved in
+        # the same Conversion rather than in a stage of their own (ADR-0012).
+        assert has_paragraph_with(
+            _section("element"), "carries-locators", "resolve-elements"
+        )
 
     def test_the_format_specific_measurement_stays_in_the_adapter(self):
         # The adapter is the only part of a Migration that knows the format. A

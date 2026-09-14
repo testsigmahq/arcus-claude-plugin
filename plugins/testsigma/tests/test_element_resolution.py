@@ -247,59 +247,12 @@ def test_no_caller_restates_a_rule_the_reference_owns(path, phrase):
 #: Conversion, and a document still calling it a Phase is a document that gets
 #: it invoked as a bulk stage over a whole suite — which is the order this
 #: change exists to undo.
-def _phase_claims(text):
-    """Paragraphs that speak of elements and of a Phase in the same breath.
-
-    A paragraph rather than a fixed phrase, because the framing survives any
-    number of rewordings: what makes it wrong is a Phase and an element being
-    the same subject, not the sentence that says so.
-    """
-    from support import paragraphs
-
-    out = []
-    for block in paragraphs(text):
-        flat = " ".join(block.split()).lower()
-        if "element" not in flat or "phase" not in flat:
-            continue
-        # Co-occurrence cannot read polarity, and the documents that retired the
-        # framing say so in as many words. A paragraph denying it is the fix,
-        # not the fault.
-        if any(
-            denial in flat
-            for denial in (
-                "is not a phase",
-                "neither point is a phase",
-                "never as a stage",
-                "survey is the only",
-                "only phase",
-            )
-        ):
-            continue
-        out.append(flat[:90])
-    return out
-
-
-def _swept():
-    """Every document that speaks to a reader about how a Migration is run.
-
-    References and `CONTEXT.md` are in it because the framing survived there
-    while every skill had dropped it — the reference is the document the skills
-    defer to, so a Phase left standing in it is the framing still in force.
-    ADRs are not: an ADR records a decision as it was made, and ADR-0012 is what
-    supersedes this one rather than an edit to its predecessors.
-    """
-    return (
-        list(document_files())
-        + sorted(ADAPTERS_DIR.glob("*.md"))
-        + sorted(REFERENCES_DIR.glob("*.md"))
-        + [PLUGIN_ROOT / "CONTEXT.md", PLUGIN_ROOT / "README.md"]
-    )
-
-
 def test_no_document_calls_element_resolution_a_phase():
+    from support import phase_claims, swept_documents
+
     offenders = {}
-    for path in _swept():
-        claims = _phase_claims(path.read_text(encoding="utf-8"))
+    for path in swept_documents():
+        claims = phase_claims(path.read_text(encoding="utf-8"), subject="element")
         if claims:
             offenders[doc_id(path)] = claims
     assert not offenders, (

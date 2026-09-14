@@ -173,8 +173,8 @@ not be verified says so.
 ## Step 5: Resolve the elements a row references
 
 This step runs here only where the adapter declares `carries-locators: yes` or
-`sometimes`; where it declares `no`, resolution is a Phase of its own after
-mapping and this step does not apply.
+`sometimes`. Where it declares `no`, the resolve-elements skill takes them from
+the target project or the Operator, inside this same Conversion.
 
 The procedure — the three places to look, in order, and what happens when none of
 them answers — is defined in

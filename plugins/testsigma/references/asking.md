@@ -6,8 +6,8 @@ to ask and cheapest to answer. A skill that had to hand off in order to ask woul
 ask later, or not at all.
 
 So any skill may raise a question, at any point, without handing off to anything
-else. What lives outside the Phases is not the asking but the outstanding
-question: the record of one that has not been answered yet.
+else. What outlives the work that raised it is not the asking but the
+outstanding question: the record of one that has not been answered yet.
 
 This document is the single definition of how a question is put and what keeps it
 open. One of its sections — what may never be put in front of the Operator —
@@ -19,8 +19,8 @@ stated. The files it writes to are defined in
 
 Any skill may raise a question mid-work, without handing off and without waiting
 for a stage boundary. Raise it at the point the information is missing rather
-than collecting questions for later: a batch of questions at the end of a Phase
-is a batch of work already done on guesses.
+than collecting questions for later: a batch of questions saved up to the end of
+a Conversion is a batch of work already done on guesses.
 
 Do not raise one for something you can settle yourself. If probing Testsigma
 would answer it, that is a Platform Fact and probing is the answer. The Operator's
@@ -101,8 +101,8 @@ putting it to the Operator and before doing anything that depends on the answer.
 A question that exists only in the session's transcript is lost when the session
 ends, and the session always ends.
 
-Only an answer clears a question. Nothing else does — not the Phase moving on,
-not the question becoming awkward, not a later session deciding it looks stale,
+Only an answer clears a question. Nothing else does — not the Conversion moving
+on, not the question becoming awkward, not a later session deciding it looks stale,
 and not the work having proceeded on a guess in the meantime. If the work went
 ahead on an assumption, the question stays open and the assumption is recorded
 beside it, because that is precisely the case where a wrong answer is expensive.

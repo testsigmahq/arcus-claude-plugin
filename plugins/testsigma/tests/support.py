@@ -580,3 +580,65 @@ class Document:
 def document(path):
     """A `Document` for `path`. The one way a test module binds to a file."""
     return Document(path)
+
+
+#: Sentences allowed to say "Phase". Survey is one, so the word survives; what
+#: is retired is every other stage of a Migration claiming to be one (ADR-0012).
+#:
+#: Scoped to the sentence rather than the paragraph, because a paragraph-wide
+#: exemption is granted by one sentence and spent by another: "Survey is the
+#: only Phase" sitting beside a sentence that calls mapping one would pass a
+#: check that reads the whole block.
+PHASE_DENIALS = (
+    "is not a phase",
+    "are not phases",
+    "neither point is a phase",
+    "survey is the only",
+    "only phase",
+    "only survey does",
+    # The glossary's own term marker. It is the authority the rest defers to,
+    # and a definition of a live term is not a document claiming to be one.
+    "**phase**:",
+)
+
+
+def swept_documents():
+    """Every document that speaks to a reader about how a Migration is run.
+
+    Skills, commands, references, adapters, the glossary and the README.
+    References are in it because the framing survived there while every skill
+    had dropped it — a reference is what the skills defer to, so a retired term
+    left standing in one is the framing still in force.
+
+    ADRs are not: an ADR records a decision as it was made, and the one that
+    supersedes a framing is not an edit to its predecessors.
+    """
+    documents = list(document_files())
+    for directory in (REFERENCES_DIR, ADAPTERS_DIR):
+        if directory.is_dir():
+            documents.extend(sorted(directory.glob("*.md")))
+    return documents + [PLUGIN_ROOT / "CONTEXT.md", PLUGIN_ROOT / "README.md"]
+
+
+def phase_claims(text, subject=None):
+    """Sentences calling something a Phase, denials excluded.
+
+    `subject` narrows to sentences that are also about that word, which is what
+    the element-resolution sweep wants; without it this is every claim.
+    """
+    import re
+
+    out = []
+    for block in paragraphs(text):
+        flat = " ".join(block.split())
+        for sentence in re.split(r"(?<=[.:;])\s+", flat):
+            lowered = sentence.lower()
+            if "phase" not in lowered:
+                continue
+            if subject and subject not in lowered:
+                continue
+            if any(denial in lowered for denial in PHASE_DENIALS):
+                continue
+            out.append(sentence[:100])
+    return out
+
