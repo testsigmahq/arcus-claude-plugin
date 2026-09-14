@@ -44,6 +44,11 @@ empty, or that nobody looked — which is why survey records which of the two.
 
 ## Adoption is read-only against the source project
 
+**This section governs a read-only source project, and only that one.** It says
+nothing about the Target Project, which a Migration does deliver into —
+`${CLAUDE_PLUGIN_ROOT}/references/delivery.md` owns that, and owns the rule about
+which project is which.
+
 Pull, never push. A project holding hand-written work is one a team depends on,
 and a Migration's first act against it must not be a write. Where the Operator
 names a project as read-only, that is absolute and covers every subcommand that

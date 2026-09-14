@@ -160,7 +160,11 @@ that has converted everything has still delivered nothing until a person says so
 The reason is that one kind of write — a new version of an existing upload —
 reaches beyond the Target Project's version, and a consequence that wide has to
 be attributable to a moment someone chose.
-_Avoid_: push, upload, publish, sync
+
+`push` is the command that performs it and keeps its name. What the term replaces
+is *push* as the name of the act, which said what was typed rather than what
+happened.
+_Avoid_: publish, sync, ship, the push
 
 **Adoption**:
 Binding a Step Map row to an entity the target project already held, instead of

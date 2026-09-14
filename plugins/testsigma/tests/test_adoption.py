@@ -178,6 +178,35 @@ class TestMatching:
         assert has_paragraph_with(_text(), "never a stage")
 
 
+# --- which project these rules govern ----------------------------------------
+
+class TestTheProhibitionIsScoped:
+    """"Pull, never push" governs a read-only source project, not the target.
+
+    Before this was written down it was the only mention of `push` in the
+    plugin, so it read as a rule about every project — and a reader concluded a
+    Migration never delivers at all. A correctly-scoped rule standing alone,
+    with its counterpart undocumented, does not read as narrow.
+    """
+
+    def test_the_section_declares_what_it_governs(self):
+        # Asserting "pull, never push" beside "read-only" would pass on the text
+        # as it stood before the scope was added: both already appeared in that
+        # paragraph. The declaration itself is the new property.
+        assert has_paragraph_with(_text(), "and only that one")
+
+    def test_it_disclaims_the_target_project_by_name(self):
+        assert has_paragraph_with(_text(), "says nothing about the Target Project")
+
+    def test_it_points_at_the_reference_that_owns_delivery(self):
+        assert "${CLAUDE_PLUGIN_ROOT}/references/delivery.md" in _text()
+
+    def test_it_does_not_restate_the_rule_it_points_at(self):
+        # Two copies of "which project is which" is how the two worlds drift
+        # back together. adoption.md carries the scope and the pointer only.
+        assert "no Conversion" not in _text()
+
+
 def test_the_reference_states_rules_rather_than_granting_permission():
     # A rule is most often gutted by adding a paragraph that grants permission,
     # not by editing the rule.

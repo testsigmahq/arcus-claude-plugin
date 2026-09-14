@@ -1,0 +1,141 @@
+# Delivering into the Target Project
+
+A Migration produces a working copy and commits it. That is where every
+Conversion stops, and it is not where the work ends: the tests have to reach the
+project they were written for. **Delivery** is that send, and it is a separate
+act from converting.
+
+## The target is the folder, and it is not named twice
+
+The Target Project is the project the working copy is attached to — the folder
+the new tests are written in. `attach` already bound the files to it, so a
+Migration never asks which project it is delivering into. A Migration that asked
+again could be told a different answer than the one its files carry, and the
+files would win.
+
+## No Conversion pushes
+
+A Conversion ends at the Migration Directory and the assembled working copy,
+committed. It does not send anything. Delivery is triggered by the Operator, at a
+moment the Operator picks (ADR-0014).
+
+The reason is one write in particular. Pushing a new version of an existing
+upload makes the server repoint every referencing step at it, across every
+version of the application — not only the version being delivered into. A
+consequence that wide has to be **attributable** to a moment a person chose,
+because nobody can connect a test that changed in some other version to an
+unattended run that happened to be going at the time.
+
+So Delivery is deliberate, infrequent, and watched. Everything below assumes a
+person is present.
+
+## Which project these rules govern
+
+Usually a Migration has exactly **one** Testsigma project: the Target Project it
+delivers into. Every rule here is about that one.
+
+A second project sometimes stands beside it — a **read-only source project**
+holding hand-written work to adopt from. It is never delivered into.
+`${CLAUDE_PLUGIN_ROOT}/references/adoption.md` governs that project, and its
+"Pull, never push" is a rule about *it*, not about the target. Where a Migration
+has no such project, that rule has nothing to govern.
+
+The two worlds are named every time because their absence is what misleads. A
+rule scoped to one project, standing alone with nothing beside it, reads as a
+rule about all of them.
+
+## A binding from the wrong tenant
+
+Entity ids are per **tenant**. So a file pulled from the read-only source project
+and never re-pulled from the target carries ids that mean something else in the
+target, or nothing at all.
+
+`validate` cannot see this. It runs **offline**, against the working copies on
+disk: `TSF2023` and `TSF2063` ask whether this workspace declares the thing, never
+whether the target holds it. A file in this state validates clean.
+
+The live preflight catches it, which is why Delivery needs no inventory step
+beforehand:
+
+- The id is absent from the target application — `TSS1101`, refused.
+- The id resolves to a **different** entity — `TSS1201`, refused. A pulled file
+  carries a content baseline, and the target entity does not hash to it. For an
+  upload this is terminal and no flag is offered, because every upload write
+  appends a version.
+
+### The name is not the guard
+
+A name mismatch between the file and the server is `TSS1109`, a **notice**, exit
+0. Nothing stops.
+
+For a test or a step group `TSS1109` is worse than harmless: the push
+**renames** the server's entity to the file's name and writes the file's steps
+over it, because the binding resolves the entity and the name does not.
+
+So the name comparison is the thing that looks like protection and is not. The
+content baseline is what refuses a binding from the wrong tenant, one step
+earlier.
+
+## How an id enters a file
+
+Every rule in this section and the next is about the Target Project.
+
+Never by hand. An `[id = N]` written by a person carries no content baseline, and
+a file with no baseline gets `TSS1111` — a notice, not a refusal — after which
+**no comparison runs at all** and binding proceeds on the id alone. That is the
+one state where the guard above is absent, and it is reached only by authoring
+it.
+
+An id enters a file three ways: a `pull`, a completed push's write-back, or
+`pull --adopt-id`.
+
+`--adopt-id` writes the binding and nothing else — no hash. So an adopted file
+also carries no baseline, and its next push also meets `TSS1111`. What it cannot
+do is bind a foreign id: it runs only where the local file matched an entity in
+the **target** by name, and the id it writes was resolved live from the target in
+that same command. Adoption is safe from the wrong-tenant trap by construction,
+and exposed only to the entity drifting server-side afterwards, until a baseline
+exists. A baseline appears on the next `pull --write` of that file, or when a
+push completes.
+
+No `pull --write` is required after adopting. The drift it would guard against is
+what the dry run below surfaces, at the moment it matters.
+
+## The flags
+
+**`--dry-run` runs before every push.** Not where there is reason to doubt the
+bindings — before every push. The trap above is precisely the one that supplies no
+reason to doubt: the file validates clean, the names look right, and nothing on
+disk records which tenant an id came from. It runs the whole preflight against
+the Target Project, writes nothing, and renders the exact ledger rows a real run
+would write, so the Operator sees what this workspace would send before any
+bytes move.
+
+Those rows are what is sent, not what is reached. Where they include a new
+version of an existing upload, the steps repointed across the application's
+other versions are not among them and cannot be listed at all. An upload version
+therefore needs the Operator's say-so for that upload specifically, which one
+trigger for the whole Delivery does not supply.
+
+It is not a perfect rehearsal. A step whose visual check compares against a local
+golden refuses under it with `TSS1138`, because the upload mints the id the
+request carries and a dry run mints nothing. Read that as "run it once for real",
+not as a fault.
+
+**`--overwrite-remote` is never passed.** It means "the server moved since this
+file was reconciled, send anyway". On work a Migration authored, a moved server
+means someone edited it in the app, and the answer is to read `pull` first. It is
+also what would force a `TSS1201` past the one guard that catches a foreign id.
+For uploads it does not exist.
+
+**`--discard-healing` is never routine.** It reverts a server-side heal of an
+element, which is a thing to do deliberately and for a named element.
+
+**`--delete` is never passed.** It removes the bound entity *and* the local
+file, and a Migration delivers work rather than removing it — a deletion in the
+Target Project is the Operator's own act, on an entity they named. It excludes
+uploads. Removing a version block from a file deletes nothing either: the block
+returns on the next `pull`.
+
+The minimal correct Delivery is `testsigma push <file>` with no flags, after a
+dry run of the same.
