@@ -179,6 +179,47 @@ class TestDeliveringSoonerWeakensNoCheck:
         )
 
 
+class TestCorrectingARowReturnsItsDependents:
+    """The obligation is old; only now is it reachable.
+
+    A row revised in the fortieth Conversion can be one the third built a test
+    on. Nothing could find that test, and the delivered count would go on
+    counting it.
+    """
+
+    def test_the_bump_itself_is_checked_rather_than_trusted(self):
+        assert "scripts/check_row_versions.py" in _flat()
+        assert has_paragraph_with(
+            _body(), "without a bump", "delivered count"
+        ), "an unbumped correction is the one nothing downstream can see"
+
+    def test_a_bumped_row_sends_the_conversion_to_the_invalidation_script(self):
+        assert "scripts/invalidated_scenarios.py" in _flat()
+        assert has_paragraph_with(
+            _body(), "invalidated_scenarios.py", "--apply"
+        ), "naming the scenarios without returning them leaves the rule unobeyed"
+
+    def test_the_re_opened_scenarios_go_through_the_same_loop(self):
+        assert has_paragraph_with(
+            _body(), "re-opened", "same", absent=("a second path",)
+        )
+
+    def test_the_delivered_count_reflects_the_re_opening(self):
+        assert has_paragraph_with(
+            _body(), "delivered count", "drops"
+        ), "a count that keeps counting a superseded test is the dishonest one"
+
+    def test_the_operator_is_told_which_were_re_opened_and_why(self):
+        report = DOC.section("Report").lower()
+        assert "re-opened" in report
+
+    def test_the_queue_is_checked_before_anything_is_reported(self):
+        assert "scripts/check_scenarios.py" in _flat()
+        assert has_paragraph_with(
+            _body(), "check_scenarios.py", "before"
+        ), "every progress number comes off that table"
+
+
 class TestItRecordsWhatTheConversionConsumed:
     def test_it_writes_the_assembled_row_with_the_versions(self):
         assert has_paragraph_with(

@@ -138,6 +138,27 @@ A row whose Expression or Status changes gets its `Version` bumped, per the
 Migration Directory reference. Occurrence counts and provenance change every
 Conversion and never bump it.
 
+Run `${CLAUDE_PLUGIN_ROOT}/scripts/check_row_versions.py --suite <the suite>`
+before going on. A row decided again without a bump is the one correction nothing
+downstream can see: every test built on the old ruling keeps its place in the
+delivered count, and the comparison that would find them has nothing to compare.
+
+**Where this Conversion bumped any row, run
+`${CLAUDE_PLUGIN_ROOT}/scripts/invalidated_scenarios.py --suite <the suite>
+--apply`.** A row corrected in the fortieth Conversion can be one the third built
+a test on, and that test is now built on a decision since overturned. The script
+reads what each delivered test consumed and returns exactly those scenarios to
+`pending` — no more, because re-doing delivered work moves the customer's number
+backwards for nothing, and no fewer, because the delivered count would otherwise
+go on counting a superseded test.
+
+A re-opened scenario goes back through the same loop as any other: it re-enters
+the queue and is taken by the ordering, and there is no second path to a
+delivered test. The delivered
+count drops by however many were re-opened, and that drop is the honest number —
+a count that keeps counting a test built on an overturned ruling is the one that
+misleads.
+
 ## Step 3: Resolve the elements those steps name
 
 Where the adapter declares `carries-locators: yes`, the source answers this in
@@ -179,6 +200,13 @@ this row is what makes that findable without reading the whole working copy.
 
 Set the scenario's status in `scenarios.md` to `done`.
 
+Then run `${CLAUDE_PLUGIN_ROOT}/scripts/check_scenarios.py --suite <the suite>`
+before anything is reported. Every progress number an Operator is given comes off
+that table, and none of the ways it can contradict itself announces itself — a
+`done` scenario with no test recorded, a `parked` one with nothing said about what
+it waits on, a scenario listed twice. Each reads as an ordinary row until somebody
+counts.
+
 Commit the Migration Directory **and the assembled working copy** together, as
 the Conversion ends. Scoping the commit to the Migration Directory leaves the
 `.sigma` file behind, which is half of what was just produced. Run
@@ -201,6 +229,8 @@ Tell the Operator, in this order:
 - any Concession or Residue recorded, and what each one costs in practice
 - whether anything parked, and what it waits on — the one part of the report the
   Operator alone can act on
+- any scenarios re-opened because a row they were built on was decided again,
+  named with the decision that changed
 
 Then stop. Anything unresolved goes where it belongs first: a question for the
 Operator into `open-questions.md`, something learned about Testsigma into

@@ -146,6 +146,14 @@ would not be obeyed. Recording the versions consumed, rather than the rows, is
 what makes the comparison mechanical: a test whose recorded version is behind the
 row's current one was built on a superseded decision.
 
+Each entry in `Row versions consumed` is the Source Step in backticks followed by
+`@` and the version, as `` `I am signed in`@3 ``. The step is spelled as
+`step-map.md` spells it, because the two files are compared by that spelling and
+nothing else reconciles them. A scenario is spelled the same way in
+`assembled.md` and in `scenarios.md`, for the same reason: that spelling is the
+only thing joining a delivered test to its place in the queue, and a scenario
+spelled two ways is one nothing re-opens.
+
 **`open-questions.md`** — questions put to the Operator that have not been
 answered. Added to at the moment a question arises, and cleared only by an answer.
 This file exists because the alternative was demonstrated: a question was asked
@@ -338,6 +346,7 @@ reading the working copy.
 
 | Scenario | Test | Row versions consumed | Assembled |
 |---|---|---|---|
+| `Sign in and search` | `sign-in-and-search.sigma` | `I am signed in`@3, `I search for a record`@1 | 2026-09-01 |
 ```
 
 `open-questions.md`:

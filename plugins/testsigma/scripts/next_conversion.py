@@ -25,8 +25,9 @@ a thing to report, not a thing to infer from silence.
 """
 import argparse
 import pathlib
-import re
 import sys
+
+from migration_tables import items as steps, table
 
 #: Below this many unseen Source Steps, vocabulary has saturated and ordering
 #: hands over to the Operator's priority. It is a property of the curve rather
@@ -41,40 +42,6 @@ DEFAULT_THRESHOLD = 3
 DECIDED = {"reviewed", "adopted", "residue"}
 
 SELECTABLE = "pending"
-
-
-def table(text):
-    """Rows of the first markdown table, as dicts keyed by header cell.
-
-    Markdown rather than a data format because a person reviews these files in
-    the source repository's diffs — the same reason the Migration Directory is
-    one file per concern rather than one state file.
-    """
-    header, rows = None, []
-    for line in text.split("\n"):
-        if not line.strip().startswith("|"):
-            continue
-        cells = [c.strip() for c in line.strip().strip("|").split("|")]
-        if all(set(c) <= set("-: ") for c in cells):
-            continue
-        if header is None:
-            header = cells
-            continue
-        rows.append(dict(zip(header, cells + [""] * (len(header) - len(cells)))))
-    return rows
-
-
-def steps(cell):
-    """The Source Steps one incidence cell names.
-
-    Backticks delimit, because a Source Step's own text may hold a comma —
-    `I enter "a, b" in the field` is one step, and splitting on commas alone
-    would score it as two and over-count what the scenario introduces.
-    """
-    quoted = re.findall(r"`([^`]+)`", cell)
-    if quoted:
-        return [s.strip() for s in quoted if s.strip()]
-    return [s.strip() for s in cell.split(",") if s.strip()]
 
 
 def decided_steps(step_map_text):
