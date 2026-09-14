@@ -144,6 +144,24 @@ whose difference is known and written down. An unrecorded Concession is a
 Divergence; that is the only thing separating them.
 _Avoid_: workaround, compromise, approximation
 
+**Target Project**:
+The Testsigma project a Migration delivers into — the one the working copy is
+attached to, which is the folder its new tests are written in. A Migration has
+exactly one, and never asks which it is, because `attach` already bound the files
+to it. A second project sometimes stands beside it, read-only, holding
+hand-written work to adopt from; that one is never delivered into and is not the
+Target Project.
+_Avoid_: destination, tenant, the project
+
+**Delivery**:
+Sending a Migration's committed working copy to the Target Project. It is a
+separate act the Operator triggers, never part of a Conversion, so a Migration
+that has converted everything has still delivered nothing until a person says so.
+The reason is that one kind of write — a new version of an existing upload —
+reaches beyond the Target Project's version, and a consequence that wide has to
+be attributable to a moment someone chose.
+_Avoid_: push, upload, publish, sync
+
 **Adoption**:
 Binding a Step Map row to an entity the target project already held, instead of
 authoring a second one. What makes it adoption rather than a guess is that the
