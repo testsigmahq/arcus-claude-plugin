@@ -16,10 +16,14 @@ import re
 import pytest
 
 from support import (
+    ADAPTERS_DIR,
     document,
+    document_files,
+    doc_id,
     PLUGIN_ROOT,
     REFERENCES_DIR,
     has_paragraph_with,
+    read_frontmatter,
 )
 
 ELEMENT_RESOLUTION = REFERENCES_DIR / "element-resolution.md"
@@ -133,10 +137,44 @@ class TestTheCallers:
                 encoding="utf-8"
             ), f"{path.parent.name} runs the procedure without pointing at it"
 
-    def test_resolve_elements_owns_the_gate_that_makes_it_a_phase(self):
-        # Whether this is a Phase of its own is a property of the source.
+    def test_resolve_elements_owns_the_gate_on_what_the_source_carries(self):
+        # Whether this runs at all is a property of the source: where the
+        # adapter carries locators, mapping has already answered in the same
+        # reading, and running this would read those files twice.
         assert has_paragraph_with(
-            RESOLVE_ELEMENTS.read_text(encoding="utf-8"), "carries-locators", "phase"
+            RESOLVE_ELEMENTS.read_text(encoding="utf-8"),
+            "carries-locators",
+            "conversion",
+        )
+
+    def test_resolve_elements_is_something_convert_calls(self):
+        # Its description used to declare it the way into a Phase, which got it
+        # invoked as a bulk stage over a whole suite.
+        meta, _ = read_frontmatter(RESOLVE_ELEMENTS)
+        description = str(meta.get("description", "")).lower()
+        assert "convert" in description and "screen" in description, (
+            "the description must read as something a Conversion calls, scoped "
+            "to one screen"
+        )
+        assert "phase" not in description
+
+    def test_resolve_elements_is_scoped_to_the_screens_one_conversion_needs(self):
+        body = RESOLVE_ELEMENTS.read_text(encoding="utf-8")
+        assert has_paragraph_with(
+            body,
+            "this conversion",
+            "screen",
+            absent=("every element the step map names", "the whole suite"),
+        ), "resolving elements no reviewed row of this scenario references is work spent on a guess"
+
+    def test_the_operator_is_asked_for_a_whole_screen_at_once(self):
+        # Capture is cheap per screen and expensive per visit: someone already
+        # looking at a screen captures eight controls nearly as fast as one.
+        assert has_paragraph_with(
+            RESOLVE_ELEMENTS.read_text(encoding="utf-8"),
+            "whole",
+            "screen",
+            absent=("one element at a time",),
         )
 
     def test_resolve_elements_owns_the_conduct_the_reference_does_not(self):
@@ -201,3 +239,70 @@ def test_no_caller_restates_a_rule_the_reference_owns(path, phrase):
         f"references/element-resolution.md owns; point at it instead"
     )
 
+
+
+# --- element resolution is not a Phase --------------------------------------
+
+#: Survey is the only Phase (ADR-0012). Element resolution happens inside a
+#: Conversion, and a document still calling it a Phase is a document that gets
+#: it invoked as a bulk stage over a whole suite — which is the order this
+#: change exists to undo.
+def _phase_claims(text):
+    """Paragraphs that speak of elements and of a Phase in the same breath.
+
+    A paragraph rather than a fixed phrase, because the framing survives any
+    number of rewordings: what makes it wrong is a Phase and an element being
+    the same subject, not the sentence that says so.
+    """
+    from support import paragraphs
+
+    out = []
+    for block in paragraphs(text):
+        flat = " ".join(block.split()).lower()
+        if "element" not in flat or "phase" not in flat:
+            continue
+        # Co-occurrence cannot read polarity, and the documents that retired the
+        # framing say so in as many words. A paragraph denying it is the fix,
+        # not the fault.
+        if any(
+            denial in flat
+            for denial in (
+                "is not a phase",
+                "neither point is a phase",
+                "never as a stage",
+                "survey is the only",
+                "only phase",
+            )
+        ):
+            continue
+        out.append(flat[:90])
+    return out
+
+
+def _swept():
+    """Every document that speaks to a reader about how a Migration is run.
+
+    References and `CONTEXT.md` are in it because the framing survived there
+    while every skill had dropped it — the reference is the document the skills
+    defer to, so a Phase left standing in it is the framing still in force.
+    ADRs are not: an ADR records a decision as it was made, and ADR-0012 is what
+    supersedes this one rather than an edit to its predecessors.
+    """
+    return (
+        list(document_files())
+        + sorted(ADAPTERS_DIR.glob("*.md"))
+        + sorted(REFERENCES_DIR.glob("*.md"))
+        + [PLUGIN_ROOT / "CONTEXT.md", PLUGIN_ROOT / "README.md"]
+    )
+
+
+def test_no_document_calls_element_resolution_a_phase():
+    offenders = {}
+    for path in _swept():
+        claims = _phase_claims(path.read_text(encoding="utf-8"))
+        if claims:
+            offenders[doc_id(path)] = claims
+    assert not offenders, (
+        f"these still frame element resolution as a Phase: {offenders}. Survey "
+        "is the only Phase; resolution happens inside a Conversion."
+    )

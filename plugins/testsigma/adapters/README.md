@@ -41,9 +41,10 @@ read through to its implementation. This is what decides whether comparing a
 converted step against its source is costly or nearly free.
 
 **`carries-locators`** — does the source carry the information needed to find an
-element on screen? When yes, Element Resolution is part of mapping, because the
-locators sit in the same files that hold the sequence and both are recovered in
-one reading. When no, it is a Phase of its own that has to follow mapping.
+element on screen? When yes, a Conversion resolves its elements inside mapping,
+because the locators sit in the same files that hold the sequence and both are
+recovered in one reading. When no, resolution follows that mapping and goes to
+the target project and then to the Operator for what the source cannot say.
 
 **`value-language`** — do values in this source carry a small language of their
 own? When yes, a single value can encode a sequence of actions with no helper

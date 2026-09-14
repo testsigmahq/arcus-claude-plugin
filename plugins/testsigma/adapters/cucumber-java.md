@@ -142,8 +142,8 @@ In the page objects, as `@FindBy` annotations and `By.id`, `By.xpath`,
 This is the same file you are already opening for sequence, so it is one reading
 with two questions, not two readings. Keeping them separate is what allowed the
 sequence faults: the files were opened for locators and the sequence question was
-never asked. Element Resolution is therefore part of mapping for this source, not
-a Phase of its own.
+never asked. Elements are therefore resolved inside mapping for this source, in
+that one reading, and a Conversion has nothing separate left to do for them.
 
 Where a locator is built at run time rather than declared, the test is whether
 the values are enumerable from the source. Walk the call sites and list the

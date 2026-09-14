@@ -1,12 +1,13 @@
-"""The Tosca subset export adapter, and Element Resolution as its own Phase.
+"""The Tosca subset export adapter, and where its elements come from.
 
 Everything asserted here was established by reading a real export rather than
 documentation: 405 entities, no order attribute anywhere, no locator entities at
 all, transitively closed, and values written in a small language of their own.
 
-This adapter is also what proves the Phase structure follows the source. For a
-page-object source, resolution is part of mapping; here there is nothing in the
-source to read, so it is a Phase.
+This adapter is also what proves where elements come from follows the source. For
+a page-object source, a Conversion resolves them inside mapping; here there is
+nothing in the source to read, so the Conversion goes to the target project and
+then to the Operator.
 """
 
 from pathlib import Path
@@ -141,17 +142,20 @@ class TestItCarriesNoLocators:
         # them.
         assert "xmoduleattribute" in _section("locators").lower().replace(" ", "")
 
-    def test_element_resolution_is_its_own_phase_here(self):
+    def test_a_conversion_here_resolves_after_mapping_rather_than_inside_it(self):
+        # Not a Phase of the Migration: a Conversion on this source has simply
+        # nothing to read, so it goes on to the project and the Operator.
         assert has_paragraph_with(
             _section("locators"),
-            "phase of its own",
-            absent=("part of mapping for this source",),
+            "after mapping",
+            "target project",
+            absent=("phase of its own",),
         )
 
     def test_the_absence_is_reported_rather_than_silently_producing_none(self):
         assert has_paragraph_with(_section("locators"), "report")
 
-    def test_element_names_are_carried_forward_for_the_phase_to_satisfy(self):
+    def test_element_names_are_carried_forward_for_the_conversion_to_satisfy(self):
         assert has_paragraph_with(_section("locators"), "step map", "carried forward")
 
 
@@ -229,8 +233,8 @@ class TestTheResolveElementsSkill:
     def test_it_runs_only_where_the_source_carries_no_locators(self):
         assert has_paragraph_with(self._text(), "carries-locators", "no")
 
-    def test_it_runs_after_mapping_rather_than_inside_it(self):
-        assert has_paragraph_with(self._text(), "after mapping")
+    def test_it_runs_after_the_mapping_of_the_scenario_in_hand(self):
+        assert has_paragraph_with(self._text(), "after the mapping")
 
     def test_it_takes_the_element_names_the_step_map_references(self):
         assert has_paragraph_with(self._text(), "step map", "element")
@@ -253,14 +257,14 @@ class TestTheResolveElementsSkill:
     def test_it_records_a_capture_as_it_lands(self):
         assert has_paragraph_with(self._text(), "platform-facts.md", "twice")
 
-    def test_it_writes_the_marker_that_says_the_phase_is_done(self):
-        # migration-directory.md and resume.md both depend on migration.md
-        # gaining an Element Resolution section, and its absence meaning the
-        # Phase is open. Nothing wrote it, so a completed Phase read as
-        # unfinished forever.
+    def test_it_hands_an_outstanding_screen_back_as_a_park(self):
+        # The old completion marker — an Element Resolution section in
+        # migration.md — said a Migration-wide stage had finished, and there is
+        # no such stage now. What a later session needs instead is the parked
+        # scenario and what it waits on, which `convert` records.
         assert has_paragraph_with(
-            self._text(), "element resolution", "migration.md", "absence"
-        ), "the Phase must write the marker a later session reads"
+            self._text(), "parks the conversion", "operator"
+        ), "an outstanding screen must park the Conversion rather than end silently"
 
     def test_it_points_at_the_shared_resolution_procedure(self):
         # Mapping runs the same three places inline where the source carries

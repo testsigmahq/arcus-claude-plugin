@@ -121,6 +121,34 @@ class TestItDelegatesRatherThanRestates:
     def test_it_calls_element_resolution_rather_than_restating_it(self):
         assert has_paragraph_with(_body(), "`resolve-elements` skill", "screen")
 
+    def test_the_three_places_are_named_with_the_operator_last(self):
+        # Which of the first two is tried first is the reference's rule and is
+        # asserted there; what a Conversion owes is that the Operator comes
+        # after the project, since a project consulted after them is a project
+        # never consulted.
+        step = DOC.section("Resolve the elements")
+        assert has_paragraph_with(
+            step, "the source, the target project and the operator"
+        ), "all three places must be named where the Conversion reaches them"
+        assert has_paragraph_with(
+            step,
+            "target project is consulted before the operator",
+            absent=("ask the operator first",),
+        ), "the Operator must be the last place an element is looked for"
+
+    def test_it_parks_on_elements_only_when_all_three_are_exhausted(self):
+        assert has_paragraph_with(
+            DOC.section("Resolve the elements"),
+            "all three",
+            "park",
+            absent=("whenever an element is missing",),
+        ), "parking before the project is consulted spends the Operator's time first"
+
+    def test_the_whole_screen_goes_to_the_operator_and_not_the_one_element(self):
+        assert has_paragraph_with(
+            DOC.section("Resolve the elements"), "whole screen", "visit"
+        )
+
     def test_it_does_not_restate_the_check_order(self):
         # `checks.md` fixes it. A second copy here is a copy that drifts.
         assert "references/checks.md" in _flat()

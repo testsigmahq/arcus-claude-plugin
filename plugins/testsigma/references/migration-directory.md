@@ -38,11 +38,6 @@ build in use and the checks that build supports, and the enumeration summary
 parameterisation profile). Written once by survey and amended only when one of
 those facts changes.
 
-It gains an **Element Resolution** section when, and only when, a source with no
-locators has had its elements resolved. Survey never writes it, so its absence is
-how a later session knows that Phase is still open. Where the adapter carries
-locators the section never appears, because there is no such Phase to finish.
-
 **`step-map.md`** — the reviewed mapping from every Source Step to its expression.
 Seeded by survey with one `unreviewed` row per distinct Source Step, so mapping
 fills rows rather than creating them and *reviewed n of m* is answerable from the

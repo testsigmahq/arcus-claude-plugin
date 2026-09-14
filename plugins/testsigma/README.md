@@ -40,9 +40,9 @@ calls for it.
 
 Two skills cover a source that describes what tests do but not how to find the
 controls, and which one you want depends on what is missing.
-`resolve-elements` runs as its own Phase where the adapter already exists and
-declares it carries no locators; `write-an-adapter` is for a format with no
-adapter at all.
+`resolve-elements` is what a Conversion calls, one screen at a time, where the
+adapter already exists and declares it carries no locators; `write-an-adapter` is
+for a format with no adapter at all.
 
 ## The vocabulary
 

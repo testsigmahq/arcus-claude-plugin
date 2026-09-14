@@ -35,12 +35,13 @@ The Tosca adapter is the case. The public claims were wrong twice over. The expo
 was described as an opaque binary needing the vendor's tooling to read, and it is
 gzip-compressed JSON that `gzip.open` and `json.load` read in two lines. And
 identification was described as living on module attribute entities, while the real
-export contains no `XModuleAttribute` entity at all — not one, which is the fact that
-forces Element Resolution into a Phase of its own for that source.
+export contains no `XModuleAttribute` entity at all — not one, which is the fact
+that leaves a Conversion on that source nothing to resolve elements from until it
+reaches the target project.
 
 Had either claim been taken on trust, the adapter would have been wrong about
-whether the format is readable and wrong about its Phase structure. Both are
-decisions everything else depends on.
+whether the format is readable and wrong about where its elements come from. Both
+are decisions everything else depends on.
 
 So: get a real export, of a real suite, from the team whose suite it is. Read it
 directly. Where you cannot get one, stop and say so rather than writing from a
@@ -54,8 +55,9 @@ default but a decision made silently.
 
 - `hides-sequence` decides whether every source line must be read through to its
   implementation, which sets the cost of the whole mapping stage.
-- `carries-locators` decides whether elements are resolved inside mapping or in a
-  Phase of its own after it.
+- `carries-locators` decides whether a Conversion resolves elements inside its
+  own mapping reading, or has to go to the target project and the Operator for
+  them.
 - `value-language` decides whether a single value can hide a sequence of actions.
 
 What each property means is defined in the contract. Do not restate the definitions

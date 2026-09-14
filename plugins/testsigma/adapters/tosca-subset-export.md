@@ -88,17 +88,18 @@ That absence is a finding to report, not a silence to pass over. Say it to the
 Operator explicitly: this export describes what the tests do and nothing about how
 to find the things they do it to.
 
-Because there is nothing in the source to read, **Element Resolution is a Phase of
-its own** for this adapter, running after mapping. For a source that carries
-locators it is part of mapping instead, in the same reading that recovers sequence.
-The Phase structure of a Migration follows the source, and this adapter is the case
-that shows it.
+Because there is nothing in the source to read, **a Conversion on this source
+resolves its elements after mapping rather than during it**, from the target
+project and, where nothing else can answer, from the Operator. For a source that
+carries locators the same work happens inside the reading that recovers sequence.
+Where the elements come from follows the source, and this adapter is the case that
+shows it.
 
 Mapping still names the elements it needs. Every element a Step Map row references
-is carried forward, by name, for that Phase to satisfy — from the existing Testsigma
-project where a screen already matches, and from the Operator where nothing else
-can. A row whose elements are unresolved is recorded and blocks assembly rather than
-being assembled around.
+is carried forward by name, for the Conversion that reached it to satisfy — from
+the existing Testsigma project where a screen already matches, and from the
+Operator where nothing else can. A row whose elements are unresolved is recorded
+and blocks assembly rather than being assembled around.
 
 ## Values
 

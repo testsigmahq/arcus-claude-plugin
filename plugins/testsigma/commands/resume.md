@@ -70,16 +70,14 @@ Take the first row that matches, top to bottom:
 | What you find | Active Phase |
 |---|---|
 | `migration.md` has no Enumeration numbers | extraction |
-| The adapter declares `carries-locators: no`, and `migration.md` has no Element Resolution section | element resolution |
 | `step-map.md` has rows still `unreviewed`, or has none at all | mapping |
 | Every row is `reviewed` or `residue`, and Units of Work are still being built | assembly |
 
-Element resolution is a Phase of its own only where the source carries no
-locators. Where it carries them, resolution is part of mapping, and that row
-never matches. Its absence is what makes the row true: survey does not write an
-Element Resolution section, so it is missing until the stage that resolves
-elements finishes and writes one. Do not test this by looking at the source —
-the Phase is read off the record, not re-derived.
+Resolving the controls a row names is not one of these. It happens inside a
+Conversion — inside mapping where the source carries locators, and from the
+target project or the Operator where it does not — so there is never a stretch
+of a Migration where that is all that is going on. Do not test any of this by
+looking at the source: what is read is the record, not a re-derivation.
 
 A Step Map holding no rows at all — only its header — is the commonest second
 session: survey has run and mapping has not started. The active Phase is mapping

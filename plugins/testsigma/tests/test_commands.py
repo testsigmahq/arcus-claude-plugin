@@ -114,7 +114,7 @@ class TestResumeCommand:
         )
         # And the rows must be in Phase order, since "first match" is only
         # deterministic against a stated order.
-        order = ["extraction", "element resolution", "mapping", "assembly"]
+        order = ["extraction", "mapping", "assembly"]
         positions = [section.lower().index(phase) for phase in order]
         assert positions == sorted(positions), (
             f"the Phase rows are out of Phase order: {order}"

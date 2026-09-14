@@ -145,10 +145,19 @@ the same reading that recovered the sequence, and there is nothing separate to
 do.
 
 Where it does not, use the `resolve-elements` skill, scoped to the elements this
-scenario needs. It looks in the source, then in the target project, and only then
-asks the Operator — and when it asks, it asks for a whole screen at once, because
-capture costs them a visit per screen whether they are asked for one element or
-twelve.
+scenario needs. Three places can answer — the source, the target project and the
+Operator — and the reference fixes which is tried when. What this Conversion owes
+them is the last of the three: the target project is consulted before the Operator
+is asked for anything, and when they are asked it is for a whole screen at once,
+because capture costs them a visit per screen whether they are asked for one
+element or twelve. The single element that blocked the Conversion is never put to
+them alone.
+
+Only when all three are exhausted does a Conversion park on an element. For a
+page-object source that should essentially never happen: the source answers in the
+reading that recovered the sequence. Where the source carries none, the target
+project answers most of what is left, and Operator capture is the remainder rather
+than the normal path.
 
 ## Step 4: Assemble the test and check it
 

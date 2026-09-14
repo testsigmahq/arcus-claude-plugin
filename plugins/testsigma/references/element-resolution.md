@@ -1,10 +1,11 @@
 # Resolving an element
 
-Satisfying the element names a Step Map row references. The same procedure runs in
-two places: inside mapping where the source carries locators, and as a Phase of
-its own after mapping where it does not. Whether it is a Phase is a property of
-the source, not of the Migration — the adapter's `carries-locators` decides, and
-the skill that calls this says which case it is in.
+Satisfying the element names a Step Map row references. The same procedure runs at
+two points inside a Conversion: within mapping where the source carries locators,
+and after that mapping where it does not. Which point is a property of the source,
+not of the Migration — the adapter's `carries-locators` decides, and the skill that
+calls this says which case it is in. Neither point is a Phase: survey is the only
+Phase a Migration has, and elements are resolved for the scenario in hand.
 
 Try three places, in this order, and stop at the first that answers:
 
