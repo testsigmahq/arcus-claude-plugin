@@ -19,3 +19,8 @@ Narrowed to: whether the helper was reported as doing less than its line implies
 default `last_message` shows the judge only the final reply. A criterion that
 names an artifact the judge cannot see is not a strict grader; it is one that
 fails whenever the agent chose to summarise rather than restate.
+
+What the no-plugin arm does instead: it writes the action the step line names —
+selecting and committing a reason code — because nothing in the phrasing
+suggests the helper stops short. A model has no reason to suspect a step of
+doing less than it says.

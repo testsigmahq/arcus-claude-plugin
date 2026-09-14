@@ -1,0 +1,21 @@
+test "Archive a record" {
+  description = "Converted from inbound.feature."
+
+  block "Given I am signed in" {
+    signIn()
+  }
+
+  block "When I archive record \"REC05ALPHA\"" {
+    if elementIs(element["search panel toggle"], "visible") {
+      click(element["search panel toggle"])
+    }
+    clearText(element.recordSearchInput)
+    enterText(runtime.record, element.recordSearchInput)
+    pressKey("ENTER")
+    click(element["archive confirm"])
+  }
+
+  block "Then I see the record \"REC05ALPHA\" in the list" {
+    verifyElementText(element.recordAtFirstIndex, runtime.record)
+  }
+}

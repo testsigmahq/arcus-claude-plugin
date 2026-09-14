@@ -21,3 +21,7 @@ Feature: Inbound receiving
       | record |
       | A1  |
       | A2  |
+
+  Scenario: Print a receiving label
+    When I print the receiving label
+    Then I see the record "REC05ALPHA" in the list

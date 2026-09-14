@@ -5,4 +5,4 @@ reading the working copy.
 
 | Scenario | Test | Row versions consumed | Assembled |
 |---|---|---|---|
-| `Record a journal entry` | `record-a-journal-entry.sigma` | `I am signed in` v1, `I see the record "<param>" in the list` v1 | 2026-09-10 |
+| `Archive a record` | `archive-a-record.sigma` | `I am signed in`@1, `I archive record "<param>"`@1, `I see the record "<param>" in the list`@1 | 2026-09-10 |

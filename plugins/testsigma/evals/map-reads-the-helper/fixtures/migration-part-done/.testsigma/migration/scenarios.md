@@ -6,7 +6,9 @@ it is computed from this file and `step-map.md`.
 
 | Scenario | Source Steps reached | Status | Reason |
 |---|---|---|---|
-| `Record a journal entry` | `I am signed in`, `I see the record "<param>" in the list` | done | |
-| `Search the journal` | `I am signed in`, `I search for record "<param>"` | pending | |
-| `Receive against a reason code` | `I am signed in`, `I select "<param>" reason code` | parked | the reason code element could not be resolved |
-| `Print the nightly batch` | `I am signed in` | out-of-scope | drives a desktop print dialogue the platform has no catalogue for |
+| `Archive a record` | `I am signed in`, `I archive record "<param>"`, `I see the record "<param>" in the list` | done | |
+| `Receive a single record` | `I am signed in`, `I search for record "<param>"`, `I see the record "<param>" in the list`, `I select "<param>" reason code` | pending | |
+| `Receive several records` | `I am signed in`, `I search for record "<param>"`, `I see the record "<param>" in the list` | pending | |
+| `Print a receiving label` | `I am signed in`, `I print the receiving label`, `I see the record "<param>" in the list` | pending | |
+| `A record appears after processing` | `I am signed in`, `I refresh until the record appears`, `I see <number> result`, `I see the record "<param>" in the list` | pending | |
+| `Two records appear` | `I am signed in`, `I refresh until the record appears`, `I see <number> results` | pending | |

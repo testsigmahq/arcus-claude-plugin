@@ -6,3 +6,4 @@ A Standing is `gap` or `refusal`.
 | Source Step | Element | Cause | Standing | Reasoning | Revisit when |
 |---|---|---|---|---|---|
 | `I refresh until the record appears` | `journal-filter` | unresolved element | gap | The filter input is present in the page object but the existing Testsigma project has no matching screen, and nobody has captured it. | An element for the printing journal filter exists in the project |
+| `I print the receiving label` | | step addon | gap | The click hands off to the browser's own print dialogue, which is not a web control any step in this build can drive. | A step addon drives the browser print dialogue |

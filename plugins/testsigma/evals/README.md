@@ -100,7 +100,7 @@ does what these cases want, and an explicit key would restate it in a second
 place that can drift. `arm: both` exists as an override for a grader that should
 be scored in both arms, which is not what a `Skill` grader is.
 
-**Three things about the case format are genuinely unconfirmed, and nothing here
+**Four things about the case format are genuinely unconfirmed, and nothing here
 guesses at them.** They are written down so the first real run settles them
 rather than someone rediscovering each one:
 
@@ -113,7 +113,14 @@ rather than someone rediscovering each one:
    `features/journal.feature` — which is only true under flattening. If they
    nest, the prompts need the basename prefixes; the graders' `input_match`
    patterns are unanchored and would match either way.
-3. The nested shape of `tool_order`'s `before` and `after`. The field names are
+3. Whether `target: files` matches the *names* of files the run created or their
+   *contents*. Two graders in the Conversion-loop cases bet on names — one
+   requiring no `.sigma` file, one requiring one. Under the contents reading the
+   first always fails, because the fixture's own `assembled.md` contains the
+   string `archive-a-record.sigma`. Each is paired with a judged grader that does
+   not depend on the answer, so a wrong guess here shows as one grader failing
+   against another rather than as a case quietly measuring nothing.
+4. The nested shape of `tool_order`'s `before` and `after`. The field names are
    documented; that each takes `{tool, input_match}` is not. This matters more
    than the other two, because the read-before-write grader is the single most
    valuable assertion in this suite, and a wrong shape would make it silently
@@ -148,6 +155,26 @@ These are the checks that matter most and the ones that cannot be made
 deterministic, so they carry an accepted flakiness cost. That is why each case
 runs more than once and is scored against a threshold rather than a single pass.
 
+## The Conversion loop
+
+Four behaviours of the loop are only visible at this seam, because every one of
+them is about what an agent does with a Migration Directory rather than about
+what a document says:
+
+| Case | What it measures |
+|---|---|
+| `convert-does-one-conversion-and-stops` | one invocation delivers one test and stops, rather than working down the queue |
+| `convert-parks-when-only-the-operator-can-answer` | a Conversion needing the Operator parks, records what it waits on, and the run ends cleanly |
+| `correcting-a-row-returns-its-dependents-to-pending` | a corrected row is versioned and the delivered tests built on the old version are re-opened |
+| `residue-assembles-as-a-marker-without-parking` | a declined step stands as a marker and does not cost the test |
+
+**Every case must name what the no-plugin arm would do instead**, in the body of
+at least one grader, and `../tests/test_evals.py` fails a case that does not. It
+is a writing rule standing in for a measurement this repository cannot take: the
+suite cannot run the ablation, and four cases here had already scored flat in
+both arms before anybody looked. A grader nobody can name a baseline behaviour
+for is a grader measuring the model.
+
 ## Fixtures
 
 Both source fixtures are shared with the pytest suite rather than copied, so
@@ -160,9 +187,26 @@ seams:
 | `../tests/fixtures/tosca-subset-export/` | a reusable step block, a value in the source's own language, a wildcard comparison, a cycle, an orphan step |
 
 `fixtures/migration-part-done/` is local to the evals: a Migration Directory
-already part-way through, with reviewed rows and one Residue entry naming an
-unresolved element. It exists so the refusal can be checked without an eval
-having to first run a whole mapping stage.
+already part-way through. It carries reviewed rows, a queue in `scenarios.md`
+with one scenario delivered and five pending, the delivered test's consumed row
+versions in `assembled.md` alongside the delivered test itself under the working
+copy the marker names, and two Residue entries — one an unresolved element,
+which blocks assembly, and one a declined step, which does not. It exists so the
+Conversion loop can be checked without an eval having to first run a whole
+survey and mapping stage.
+
+Both kinds of Residue are there because the loop treats them differently, and a
+fixture holding only one of them would let the case that checks a declined step
+assembles use the row that blocks instead — which passes for the wrong reason.
+Nothing in the fixture starts `parked`: a case that needs an outstanding
+Operator question appends one in its own scaffold, so every other case sharing
+the fixture starts with nothing outstanding.
+
+Every scenario the queue names is a real scenario in the source fixture, checked
+by `../tests/test_evals.py`. The two files are joined by the scenario's spelling
+and nothing else reconciles them, so a queue row naming a scenario no feature
+file holds sends the agent looking for something that is not there and the run
+fails for a reason the case was not written to measure.
 
 None of the three contains data from any real suite, any client, or any tenant.
 They are hand-built, and the traps in them are real shapes met in real suites

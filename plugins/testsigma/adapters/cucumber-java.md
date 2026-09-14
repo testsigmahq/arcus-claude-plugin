@@ -236,11 +236,11 @@ parameterised rows are where the Composite Steps and the judgement concentrate.
 ### Worked example
 
 Against the fixture in `tests/fixtures/cucumber-java`, which is two feature files
-and three page objects:
+and four page objects:
 
 | Source Step | Occurrences |
 |---|---|
-| `I see the record "<param>" in the list` | 5 |
+| `I see the record "<param>" in the list` | 6 |
 | `I am signed in` | 2 |
 | `I refresh until the record appears` | 2 |
 | `I search for record "<param>"` | 2 |
@@ -248,11 +248,12 @@ and three page objects:
 | `I see <number> result` | 1 |
 | `I see <number> results` | 1 |
 | `I select "<param>" reason code` | 1 |
+| `I print the receiving label` | 1 |
 
-Fifteen step lines, eight distinct Source Steps, a Collapse Ratio of 1.88, and
-four Source Steps occurring exactly once.
+Seventeen step lines, nine distinct Source Steps, a Collapse Ratio of 1.89, and
+five Source Steps occurring exactly once.
 
-Note what the ratio does not tell you. Two of those eight are the
+Note what the ratio does not tell you. Two of those nine are the
 singular/plural pair discussed under Normalisation and are really one step.
 `I search for record "<param>"` is the four-action Composite Step. And
 `I archive record "<param>"` occurs once, looks like the smallest row in the table,

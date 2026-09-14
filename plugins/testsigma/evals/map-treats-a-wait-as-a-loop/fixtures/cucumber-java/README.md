@@ -12,6 +12,7 @@ each one wrong.
 | `SearchPage.searchForRecord` | Does **more** than its step line implies: expands a hidden field, clears it, types, presses Enter |
 | `ReceivingPage.selectReasonCode` | Does **less** than its step line implies: sends text and never submits |
 | `JournalPage.refreshUntilRecordAppears` | Is a **loop** that re-drives the interface, not a passive wait |
+| `ReceivingPage.printReceivingLabel` | Leaves the application: the click opens the browser's own print dialogue, which no catalogue reaches |
 | `ArchivePage.archiveRecord` | **Delegates** to another page object, so the true sequence is only visible one level down |
 
 Locators live in `@FindBy` annotations on the page objects, which is what makes

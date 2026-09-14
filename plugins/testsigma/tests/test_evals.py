@@ -484,6 +484,123 @@ def test_the_part_done_fixture_carries_an_unresolved_element():
     )
 
 
+# --- the Conversion loop has cases -------------------------------------------
+
+#: The four behaviours of the Conversion loop that only an agent can get wrong.
+#: Each maps to the document that states it; none of them is visible to a
+#: document test, because every one of them is about what an agent does with a
+#: Migration Directory rather than about what a document says.
+CONVERSION_LOOP_CASES = {
+    "convert-does-one-conversion-and-stops": "one invocation, one Conversion (ADR-0012)",
+    "convert-parks-when-only-the-operator-can-answer": "parking, and a clean end",
+    "correcting-a-row-returns-its-dependents-to-pending": "a bumped version re-opens its dependants",
+    "residue-assembles-as-a-marker-without-parking": "Residue assembles; it does not park",
+}
+
+
+@pytest.mark.parametrize("name,behaviour", sorted(CONVERSION_LOOP_CASES.items()))
+def test_the_conversion_loop_behaviour_has_a_case(name, behaviour):
+    assert (EVALS_DIR / name / "prompt.md").is_file(), (
+        f"nothing measures {behaviour}; the pytest suite cannot see it, so an "
+        "absent case means it is unchecked rather than checked elsewhere"
+    )
+
+
+#: Phrases that say what the no-plugin arm would do instead. A case whose
+#: graders never say this has not been reasoned about as an ablation, which is
+#: how three cases on this branch came to score identically in both arms.
+_DISCRIMINATION = (
+    "no reason to",
+    "on its own",
+    "unprompted",
+    "without the plugin",
+    "a capable model",
+    "a model with a deadline",
+    "a model converting freehand",
+    "both arms",
+)
+
+
+@pytest.mark.parametrize("case", CASES, ids=lambda p: p.name)
+def test_a_case_says_what_the_baseline_arm_would_do_instead(case):
+    """A case that cannot discriminate is a cost with no signal.
+
+    Measured twice on this branch: the refusal case scored 1.00 in both arms
+    because a capable model refuses to invent a locator whether or not the
+    plugin is loaded, and three map cases scored flat for the same reason. The
+    fix in each was a grader aimed at what the model has no reason to do
+    unprompted, so at least one grader in every case has to name that behaviour.
+    """
+    bodies = " ".join(_frontmatter(g)[1].lower() for g in _graders(case))
+    assert any(phrase in bodies for phrase in _DISCRIMINATION), (
+        f"{case.name}: no grader says what a run without the plugin would do "
+        "instead, so nothing here shows the case can discriminate"
+    )
+
+
+# --- the part-done fixture serves the loop cases ------------------------------
+
+
+def _fixture_table(name):
+    return (MIGRATION_FIXTURE / name).read_text(encoding="utf-8")
+
+
+def test_the_fixture_queue_holds_delivered_and_pending_work():
+    # A queue with nothing delivered cannot show a corrected row re-opening its
+    # dependants, and a queue with nothing pending cannot show a Conversion
+    # being taken at all.
+    scenarios = _fixture_table("scenarios.md")
+    assert "| done |" in scenarios, "no delivered scenario to re-open"
+    assert "| pending |" in scenarios, "no scenario left to convert"
+    assert "| parked |" not in scenarios, (
+        "a fixture that starts parked cannot show a Conversion parking; the "
+        "case that needs one appends it in its own scaffold"
+    )
+
+
+def test_every_scenario_in_the_fixture_queue_exists_in_the_source_suite():
+    """The queue and the suite are joined by a scenario's spelling, nothing else.
+
+    A queue row naming a scenario no feature file contains sends the agent
+    looking for something that is not there, and the run fails for a reason the
+    case was not written to measure.
+    """
+    features = "\n".join(
+        path.read_text(encoding="utf-8")
+        for path in (FIXTURES_DIR / "cucumber-java" / "features").glob("*.feature")
+    )
+    for line in _fixture_table("scenarios.md").splitlines():
+        if not line.startswith("| `"):
+            continue
+        scenario = line.split("`")[1]
+        assert f"Scenario: {scenario}" in features or f"Scenario Outline: {scenario}" in features, (
+            f"the queue names {scenario!r}, which no feature file holds"
+        )
+
+
+def test_the_assembled_record_spells_its_versions_as_the_reference_does():
+    # `assembled.md` and `step-map.md` are compared by this spelling and nothing
+    # else reconciles them, so a fixture spelling it differently teaches the
+    # agent a shape the real thing does not use.
+    assembled = _fixture_table("assembled.md")
+    assert "`@1" in assembled.replace("` @", "`@"), (
+        "row versions are recorded as `step`@version per references/"
+        "migration-directory.md"
+    )
+
+
+def test_the_part_done_fixture_carries_residue_that_is_not_an_element():
+    """Both kinds, because the Conversion loop treats them differently.
+
+    An unresolved element blocks assembly and a declined step does not — it
+    stands as a marker. With only one kind in the fixture, the case that checks
+    a declined step assembles would have to use the row that blocks.
+    """
+    residue = _fixture_table("residue.md")
+    assert "unresolved element" in residue
+    assert "step addon" in residue, "no declined step for a marker to stand in for"
+
+
 #: Shapes that would mean text came from a real suite rather than being
 #: hand-built. Checked because this plugin is published, and the source material
 #: its examples imitate is a customer's.

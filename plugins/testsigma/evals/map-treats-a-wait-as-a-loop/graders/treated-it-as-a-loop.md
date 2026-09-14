@@ -19,3 +19,7 @@ Narrowed to: whether a helper named like a wait was reported as a loop that re-d
 default `last_message` shows the judge only the final reply. A criterion that
 names an artifact the judge cannot see is not a strict grader; it is one that
 fails whenever the agent chose to summarise rather than restate.
+
+What the no-plugin arm does instead: it takes "refresh until" at its word and
+writes a wait. The helper's name gives a capable model every reason to stop
+there, so the delta this grader measures is the instruction to open it.
