@@ -174,3 +174,14 @@ Tell the Operator, in their terms and in this order:
 Then name the next thing to do, as one action rather than a list of options. A
 report that ends in a menu has handed the archaeology back to the Operator, which
 is the thing this command exists to stop.
+
+**Where the queue is empty, say that the work is not delivered.** Every
+Conversion ends at a committed working copy and none of them pushes, so a
+Migration with nothing pending has produced every test and sent none of them.
+Nothing else in a session says this: the stages report what they finished, and a
+reader who has watched each one succeed reasonably concludes the work arrived.
+
+Say it and stop there. Delivery is **the Operator's** act at a moment they pick,
+and this command neither performs it nor offers to —
+`${CLAUDE_PLUGIN_ROOT}/references/delivery.md` holds what it involves, including
+the one write that reaches past the version being delivered into.

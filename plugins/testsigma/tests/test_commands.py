@@ -53,6 +53,32 @@ class TestEveryCommand:
 
 # --- the resume command ------------------------------------------------------
 
+class TestResumeReportsThatDeliveryIsOutstanding:
+    """Converted and committed is not delivered.
+
+    Every skill ends at the committed working copy, and no Conversion pushes
+    (ADR-0014). So a Migration whose queue is empty has produced everything and
+    sent nothing, and the only document that says Delivery exists is a reference
+    a reader has no reason to open. `resume` is where a fresh session learns
+    what state the Migration is in, which makes it where that belongs.
+    """
+
+    def _body(self):
+        return document(RESUME).body
+
+    def test_it_says_a_finished_queue_is_not_a_delivered_migration(self):
+        assert has_paragraph_with(self._body(), "delivered", "committed working copy")
+
+    def test_it_points_at_the_reference_that_owns_delivery(self):
+        assert "delivery.md" in self._body()
+
+    def test_it_does_not_offer_to_deliver(self):
+        # Delivery is the Operator's act at a moment they pick, and `resume` is
+        # read-only apart from its one correction case. A report that offered to
+        # push would be proposing the one write ADR-0014 reserves.
+        assert has_paragraph_with(self._body(), "the Operator", "delivery.md")
+
+
 class TestResumeCommand:
     def test_it_exists(self):
         assert RESUME.is_file()
