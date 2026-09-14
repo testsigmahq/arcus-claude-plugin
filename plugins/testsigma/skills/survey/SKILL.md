@@ -28,7 +28,7 @@ Before any check, decide what "the suite" means here, because everything else is
 relative to it. It is the directory that contains the tests being migrated, which
 is often not the root of the repository holding them.
 
-Ask the Operator if there is any ambiguity. A monorepo, or a suite sitting in a
+Ask the Operator if there is any ambiguity. A monorepo, or a suite in a
 subdirectory beside application code, is the normal case rather than the exception.
 
 The Migration Directory goes at the suite root you settle on, even when the
@@ -63,8 +63,8 @@ wrong: the conversion that produced this plugin's design sat unversioned in a
 temporary directory, holding the only copy of every artifact it had produced.
 
 Two further checks belong with these, because both make the Migration Directory
-silently useless rather than absent, and neither is one of the four. Run both now,
-reading what each means in `${CLAUDE_PLUGIN_ROOT}/references/migration-directory.md`:
+silently useless rather than absent. Run both now, reading what each means in
+`${CLAUDE_PLUGIN_ROOT}/references/migration-directory.md`:
 `git check-ignore -q .testsigma/migration`, which stops the Migration if the suite
 discards the folder, and whether the suite is a submodule, which does not stop it
 but must be confirmed.
@@ -84,28 +84,26 @@ can be converted today and that theirs is not yet among them, so nothing produce
 here could be attached.
 
 Take the answer from the Operator, not from the source: a suite's own code is weak
-evidence of the platform it drives, and the target application is a thing in their
-tenant.
+evidence of the platform it drives, and the target application sits in their tenant.
 
 Which platforms have a catalogue is a property of the installed build and it grows,
-so this stop turns on what `cli-probe.md` found and never on the pair named above,
-and the answer is recorded in `platform-facts.md` with how it was established.
+so this stop turns on what `cli-probe.md` found rather than on the pair named above.
+Record the answer in `platform-facts.md` with how it was established.
 
 ## Step 1: Choose the Source Adapter, and say why
 
 Read the adapters in `${CLAUDE_PLUGIN_ROOT}/adapters/`, starting with `README.md`
 there, which defines the format and what the three properties mean.
 
-Name the adapter you chose and say why you chose it, before any other work
-happens, so a wrong reading can be corrected before anything depends on it. The
-reason matters as much as the choice: an Operator cannot correct a decision whose
-grounds they cannot see.
+Name the adapter you chose and say why, before any other work happens, so a wrong
+reading can be corrected before anything depends on it. The reason matters as much
+as the choice: an Operator cannot correct a decision whose grounds they cannot see.
 
 Report its three declared properties in plain consequences rather than as field
 values: whether the real sequence hides behind a helper layer, which decides how
 costly checking each step against the source will be; whether the source carries
-locators, which decides whether finding elements is part of mapping or a stage of
-its own; and whether values carry a language of their own.
+locators, which decides how much of finding elements the source can answer; and
+whether values carry a language of their own.
 
 If two adapters plausibly match, do not pick quietly. Say which two and what
 distinguishes them, and let the Operator settle it. If none matches, stop, say
@@ -113,18 +111,16 @@ which formats are supported, and offer to write an adapter for this one.
 
 ## Step 2: Pin the source snapshot
 
-Record the commit the suite is at, and the branch it is on. If the checkout is on a
-detached HEAD, record that instead of a branch, because a commit with no branch is
-much harder to find again later.
+Record the commit the suite is at and the branch it is on. On a detached HEAD,
+record that instead of a branch: a commit with no branch is much harder to find
+again later.
 
-That commit is the snapshot. Because the suite is under version control, the
-snapshot is a reference rather than a copy, which is the whole reason the previous
-step refuses a folder without it.
+That commit is the snapshot: a reference rather than a copy, which is the whole
+reason the previous step refuses a folder without version control.
 
-If the working tree has uncommitted changes, tell the Operator how many files
-differ and offer to save them first. Do not list paths at them. A Migration pinned
-to a commit while the tree differs from it is a fact they need, not a detail to
-smooth over.
+If the working tree has uncommitted changes, tell the Operator how many files differ
+and offer to save them first, without listing paths at them. A Migration pinned to a
+commit while the tree differs from it is a fact they need.
 
 ## Step 3: Probe the CLI and record what it checks
 
@@ -133,16 +129,15 @@ confirm you are talking to, what to record as the build, and how to read the hel
 surface as evidence of which checks this build performs.
 
 Never assume a check exists. A later stage relying on a diagnostic the installed
-build does not produce must record that check as not covered rather than as
-passing, and it can only do that if this step wrote down what was actually
-available. Diagnostic codes belong in the Migration Directory and are never spoken
-to the Operator.
+build does not produce must record that check as not covered rather than as passing,
+which it can only do if this step wrote down what was available. Diagnostic codes
+belong in the Migration Directory and are never spoken to the Operator.
 
 ## Step 4: Create the Migration Directory and commit it
 
-Do this before enumerating, not after. Enumeration is the long step, and everything
-established so far is a cheap fact that would be lost with the session. Committing
-now also means the next step has somewhere to put a question.
+Do this before enumerating, not after. Enumeration is the long step, everything
+established so far would be lost with the session, and committing now means the next
+step has somewhere to put a question.
 
 Create `.testsigma/migration/` at the suite root and write its files, one per
 concern. The file set, what each holds, and a skeleton for each are defined in
@@ -151,10 +146,10 @@ not restate the list here or invent a file that is not in it.
 
 **Settle where the working copy will go, and write it down** on `migration.md`'s
 `Working copy:` line — inside the suite, never beside it, per ADR-0011 and the
-reference above. Left to assembly, each session picks again, and a path nothing
-recorded is one a resumed session cannot find.
+reference above. Left to assembly, each session picks again, and an unrecorded path
+is one a resumed session cannot find.
 
-Write `migration.md` with what Steps 0 to 3 established. Create the other six from
+Write `migration.md` with what Steps 0 to 3 established. Create the other eight from
 their skeletons. Then commit just this directory, with `git add .testsigma/migration`
 and a message of the form `chore(migration): start migrating <suite>` — never a
 bare commit of everything, which in a monorepo sweeps up unrelated work.
@@ -166,13 +161,11 @@ State is only kept if it is committed, which is the whole point of putting it he
 Ask the Operator whether anyone has already converted part of this suite by hand.
 A Migration that does not know what the project holds authors a second copy of it.
 
-If they say yes, pull into `.testsigma/migration/existing/` and commit:
-`testsigma pull version --write`, plus `pull uploads --write`, `pull variables
---write` and `pull env <name-or-id> --write` for what hangs above the
-version. That inventory lets mapping adopt a step group rather than
-rebuild it, and element resolution reuse a team's screen.
-`${CLAUDE_PLUGIN_ROOT}/references/adoption.md` says what adoption is and what must
-be true before a row may claim it.
+If they say yes, pull the project into `.testsigma/migration/existing/` and commit —
+`testsigma pull version --write` and what hangs above the version, as
+`${CLAUDE_PLUGIN_ROOT}/references/adoption.md` lists. That inventory lets mapping
+adopt a step group rather than rebuild it, and element resolution reuse a team's
+screen; the same reference says what must be true before a row may claim one.
 
 **Ask whether the project may be written to.** A project holding work a team
 depends on is often read-only, and only they hold that fact. Record it in
@@ -190,9 +183,16 @@ the format, not to this skill.
 
 The counting is mechanical and the suite may hold thousands of lines, so write a
 throwaway script from the adapter's numbered rule rather than counting by reading.
-This is the one part of reading a source that may be automated: the rule is exact
-by construction. Everything else the adapter asks for is judgement and is never
+This is the one part of reading a source that may be automated: the rule is exact by
+construction. Everything else the adapter asks for is judgement and is never
 scripted.
+
+**Record which scenario each occurrence came from, in the same pass.** Keeping the
+scenario a line sat in costs one extra column in a walk the script already makes,
+and it must never become a second pass over the source. That scenario-to-Source-Step
+incidence is what orders the Conversions later, and survey is the only stage that
+walks the whole suite, so an incidence it discards is one nothing else can cheaply
+rebuild.
 
 Report:
 
@@ -203,48 +203,46 @@ Report:
   suite only ever fills a single way, and how many genuinely vary
 
 **Warn when the Collapse Ratio is near 1.0.** Treat below 1.5 as the warning
-threshold, as a guideline rather than a rule; a real suite measured for this plugin
-sat at 7.86, and the adapter's own worked example at 1.88. A ratio near 1.0 means
-every step is written once and there is no vocabulary to map, so mapping saves
-nothing and the Migration will cost about what rewriting the suite by hand would.
+threshold, a guideline rather than a rule; a real suite measured for this plugin sat
+at 7.86 and the adapter's worked example at 1.88. Near 1.0 every step is written
+once, so there is no vocabulary to map and the Migration costs about what rewriting
+the suite by hand would.
 That is a decision for the Operator, not a number to file. Put it to them, record
 the question in `open-questions.md` immediately, and clear it only when they answer.
 
-**Screen for what is unconvertible before quoting a size.** This screens step
+**Screen for what is unconvertible before quoting a size**, and report those
+scenarios as out of scope rather than counting them in the total. This screens step
 content, and it is the second of the two triage axes: the platform gate above
 settled whether the suite's application can be converted at all, and this settles
-which of its scenarios can. A scenario can be
-pure web and still impossible: in a measured estate, six of seven web-only
-scenarios seeded their data by rewriting a spreadsheet and importing it through the
-application, which Testsigma cannot do — it can attach an upload, not edit a file
-mid-test. Screen the source for spreadsheet and CSV handling, data-loader or import
-steps, and database, shell or version-control steps, and report those scenarios as
-out of scope rather than counting them in the total.
-
-Anchor any such classifier to step-definition names rather than to the text of a
-line. A first attempt at this matched a scenario as native because a step read
-"Navigate to WM Mobile" and the rule tested for a trailing "Mobile"; the scenario
-was a web test throughout, and excluding it would have dropped the very case the
-rest of this plugin was built from.
+which of its scenarios can. What to screen for, what to anchor the classifier to,
+and why a screened scenario is seeded rather than omitted are in
+`${CLAUDE_PLUGIN_ROOT}/references/content-screen.md`.
 
 Two other numbers change how the work should be ordered, so report them as findings
 rather than statistics. Source Steps occurring once amortise nothing, so a long tail
-sets the floor cost. And rows are not equal: the ones that genuinely vary carry most
-of the judgement, so a plan built on an average row will front-load the wrong work.
+sets the floor cost; and the rows that genuinely vary carry most of the judgement.
 
 **Seed `step-map.md` with the distinct Source Steps, every row `unreviewed`.**
 The enumeration just produced them, so this costs one write, and it changes what
 mapping is: filling rows in rather than creating them.
 
-Three things follow, and the third is why it is here rather than left to mapping.
-Progress becomes a number from the first minute — *reviewed 12 of 55*. A session
-that ends early leaves the skeleton and whatever was filled, so the next one
-resumes instead of re-reading. And a run that spends a hundred calls reading
-source without moving the reviewed count is visibly not progressing, where an
-empty map and a full one look identical while the work is held in a session that
-has not written anything down yet. That is not hypothetical: a measured run read
-step definitions for a hundred and eighteen calls, wrote no row, and ended with
-nothing.
+The third of the three things that follow is why this is here rather than left to
+mapping. Progress becomes a number from the first minute — *reviewed 12 of 55*; a
+session that ends early resumes instead of re-reading; and a run reading source
+without moving that count is visibly not progressing, where an empty map and an
+unstarted one look identical. A measured run read step definitions for a hundred and
+eighteen calls, wrote no row, and ended with nothing.
+
+**Seed `scenarios.md` with one row per scenario, every row `pending`**, the
+unconvertible ones `out-of-scope` with their reason, so what is left to convert and
+what was ruled out are read together. The incidence just recorded holds the Source
+Steps each one reaches, so this too costs one write. It is the Conversion queue, and
+seeding it here is what lets a later session answer "what is next" without walking
+the source again. Commit `scenarios.md` with the rest of the Migration Directory.
+
+**The Step Map's seeding is unchanged by this.** Every distinct Source Step still
+gets its own `unreviewed` row, in scope or not: the denominator and the anti-stall
+signal both depend on the empty rows existing to be visibly unfilled.
 
 Amend `migration.md` with the enumeration and commit again.
 
@@ -254,6 +252,8 @@ Tell the Operator, in their terms:
 
 - which adapter was chosen and why
 - what the suite contains, and the Collapse Ratio with its warning if one applies
+- how many scenarios are in scope to convert, and how many were ruled out and why,
+  since that is the count they will report to the customer
 - what was recorded, and that it now travels with the suite itself so the next
   session finds it
 - what happens next, which is mapping, and roughly how large it is in rows rather

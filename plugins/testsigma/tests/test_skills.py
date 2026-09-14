@@ -357,16 +357,28 @@ class TestSurveySkill:
         assert has_paragraph_with(_body(SURVEY), "branch", "detached head")
 
     def test_it_screens_for_unconvertible_scenarios_before_quoting_a_size(self):
-        # Measured: six of seven web-only scenarios seeded data by rewriting a
-        # spreadsheet and importing it, which the platform cannot do.
+        # The screen is survey's to run; how to run it is a reference, because
+        # the skill body is a progressive-disclosure budget and the anecdotes
+        # that justify the classifier are not needed to decide to screen.
         body = _body(SURVEY)
         assert has_paragraph_with(
             body, "screen for what is unconvertible", "before quoting a size"
         )
+        assert has_paragraph_with(
+            body, "screen for what is unconvertible", "references/content-screen.md"
+        ), "survey must point at the procedure rather than drop it"
+
+    def test_the_content_screen_reference_keeps_the_procedure(self):
+        # Measured: six of seven web-only scenarios seeded data by rewriting a
+        # spreadsheet and importing it, which the platform cannot do.
+        body = (REFERENCES_DIR / "content-screen.md").read_text(encoding="utf-8")
         assert has_paragraph_with(body, "spreadsheet", "out of scope")
         assert has_paragraph_with(
             body, "step-definition names", "text of a line"
         ), "a classifier on free text excluded a web test for containing Mobile"
+        assert has_paragraph_with(
+            body, "`out-of-scope`", "reason", "never omitted", absent=("omit it",)
+        ), "a screened scenario must be seeded, not dropped"
 
     def test_it_gives_a_threshold_for_the_near_one_warning(self):
         # "Near 1.0" with no number fires on whim.
@@ -663,6 +675,62 @@ def test_the_glossary_owns_what_an_addon_is():
         "an Addon that names only the step kind leaves the generator kind with "
         "no word, which is how the two get recorded as one cause"
     )
+
+
+class TestSurveySeedsTheConversionQueue:
+    """`scenarios.md` is seeded by survey, from the incidence it already walks.
+
+    Survey is the only stage that reads every line of the suite. The incidence
+    it used to discard is what orders the Conversions, and nothing downstream
+    can rebuild it without a second walk of tens of thousands of lines.
+    """
+
+    def _survey(self):
+        return " ".join(document(SURVEY).flat.split()).lower()
+
+    def test_the_incidence_is_recorded_in_the_pass_survey_already_makes(self):
+        assert has_paragraph_with(
+            _body(SURVEY), "incidence", "same pass", "second pass"
+        ), (
+            "recording the incidence must cost one column in the existing walk, "
+            "never a second walk of the source"
+        )
+
+    def test_it_seeds_one_row_per_scenario_as_pending(self):
+        assert has_paragraph_with(
+            _body(SURVEY), "`scenarios.md`", "per scenario", "`pending`"
+        )
+
+    def test_an_unconvertible_scenario_is_seeded_out_of_scope_with_its_reason(self):
+        # Never omitted: an absent row reads as "nobody looked". The rule is
+        # stated where the screen is, and survey states the seeding it does.
+        assert has_paragraph_with(
+            _body(SURVEY), "`scenarios.md`", "`out-of-scope`", "reason"
+        )
+        assert has_paragraph_with(
+            (REFERENCES_DIR / "content-screen.md").read_text(encoding="utf-8"),
+            "`out-of-scope`",
+            "reason",
+            "never omitted",
+            absent=("omit it",),
+        )
+
+    def test_the_step_map_seeding_is_stated_as_unchanged(self):
+        # The denominator and the anti-stall signal both depend on every
+        # distinct Source Step having a visibly unfilled row, in scope or not.
+        assert has_paragraph_with(
+            _body(SURVEY), "step map", "unchanged", "`unreviewed`"
+        )
+
+    def test_it_commits_the_new_file_with_the_rest(self):
+        assert has_paragraph_with(_body(SURVEY), "commit `scenarios.md`")
+
+    def test_the_report_says_how_many_are_in_scope_and_how_many_were_ruled_out(self):
+        body = self._survey()
+        assert "in scope to convert" in body and "ruled out" in body, (
+            "the Operator reports a scenario count to the customer; survey is "
+            "where that count first exists"
+        )
 
 
 class TestTheStepMapIsSeededBeforeMapping:
