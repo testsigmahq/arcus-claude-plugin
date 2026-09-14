@@ -16,14 +16,35 @@ Run the CLI's help and look at the command list.
 
 | The help lists | What it is | Can it run a Migration? |
 |---|---|---|
-| `attach`, `pull`, `push`, `validate`, `run`, `url`, `list` | The workspace CLI this plugin needs | Yes |
+| `attach`, `pull`, `push`, `validate`, `run`, `url`, `list` | The workspace CLI, by its whole dispatch | Yes |
 | `test`, `sprints`, `projects`, `modules` | The other Testsigma CLI, which authors individual tests | **No** |
 
 Those seven are the whole dispatch, and the first four are only the ones the
 Migration's stages drive directly. Telling the two programs apart needs any one
 of the seven, but do not read the four as the surface: `list` is how the platform
 gate below reads what a project holds, and a probe that never looked for it
-concluded the command did not exist.
+concluded the command did not exist. `url` fetches the bytes an upload holds —
+`${CLAUDE_PLUGIN_ROOT}/references/adoption.md` describes it.
+
+**`run` is here to identify the program, and for nothing else.** A Migration
+converts and delivers and **never executes** a test. Running one needs a tenant,
+agents and test data that a Migration does not arrange, and a converted test that
+has never run is still the deliverable. It is named here because the dispatch is
+how the two programs are told apart, not because a stage reaches for it. A
+Migration that ran its own tests would also be arranging state in the Target
+Project outside a Delivery, which ADR-0014 gives to **the Operator**.
+
+`attach` is the one command whose effects are felt everywhere later, and
+`${CLAUDE_PLUGIN_ROOT}/references/authoring.md` describes what it establishes.
+
+**Do not answer this by writing down the surface.** A command or a flag earns a
+line here where a flow is wrong or weaker without it, and the line belongs in
+that flow's own document rather than in a table. Everything else is the tool's
+help, which is always current. A table of the whole surface is a second copy of
+`--help` that goes stale the way this reference's own block count did — and a
+stale line beside a correct one is what makes the wrong one read as checked. So
+several flags this plugin never mentions are omitted deliberately: no flow needs
+them, and one that later does will name it then.
 
 If the help shows the second surface, stop. Tell the Operator that the Testsigma
 command-line tool installed here is the one for writing individual tests, not the

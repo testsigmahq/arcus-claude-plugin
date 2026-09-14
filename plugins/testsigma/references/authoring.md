@@ -21,6 +21,29 @@ and are never spoken to the Operator (`asking.md`).
 **These are observations of one CLI build against one tenant.** Re-probe rather
 than assuming they still hold — `cli-probe.md` says how, and ADR-0003 says why.
 
+## What `attach` establishes
+
+`attach` is the command every later one depends on, and its effects are read in
+four places without being described in any. It takes **project, application,
+version** as positional arguments — there are no `--project` or `--application`
+flags to reach for, and the version may be omitted where the application has one.
+
+What it leaves behind is the part that matters:
+
+- **The folder it attaches is the Target Project.** Nothing asks again which
+  project a Migration delivers into; the files are bound to it from here
+  (`${CLAUDE_PLUGIN_ROOT}/references/delivery.md`).
+- **It writes `applicationType` into the marker**, and every working copy under
+  it compiles against the catalogue that names. This is why a verb read from the
+  wrong catalogue is refused later rather than at the moment it was read.
+- **It refuses a platform this build has no catalogue for**, with `TSS1609`,
+  before a single row is converted — `cli-probe.md` says why that refusal is
+  better than attaching and failing every pull afterwards.
+
+Attaching is a write, so a project the Operator named read-only forbids it along
+with the other writing subcommands
+(`${CLAUDE_PLUGIN_ROOT}/references/adoption.md`).
+
 ## A deprecated template is a hard error, not a warning
 
 `deprecated: true` on a step template means **a new step may not use it**. The
@@ -32,15 +55,27 @@ So treat a deprecated template as an authoring error at the moment a row propose
 it, not as something to discover at push time, and keep a replacement for every
 one you have met.
 
+**The default listing already protects you, which is why enumerating is not
+optional.** Deprecated verbs are **hidden by default**: `list verbs` shows the
+supported surface, and `--deprecated` includes the rest rather than filtering to
+them — about a third of the full catalogue is deprecated, which is the scale that
+makes this worth establishing rather than meeting. So a session that enumerates
+and then picks cannot pick a deprecated verb — the only way to reach one is to guess a spelling
+without enumerating, which is what ADR-0009 forbids for other reasons and this
+one besides. In `--json` every row carries `deprecated` as a field, so an agent
+reading JSON has the answer without the flag.
+
 **Ask before authoring, rather than meeting the refusal.** `deprecated` is a
-field on the verb, and a third of the web surface carries it, so meeting it by
-pushing is a choice and not a necessity. Compile the verb and read the answer:
+field on the verb, so meeting it by pushing is a choice and not a necessity. Compile the verb and read the answer:
 the build reports a deprecated verb as **`TSF2008`**, with its template id in the
 message. The section below says how to compile one question.
 
 **The offline check is weaker than the tenant here, which is the trap.**
-`TSF2008` is a **warning**. It does not fail a validate, and the tenant refuses
-the create anyway. So a session that compiles, sees a warning, and reads the exit
+`TSF2008` is a **warning**. It does not fail a validate — deliberately, because
+`pull` has to be able to regenerate steps that already exist on the server, so a
+deprecated template stays authorable. The tenant refuses the create anyway, with
+**`TSS1106`**, and only for a *new* step: an entity that already has a step on
+that template keeps it. So a session that compiles, sees a warning, and reads the exit
 code as the answer will carry the row all the way to a push that refuses it. Read
 the diagnostic, not the exit code. This is the inverse of the assumption
 ADR-0001's check order rests on — usually the offline check is the strict one —
@@ -142,6 +177,33 @@ and goes in `platform-facts.md` with the build identity beside it; the workspace
 is a question that has been asked and is worth nothing afterwards. Per ADR-0003,
 record at survey which of these codes the installed build produces, so a check
 that leans on an absent one is recorded as not covered rather than as passing.
+
+## Establishing that no generator produces a value
+
+A Residue row whose Cause is `data generator addon` claims that nothing in the
+build produces this value. That is a claim about the whole catalogue, so it is
+established by reading the catalogue rather than by failing to think of one:
+
+    testsigma list generators                 an index: a count per group
+    testsigma list generators --all           every row
+    testsigma list generators --group domain  one group
+
+Bare `list generators` prints counts, not rows — a reader who runs it and sees no
+generators has read an index, not an answer. A row carries the call, a sentence
+saying what it produces, and an example per argument, so the verdict rests on
+what each one does rather than on what its name suggests. The group is the middle
+segment of the call: `--group domain` gives what you spell `gen.domain.*`.
+
+**Generators are one catalogue, not two.** `--dialect` is accepted here and
+changes nothing — the output is identical for web and unified. The rule that
+governs verbs does not carry over, and a reader who has just learned it will
+expect it to.
+
+**The verdict is two questions.** Whether a generator produces the value is the
+first. Whether the slot accepts a `function` at all is the second, and a slot
+closed to functions refuses every generator equally — `TSF2012`, at validate.
+That refusal is not the generator being absent, and recording it as
+`data generator addon` files a request nobody can act on.
 
 ## A value kind, and which slots will take one
 
@@ -338,9 +400,8 @@ runs spent six `validate` calls rediscovering it.
 
 - **Environments are project-scoped**, not application-scoped: the `envs/`
   directory sits beside the project, not inside the application directory.
-- **`attach` takes positional arguments**: project, application, version. There are
-  no `--project` or `--application` flags to reach for, and the version may be
-  omitted where the application has one.
+- **`attach` takes positional arguments**: project, application, version — see
+  *What `attach` establishes* above for the rest of what it leaves behind.
 - **Layout is canonical and the validator enforces it.** Blank lines only at block
   boundaries and never between consecutive plain statements; an empty step-group
   invocation occupies two lines; an api block's children must appear in schema

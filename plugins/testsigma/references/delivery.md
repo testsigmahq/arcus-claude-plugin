@@ -8,7 +8,8 @@ act from converting.
 ## The target is the folder, and it is not named twice
 
 The Target Project is the project the working copy is attached to — the folder
-the new tests are written in. `attach` already bound the files to it, so a
+the new tests are written in. `attach` already bound the files to it — see *What
+`attach` establishes* in `${CLAUDE_PLUGIN_ROOT}/references/authoring.md` — so a
 Migration never asks which project it is delivering into. A Migration that asked
 again could be told a different answer than the one its files carry, and the
 files would win.

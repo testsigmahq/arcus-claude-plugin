@@ -33,6 +33,15 @@ emptier than it is, which is the second-copy failure this section exists to
 prevent. Put them under `.testsigma/migration/existing/` and commit them
 with the rest of the Migration's state.
 
+`pull version` has a `--prune`, and a Migration has no reason to run it. It
+deletes a *working copy* whose entity the version did not return — never anything
+under `existing/`, which sits outside the workspace root it walks. The hazard is
+narrower and worse than that: a **soft-deleted** entity reads from here exactly
+as a removed one does, and the command cannot tell them apart. So it deletes the working copy of something that
+may still exist in the application, on evidence that cannot tell the two apart.
+Where one is ever run, `--prune` **without `--write`** lists what it would delete
+and deletes nothing, and every row wants reading before the second run.
+
 They are **evidence, not working copies to edit**. Their value is that they say
 what the project holds at the snapshot the Migration started from, and an edited
 one has stopped saying that. A Migration authors under the suite's own test

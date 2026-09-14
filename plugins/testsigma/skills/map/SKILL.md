@@ -113,8 +113,9 @@ Directory reference. A row is `unreviewed` from the moment it is written.
 ### Before a row is proposed: the slot decides the value
 
 Naming the right verb does not make a row legal: a slot declares which **value
-kinds** it will hold, and the kinds, and how to ask the build what a slot
-accepts, are in `${CLAUDE_PLUGIN_ROOT}/references/authoring.md`. Never settle a
+kinds** it will hold, and the kinds, how to ask the build what a slot accepts,
+and which verbs are deprecated, are in
+`${CLAUDE_PLUGIN_ROOT}/references/authoring.md`. Never settle a
 mismatch with a raw literal — freezing a generated or captured value into a
 constant passes every check and is a Divergence. Where a row's value is not a
 raw literal, record a `Kind:` line in its Expression cell, as

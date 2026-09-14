@@ -211,6 +211,15 @@ it and cannot be counted, sorted, or handed to the person who can close it:
 | `no catalogue` | this build has no Catalogue for the application's platform | whoever ships catalogues |
 | `declined` | expressible, and not converted on purpose | nobody — this is the refusal |
 
+`data generator addon` claims nothing in the build produces this value, which is
+a claim about the whole catalogue and is established by reading it:
+`testsigma list generators --all` prints every generator with what it produces.
+Bare `list generators` prints an index of counts per group, so a reader who runs
+it and sees no rows has read the wrong thing.
+`${CLAUDE_PLUGIN_ROOT}/references/authoring.md` says how to read the answer, and
+why the question is really two — a slot that accepts no `function` refuses every
+generator equally, which is not the generator being absent.
+
 The first two are the ones that get merged by accident, and they are the two that
 must not be. Both present as a step that cannot be finished; they are different
 requests to different people. Where a step is missing *and* a value inside it has
