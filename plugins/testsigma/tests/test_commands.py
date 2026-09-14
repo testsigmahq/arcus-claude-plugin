@@ -96,29 +96,56 @@ class TestResumeCommand:
             self._section("unreviewed"), "platform-facts.md", "lifted"
         )
 
-    def test_it_reports_the_active_phase(self):
-        assert has_paragraph_with(self._section("phase"), "active phase")
+    # --- the Conversion queue ------------------------------------------------
+    #
+    # A Migration runs over days, and the question a fresh session asks is which
+    # Conversion is next and whether anything waits on the Operator. A Phase line
+    # could not answer it: with survey the only Phase it would read the same for
+    # three weeks.
 
-    def test_the_phase_is_decided_by_a_stated_rule_not_by_impression(self):
-        # Without a rule written down, two sessions reading the same directory
-        # can name different Phases, and the Operator cannot tell which is right.
-        section = self._section("phase")
-        assert "step-map.md" in section and "migration.md" in section, (
-            "the Phase must be read off named files in the Migration Directory"
+    def test_it_reports_the_conversion_queue(self):
+        section = self._section("queue")
+        assert has_paragraph_with(section, "scenarios.md", "done", "pending", "parked")
+
+    def test_the_queue_counts_every_status_the_file_defines(self):
+        # Four statuses, and a status left uncounted is work nothing reports.
+        section = self._section("queue").lower()
+        for status in ("pending", "done", "parked", "out-of-scope"):
+            assert status in section, f"the queue never counts {status} rows"
+
+    def test_a_parked_scenario_is_reported_with_what_it_waits_on(self):
+        # "Two parked" is how a question goes quiet; what each waits on is the
+        # one part of this report the Operator alone can act on.
+        assert has_paragraph_with(
+            self._section("queue"),
+            "parked",
+            "waits on",
+            absent=("a count is enough", "need not say"),
         )
 
-    def test_the_phase_rule_says_which_row_wins(self):
-        section = self._section("phase")
-        assert has_paragraph_with(section, "first row"), (
-            "several conditions can match at once; the tie-break is the rule"
+    def test_it_names_which_conversion_would_be_taken_next(self):
+        assert has_paragraph_with(self._section("queue"), "next_conversion.py"), (
+            "the next Conversion is chosen by the same script convert runs, so "
+            "resume and convert cannot name different scenarios"
         )
-        # And the rows must be in Phase order, since "first match" is only
-        # deterministic against a stated order.
-        order = ["extraction", "mapping", "assembly"]
-        positions = [section.lower().index(phase) for phase in order]
-        assert positions == sorted(positions), (
-            f"the Phase rows are out of Phase order: {order}"
-        )
+
+    def test_naming_the_next_conversion_does_not_take_it(self):
+        assert has_paragraph_with(
+            self._section("queue"), "do not convert"
+        ), "resume reports the queue; converting is convert's work"
+
+    def test_the_phase_framing_is_gone(self):
+        # Survey is the only Phase (ADR-0012), so a Phase line would read
+        # "converting" for the whole Migration — noise in front of the thing
+        # the Operator needs.
+        # Scoped rather than a document-wide ban on the word: Phase is live
+        # vocabulary (ADR-0012, CONTEXT.md), and survey is one. What is gone is
+        # resume reporting one.
+        meta, body = read_frontmatter(RESUME)
+        assert "phase" not in str(meta.get("description", "")).lower()
+        assert "active phase" not in body.lower()
+        for heading in (self._section("queue"), self._section("report")):
+            assert "phase" not in heading.lower()
 
     def test_it_names_the_next_thing_to_do(self):
         assert has_paragraph_with(self._section("report"), "next thing to do")
@@ -195,8 +222,10 @@ class TestResumeCommand:
         # the Step Map holds nothing but its header. Zero unreviewed rows must
         # not read as nothing left to do.
         assert has_paragraph_with(
-            self._section("phase"), "no rows", "mapping"
-        ) or has_paragraph_with(self._section("phase"), "only its header", "mapping")
+            self._section("unreviewed"), "no rows", "nothing left to do"
+        ) or has_paragraph_with(
+            self._section("unreviewed"), "only its header", "nothing left to do"
+        )
 
     def test_it_refuses_when_there_is_no_migration_to_resume(self):
         assert has_paragraph_with(
@@ -210,8 +239,40 @@ class TestResumeCommand:
         # The ticket's headline: one command, four answers, unambiguously.
         section = self._section("report")
         lowered = section.lower()
-        for topic in ("phase", "unreviewed", "question", "cli"):
+        for topic in ("queue", "unreviewed", "question", "cli"):
             assert topic in lowered, f"the report never mentions {topic}"
+
+    def test_it_stays_read_only_apart_from_the_correction(self):
+        # Reporting must not change what it reports, or two sessions reading the
+        # same directory see different states.
+        # The preamble's single-write claim is guarded from the other side by
+        # test_document_shape. What is new here is that the queue writes nothing
+        # either: a parked row that has cleared is returned to `pending` by
+        # convert.
+        assert has_paragraph_with(
+            self._section("queue"), "pending", "convert", "not this one"
+        ), "returning a cleared parked row to pending is convert's write"
+
+    def test_a_saturated_queue_is_reported_as_a_default_not_a_recommendation(self):
+        # Past saturation the ordering no longer prefers anything, and a default
+        # offered as a recommendation takes a choice from the Operator without
+        # their knowing it was theirs.
+        assert has_paragraph_with(
+            self._section("queue"), "saturated", "default", "recommendation"
+        )
+
+    def test_no_selection_is_told_apart_from_a_missing_record(self):
+        # The script cannot distinguish them by exit status, and a Migration
+        # whose records are missing is not a Migration with no work left.
+        assert has_paragraph_with(
+            self._section("queue"), "missing record", absent=("no work left.",)
+        )
+
+    def test_the_scripts_own_output_is_not_relayed_to_the_operator(self):
+        # It prints file paths, which the audience rule keeps out of what the
+        # Operator sees.
+        assert has_paragraph_with(self._section("queue"), "paths", "not relayed") or \
+            has_paragraph_with(self._section("queue"), "paths", "nothing here is relayed")
 
     def test_it_names_the_audience_rule(self):
         assert has_paragraph_with(_body(RESUME), "operator", "context.md")

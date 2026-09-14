@@ -1,5 +1,5 @@
 ---
-description: Resume a Migration in a fresh session — report the active Phase, unreviewed Step Map rows, unanswered questions, and whether the installed testsigma CLI has changed
+description: Resume a Migration in a fresh session — report the Conversion queue and which Conversion is next, unreviewed Step Map rows, unanswered questions, and whether the installed testsigma CLI has changed
 ---
 
 # Resume a Migration
@@ -60,35 +60,65 @@ a pass it never earned. Amend `migration.md` with the new build and the date.
 this rule. Report the count of Units now not checked against the new capability,
 so re-checking is the Operator's costed decision rather than an oversight.
 
-## Step 2: Name the active Phase
+## Step 2: Read the Conversion queue off `scenarios.md`
 
-The Phase is read off the Migration Directory by a stated rule, not by
-impression, so that two sessions reading the same directory name the same Phase.
+A Migration delivers one Conversion at a time, so what a fresh session needs is
+the queue: what is done, what is pending, what is parked and what each parked
+scenario waits on, and which Conversion would be taken next.
 
-Take the first row that matches, top to bottom:
+Read `scenarios.md` and count its rows by status — `done`, `pending`, `parked`
+and `out-of-scope`. Report all four counts every session, including the ones that
+are zero, because a status left out reads as a status nothing is in. Lead with
+**tests delivered of total scenarios**: that is the number a customer onboarding
+onto Testsigma counts progress in. A Migration that has been surveyed and not
+yet converted leads with none delivered of its total, and that is a queue waiting
+to be worked rather than a Migration with nothing in it.
 
-| What you find | Active Phase |
-|---|---|
-| `migration.md` has no Enumeration numbers | extraction |
-| `step-map.md` has rows still `unreviewed`, or has none at all | mapping |
-| Every row is `reviewed` or `residue`, and Units of Work are still being built | assembly |
+**Name every parked scenario and what it waits on**, taking the `Reason` from its
+row. Never reduce them to a count. A parked scenario is the one part of this
+report the Operator alone can clear, and "two parked" is how a question goes
+quiet. Where what a row waits on has since cleared, say so and say that the next
+Conversion returns it to `pending` — that is `convert`'s write, not this one's.
 
-Resolving the controls a row names is not one of these. It happens inside a
-Conversion — inside mapping where the source carries locators, and from the
-target project or the Operator where it does not — so there is never a stretch
-of a Migration where that is all that is going on. Do not test any of this by
-looking at the source: what is read is the record, not a re-derivation.
+Name `out-of-scope` rows with their reasons on request rather than in full every
+session. They were ruled out by someone who looked, and re-reading the ruling
+every session is what makes a report skimmed.
 
-A Step Map holding no rows at all — only its header — is the commonest second
-session: survey has run and mapping has not started. The active Phase is mapping
-and the work ahead is the whole Step Map. Zero unreviewed rows must never be
-reported as nothing left to do.
+**Name the Conversion that would be taken next.** Run
+`${CLAUDE_PLUGIN_ROOT}/scripts/next_conversion.py --suite <the suite>`, which is
+the same script `convert` runs and reads without writing. Using the script rather
+than an impression is what stops resume and convert naming different scenarios,
+which would make the queue unreadable in exactly the way one session's judgement
+call always does. Do not convert it here: this command reports, and `convert`
+takes it.
+
+Where the script reports that vocabulary has saturated, the scenario it names is
+a default rather than a recommendation. Say so, and ask the Operator which
+scenarios the customer wants first: from that point ordering has handed over to
+their priority, and a default presented as a recommendation takes that choice
+away from them without their knowing it was theirs.
+
+If the script selects nothing, say which of the two it is — every scenario
+delivered, or every remaining one parked or out of scope — rather than reporting
+silence. They are different states and only one of them is a finished Migration.
+A script that cannot find the records it reads is neither: that is the partial
+directory the opening section stops on, and it is reported as a missing record
+rather than as a Migration with nothing left to convert.
+
+Nothing here is relayed to the Operator as the script prints it. Its output names
+files and paths, which is the detail the audience rule above keeps out of what
+they see; the counts and the scenario name are what is theirs.
 
 ## Step 3: Count what is unreviewed
 
 Count the rows in `step-map.md` by their status, and report the count of
 `unreviewed` rows exactly. Never round it, never call it "some", and never leave
 it out because it has not moved since last session.
+
+A Step Map holding no rows at all — only its header — is the commonest second
+session: survey has run and no Conversion has been taken. Zero unreviewed rows
+must never be reported as nothing left to do; the rows arrive as Conversions
+reach them, so the work ahead is the whole queue rather than the rows on file.
 
 Make the rows findable rather than merely counted, because a number the Operator
 cannot act on is not a report. Say that they are the rows whose status column
@@ -136,7 +166,8 @@ Tell the Operator, in their terms and in this order:
 
 - whether the CLI build changed, and what that means for what has already been
   checked — first, or not at all if it did not change
-- the active Phase, and what that Phase is for
+- the Conversion queue — delivered of total, pending, parked with what each
+  waits on — and the Conversion that would be taken next
 - how many Step Map rows are unreviewed, and where reviewing picks up
 - every unanswered question, in full, in both of its files
 

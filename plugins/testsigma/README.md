@@ -26,7 +26,9 @@ Directory at `.testsigma/migration/` inside the suite itself.
 
 **`resume`** — run at the start of every later session. A Migration spans days
 and a session starts blank; resume reads the Migration Directory and says where
-the work stands, including whether the installed CLI has changed under it.
+the work stands: the Conversion queue and which Conversion is next, what is
+parked and on what, unanswered questions, and whether the installed CLI has
+changed under it.
 
 **`convert`** — run once per scenario. It takes the next scenario off the queue,
 maps the Source Steps it reaches, resolves their elements, assembles and checks
