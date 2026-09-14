@@ -9,7 +9,7 @@ build can list the verbs."* The installed build now has two.
 
     testsigma list verbs                    315 verbs in 27 categories
     testsigma list verbs --category click
-    testsigma list blocks                   13 block kinds and what each contains
+    testsigma list blocks                   14 block kinds and what each contains
     testsigma list blocks --kind api        attributes, sub-blocks, calls
     testsigma list blocks --kind api --json the whole subtree, arguments inlined
 

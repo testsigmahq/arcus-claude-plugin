@@ -19,7 +19,7 @@ Fixed by ADR-0001 and extended by ADR-0010, and not negotiable per Migration:
    against the source's step list, and the only check that can see a conversion
    that stopped early. See ADR-0010 for why the other five cannot.
    **Coverage runs per slice, not once at the end.** Assembly builds about
-   fifteen source steps at a time and checks each slice with `--through N`
+   fifteen source steps at a time and checks each slice with `scripts/check_coverage.py --through N`
    before starting the next. The reason is measured: every defect ever found in
    a converted test was the *tail* of a sequence — a helper's final submit, a
    scenario's last steps, and once a run that converted nine steps of fifty-five
