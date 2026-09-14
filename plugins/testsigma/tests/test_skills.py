@@ -143,6 +143,84 @@ def test_every_migration_directory_file_has_a_skeleton():
         )
 
 
+# --- the Conversion queue and the row Version --------------------------------
+#
+# ADR-0012 delivers a Migration one Conversion at a time. These assert the two
+# files and the one column that order depends on, and the reasons a later edit
+# would most cheaply drop. Presence and bindingness only, never wording.
+
+class TestScenariosAndAssembledAreDeclared:
+    def _directory(self):
+        return (REFERENCES_DIR / "migration-directory.md").read_text(encoding="utf-8")
+
+    def test_both_files_are_in_the_single_constant(self):
+        # The constant is what every other test module reads, so a file missing
+        # here is a file with no contract coverage anywhere.
+        assert "scenarios.md" in MIGRATION_DIRECTORY_FILES
+        assert "assembled.md" in MIGRATION_DIRECTORY_FILES
+
+    def test_scenarios_is_both_the_incidence_and_the_queue(self):
+        # One table rather than two, because "what is left" and "what would it
+        # cost" are asked together and one read must answer both.
+        assert has_paragraph_with(self._directory(), "scenarios.md", "incidence", "queue")
+
+    def test_the_four_scenario_statuses_are_the_complete_set(self):
+        # resume counts the rows in each state, so a private fifth value is
+        # counted as none of them.
+        body = self._directory()
+        assert has_paragraph_with(
+            body, "`pending`", "`done`", "`parked`", "`out-of-scope`", "complete set"
+        )
+
+    def test_one_reason_column_serves_parked_and_out_of_scope_alike(self):
+        assert has_paragraph_with(self._directory(), "`reason`", "`parked`", "`out-of-scope`")
+
+    def test_the_unseen_count_is_computed_and_never_stored(self):
+        # A stored count is stale the moment any Conversion finishes, and a
+        # stale count does not announce itself — it mis-orders the queue.
+        assert has_paragraph_with(
+            self._directory(), "unseen", "computed", "never stored", "stale"
+        )
+
+    def test_assembled_records_the_row_versions_a_test_consumed(self):
+        # Versions rather than rows, because that is what makes "this test was
+        # built on a superseded decision" a comparison rather than a reading.
+        assert has_paragraph_with(self._directory(), "assembled.md", "versions", "consumed")
+
+    def test_assembled_is_what_makes_a_corrected_rows_dependents_findable(self):
+        assert has_paragraph_with(
+            self._directory(), "dependents", "findable", "working copy"
+        )
+
+
+class TestTheStepMapCarriesAVersion:
+    def _directory(self):
+        return (REFERENCES_DIR / "migration-directory.md").read_text(encoding="utf-8")
+
+    def test_the_skeleton_has_a_version_column_beside_status(self):
+        header = next(
+            line for line in self._directory().splitlines()
+            if line.startswith("| Source Step |") and "Expression" in line
+        )
+        columns = [cell.strip() for cell in header.strip("|").split("|")]
+        assert "Version" in columns, f"the Step Map cannot version a row: {header}"
+        assert columns.index("Version") == columns.index("Status") + 1, (
+            f"Version must sit beside Status: {header}"
+        )
+
+    def test_the_bump_rule_names_expression_and_status(self):
+        assert has_paragraph_with(
+            self._directory(), "version", "bumped", "expression", "status"
+        )
+
+    def test_occurrence_counts_and_provenance_never_bump_it(self):
+        # They change every Conversion, so a version churning on them would
+        # re-assemble the suite for nothing.
+        assert has_paragraph_with(
+            self._directory(), "never bumped", "occurrence", "provenance"
+        )
+
+
 def test_the_residue_table_is_keyed_by_step_and_element():
     # The two Residue causes do not share a granularity: an unexpressible step
     # blocks a whole row, an unresolved element blocks only the occurrences

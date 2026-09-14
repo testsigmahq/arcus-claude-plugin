@@ -64,18 +64,27 @@ implementation before using it — see
 ## Asking the build: one question, one compile
 
 Per ADR-0006 the plugin holds no catalogue, so every fact about what is
-expressible is established here. The build has no command that lists verbs and
-no schema to read — what it has is a compiler that names what it refuses.
+expressible is established here. Per ADR-0009, enumerate first: `list verbs` and
+`list blocks` answer *what spellings are there*, and `cli-probe.md` says what
+each covers. This loop answers the other question — *is this spelling legal in
+this slot* — which no enumeration answers, because what the build has for it is
+a compiler that names what it refuses.
 
 **Build a scratch workspace.** `validate` reads a workspace, and a workspace is
-three marker files. Write them by hand; the ids are arbitrary because nothing
-offline checks them:
+three marker files under `tests/testsigma/`. Write them by hand; the ids and the
+names are both arbitrary because nothing offline checks either — but **all three
+markers must carry a name.** A bare `project [id = 1]` is TSF2051, and the build
+refuses the whole workspace before compiling anything, so the answer you came
+for never arrives:
 
 ```
-project.sigma       project [id = 1] { }
-application.sigma   application [id = 2] { }
-version.sigma       version "v1.0" [id = 3] { }
+tests/testsigma/p/project.sigma         project "P" [id = 1] { }
+tests/testsigma/p/a/application.sigma   application "A" [id = 2] { }
+tests/testsigma/p/a/v/version.sigma     version "v1.0" [id = 3] { }
 ```
+
+The `tests/testsigma/` prefix is not decoration: a tree without it is TSF2051
+too. Run `validate` from the workspace root, or point `--root` at it.
 
 An absent `applicationType` on the application marker means web, which is the
 server's own default. For unified, write `applicationType = "unified"` inside
@@ -100,10 +109,10 @@ diagnostics answer directly:
 | `TSF2008` | the verb is deprecated, with its template id |
 | `TSF2001` | there is no such verb, with the nearest name it knows |
 
-It is one question per compile and there is no way to ask for a list. A stage
-that wants "every verb for this category" cannot have it from an install, and
-must not read the silence as an absence — `TSF2001` naming a near miss is not
-evidence that nothing else exists.
+It is one question per compile. A stage that wants "every verb for this
+category" asks `list verbs --category <name>` instead (ADR-0009) — and must not
+read this loop's silence as an absence, because `TSF2001` naming a near miss is
+not evidence that nothing else exists.
 
 **Record the answer, then delete the workspace.** The answer is a Platform Fact
 and goes in `platform-facts.md` with the build identity beside it; the workspace
@@ -273,12 +282,12 @@ runs spent six `validate` calls rediscovering it.
         envs/                               *.env.sigma        (project-scoped)
         variables.sigma
         <application>/                      application.sigma
+          uploads/                          *.upload.sigma     (application-scoped)
           <version>/                        version.sigma
             tests/       <folder>/          *.test.sigma
             stepGroups/  <folder>/          *.stepGroup.sigma
             tdps/        <folder>/          *.tdp.sigma
             elements/                       *.screen.sigma
-            uploads/                        *.upload.sigma
 
   Prefer the probe whenever it answers, and record in `platform-facts.md` which
   of the two the installed build gave you — a row converted against the map is a

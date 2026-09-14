@@ -166,10 +166,11 @@ State is only kept if it is committed, which is the whole point of putting it he
 Ask the Operator whether anyone has already converted part of this suite by hand.
 A Migration that does not know what the project holds authors a second copy of it.
 
-If they say yes, pull the project's entities into
-`.testsigma/migration/existing/` with `testsigma pull version --write` and commit
-them. That inventory is what lets mapping adopt an existing step group rather than
-rebuild it, and element resolution reuse a screen the team already maintains.
+If they say yes, pull into `.testsigma/migration/existing/` and commit:
+`testsigma pull version --write`, plus `pull uploads --write`, `pull variables
+--write` and `pull env <name-or-id> --write` for what hangs above the
+version. That inventory lets mapping adopt a step group rather than
+rebuild it, and element resolution reuse a team's screen.
 `${CLAUDE_PLUGIN_ROOT}/references/adoption.md` says what adoption is and what must
 be true before a row may claim it.
 

@@ -6,7 +6,7 @@ state travels with the code it describes rather than depending on a directory
 nobody tracks.
 
 This file is the single definition of what lives there. A skill that writes to the
-Migration Directory points here rather than restating the list, so the seven files
+Migration Directory points here rather than restating the list, so the nine files
 cannot drift apart across the skills that share them.
 
 One file per concern. Not one state file, because a person reviews these and they
@@ -109,6 +109,47 @@ as none of them.
 questions — one says a person decided how to express this step, the other that a
 person decided it was already expressed — and a report that merges them can
 answer neither what is left to do nor what this Migration actually produced.
+
+A row carries a **`Version`**, beside its `Status`. It is bumped when, and only
+when, the row's Expression or Status changes. It is never bumped when occurrence
+counts or provenance are corrected: those change every Conversion as new
+scenarios reach the row, and a version churning on them would return scenarios to
+`pending` and re-assemble the suite for nothing. The version is what
+`assembled.md` records, so a corrected row's dependents are found by comparing
+versions rather than by re-reading the working copy.
+
+**`scenarios.md`** — one row per source scenario: the scenario, the Source Steps
+it reaches, its status, and a `Reason`. Seeded by survey, mechanically, from the
+incidence it computes while enumerating.
+
+`scenarios.md` is both the incidence and the Conversion queue, and it is one table rather
+than two because the two questions are asked together: one read answers what is
+left and what it would cost. A status is one of `pending`, `done`, `parked` or
+`out-of-scope`, and those four are the complete set — resume counts the rows in
+each state, and a private fifth value would be counted as none of them. `Reason`
+serves `parked` and `out-of-scope` alike: both say a scenario is not being worked
+now, and neither is readable without what it is waiting on or why it was ruled
+out. A scenario survey screens as unconvertible is seeded `out-of-scope` with its
+reason and never omitted, because an absent row cannot tell "somebody looked and
+ruled it out" from "nobody looked".
+
+**The count of unseen Source Steps is computed, never stored.** It is derived on
+demand from `scenarios.md` and `step-map.md`, and there is deliberately no column
+for it. Every finished Conversion marks Source Steps reviewed, so a stored count
+is stale the moment any Conversion finishes — and a stale count does not announce
+itself: it silently mis-orders the queue, which is the one thing the number exists
+to get right.
+
+**`assembled.md`** — one row per assembled test: the scenario, the test, the row
+versions it consumed, and when. Written by assembly, as each test is finished.
+
+It exists so that a corrected row's dependents are findable. The rework rule is
+already stated above — a row that fails re-check is worked again, along with every
+test already assembled from it — and without this file the only way to find those
+tests is to read the whole working copy, which is expensive enough that the rule
+would not be obeyed. Recording the versions consumed, rather than the rows, is
+what makes the comparison mechanical: a test whose recorded version is behind the
+row's current one was built on a superseded decision.
 
 **`open-questions.md`** — questions put to the Operator that have not been
 answered. Added to at the moment a question arises, and cleared only by an answer.
@@ -218,8 +259,11 @@ exists to prevent, arriving under a different name.
 ## `existing/`, which is evidence rather than state
 
 `.testsigma/migration/existing/` holds working copies of what the target project
-already contained, pulled by survey with `testsigma pull version --write` when the
-Operator says the project is not empty. It is neither one of the seven files nor
+already contained, pulled by survey when the Operator says the project is not
+empty — `testsigma pull version --write`, and with it `pull uploads --write`,
+`pull variables --write` and `pull env <name-or-id> --write` per environment,
+because uploads are application-scoped and the envs and variable pool are
+project-scoped. It is neither one of the nine files nor
 a place a Migration authors: its whole value is that it says what the project held
 at the snapshot this Migration started from, and an edited copy has stopped saying
 that. `${CLAUDE_PLUGIN_ROOT}/references/adoption.md` says what is done with it.
@@ -230,11 +274,11 @@ rather than leaving the directory to carry the meaning.
 
 ## Skeletons
 
-Survey creates all seven. Six of them start empty, and they are created anyway so
+Survey creates all nine. Seven of them start empty, and they are created anyway so
 that a later session finds the same shape every time and does not invent one. Write
 these exactly; a Migration's files are read by several skills and by a person.
 
-`residue/` is not among the seven and survey does not create it. Its documents
+`residue/` is not among the nine and survey does not create it. Its documents
 are per test and cannot exist before a test does, so assembly creates the
 directory when it writes the first one. An absent `residue/` means no test has
 been assembled yet, which is different from every assembled test being clean —
@@ -272,8 +316,33 @@ Parameterisation: <n> unparameterised, <n> single-valued, <n> genuinely varying
 ```markdown
 # Step Map
 
-| Source Step | Occurrences | Source | Parameter shapes | Expression | Status |
-|---|---|---|---|---|
+| Source Step | Occurrences | Source | Parameter shapes | Expression | Status | Version |
+|---|---|---|---|---|---|---|
+```
+
+`scenarios.md`:
+
+```markdown
+# Scenarios
+
+Status is one of `pending`, `done`, `parked` or `out-of-scope`. `Reason` is
+required by `parked` and `out-of-scope` alike. The unseen count is not a column:
+it is computed from this file and `step-map.md`.
+
+| Scenario | Source Steps reached | Status | Reason |
+|---|---|---|---|
+```
+
+`assembled.md`:
+
+```markdown
+# Assembled
+
+One row per assembled test, so a corrected row's dependents are found without
+reading the working copy.
+
+| Scenario | Test | Row versions consumed | Assembled |
+|---|---|---|---|
 ```
 
 `open-questions.md`:

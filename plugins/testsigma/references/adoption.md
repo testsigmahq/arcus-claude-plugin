@@ -17,9 +17,20 @@ Every rule here compares against what the project holds, so what it holds must b
 on disk before mapping begins. Nothing may be concluded from memory of a tenant.
 
     testsigma pull version --write
+    testsigma pull uploads --write
+    testsigma pull variables --write
+    testsigma pull env <name-or-id> --write        # once per environment
 
-run from the working copy's directory, writes a working copy of every entity the
-version holds. Put them under `.testsigma/migration/existing/` and commit them
+run from the working copy's directory, write a working copy of what the project
+holds. `pull version` is not the whole inventory: it writes every entity the
+*version* holds, and three kinds hang off coordinates above it. Uploads are
+application-scoped (`Upload.applicationId` is their only scoping column, so one
+upload serves every version); environments and the variable pool are
+project-scoped. There is no `list environments`, so the Operator names the
+environments — an inventory missing the pool and the envs leaves every
+environment reference resolving to nothing (TSF2022) and makes the project look
+emptier than it is, which is the second-copy failure this section exists to
+prevent. Put them under `.testsigma/migration/existing/` and commit them
 with the rest of the Migration's state.
 
 They are **evidence, not working copies to edit**. Their value is that they say
@@ -27,7 +38,7 @@ what the project holds at the snapshot the Migration started from, and an edited
 one has stopped saying that. A Migration authors under the suite's own test
 directory and never under `existing/`.
 
-`existing/` is not one of the Migration Directory's seven files and survey does
+`existing/` is not one of the Migration Directory's nine files and survey does
 not create it when there is nothing to pull. Its absence means the project was
 empty, or that nobody looked — which is why survey records which of the two.
 

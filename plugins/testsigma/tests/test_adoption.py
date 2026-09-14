@@ -117,8 +117,8 @@ class TestTheAdoptedStatus:
         assert "Adopted:" in _text()
         assert "Adopted:" in self.DIRECTORY
 
-    def test_existing_is_not_one_of_the_seven_files(self):
-        assert has_paragraph_with(self.DIRECTORY, "existing/", "seven")
+    def test_existing_is_not_one_of_the_migration_directorys_files(self):
+        assert has_paragraph_with(self.DIRECTORY, "existing/", "nine")
 
 
 # --- assembly ----------------------------------------------------------------

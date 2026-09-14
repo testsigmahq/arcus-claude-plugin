@@ -31,6 +31,8 @@ MIGRATION_DIRECTORY = ".testsigma/migration/"
 MIGRATION_DIRECTORY_FILES = (
     "migration.md",
     "step-map.md",
+    "scenarios.md",
+    "assembled.md",
     "open-questions.md",
     "platform-facts.md",
     "application-facts.md",
@@ -455,7 +457,7 @@ def declared_files(reference_text):
     A lead carrying a `<placeholder>` names a shape, not a file: `residue/<test>.md`
     is one document per assembled test, so there is no single path to create, and
     the count of them is a fact about the Migration rather than about the format.
-    The set this returns is compared against the seven files a Migration always
+    The set this returns is compared against the files a Migration always
     has — including against a fixture directory's actual contents — so admitting
     a template here would demand a file literally named `<test>`.
     """

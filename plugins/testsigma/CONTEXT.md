@@ -15,8 +15,10 @@ _Avoid_: user, developer, tester
 ### The work
 
 **Migration**:
-The multi-day conversion of one source suite into `.sigma`.
-_Avoid_: conversion, port, translation
+The multi-day conversion of one source suite into `.sigma`. A Migration is many
+Conversions, taken one at a time.
+_Avoid_: conversion (a Conversion is one scenario, not the whole job), port,
+translation
 
 **Migration Directory**:
 The directory holding a migration's state, at `.testsigma/migration/` inside the
@@ -26,9 +28,29 @@ than depending on a directory nobody tracks.
 _Avoid_: workspace, scratch directory
 
 **Phase**:
-A stage of a migration that blocks the next: extraction, mapping, assembly.
-Element Resolution is a Phase of its own only where the source carries no
-locators; where it carries them, resolution is part of mapping.
+A stage of a Migration that blocks the next. Survey is the only one: it blocks
+every Conversion, because nothing can be converted before the adapter is chosen,
+the snapshot pinned and the vocabulary enumerated. Mapping, element resolution
+and assembly are not Phases — they are the steps inside a Conversion, and they
+run once per Conversion rather than once per Migration.
+
+**Conversion**:
+The end-to-end work on one source scenario: mapping the Source Steps it reaches,
+resolving the elements those steps name, assembling the test, checking it and
+committing it. The unit a Migration delivers in, and the unit `convert` performs
+exactly one of. A Conversion maps only the Source Steps its own scenario
+reaches, so the Step Map fills as Conversions are taken rather than before any
+of them are.
+_Avoid_: slice, increment, chunk, batch, iteration
+
+**Parked**:
+A Conversion set aside because something it needs can only come from the
+Operator — an unanswered question, or an element that the source does not carry
+and the target project does not already hold. The loop takes the next Conversion
+rather than stopping, and a parked one is revisited when the thing it waited on
+clears. Parking is what keeps one unanswered question from stalling a Migration.
+Residue never parks a Conversion; it assembles as a marker.
+_Avoid_: blocked, deferred, skipped
 
 ### The material
 
@@ -60,17 +82,19 @@ a ratio near 1.0 means there is no vocabulary to map.
 
 **Step Map**:
 The reviewed mapping from every Source Step to its `.sigma` expression. Built
-once per migration; scenarios assemble from it. A row carries the source text,
+progressively, one Conversion's worth at a time, and shared by every Conversion
+that follows. A row carries the source text,
 occurrence count, parameter shapes, the proposed expression, and a status. One
 Source Step may map to several `.sigma` steps.
 
 **Element Resolution**:
-The act of satisfying the element names a Step Map references — from source
-page objects, from the tenant, or by operator capture. Whether it is a Phase of
-its own is a property of the source, not of the migration: a page-object or
-object-repository layer carries locators in the same files that carry sequence,
-so resolution and mapping are one reading; an export that carries no locators
-leaves nothing to read and forces a separate phase after mapping.
+The act of satisfying the element names a Step Map references — from the source,
+from the target project, or by Operator capture, in that order. It happens
+inside a Conversion, never as a stage of its own. Where the source carries
+locators they sit in the files that carry sequence, so resolution and mapping
+are one reading. Where it carries none, the first place is empty and the second
+answers most of what is left; only when all three are exhausted does the
+Conversion park on the Operator.
 
 **Residue**:
 The Source Steps a migration could not express, each with a stated cause.
