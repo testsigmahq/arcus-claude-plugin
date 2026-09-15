@@ -1,4 +1,5 @@
 """Orchestrates the /arcus:login flow."""
+
 from __future__ import annotations
 
 import base64
@@ -74,8 +75,7 @@ def login(plugin_version: str, hostname: str) -> int:
     auth_server = hosts.get("authServer", "")
     if not api_server or not auth_server:
         print(
-            "arcus: servers.json missing apiServer / authServer. "
-            "Reinstall the plugin from your Testsigma marketplace.",
+            "arcus: servers.json missing apiServer / authServer. Reinstall the plugin from your Testsigma marketplace.",
             file=sys.stderr,
         )
         return 1
@@ -121,27 +121,26 @@ def login(plugin_version: str, hostname: str) -> int:
     user_id = str(claims.get("user_id") or "").strip()
     if not account_id or not user_id:
         print(
-            "arcus: access token missing required account_id / user_id claims. "
-            "Run /arcus:login again or contact support.",
+            "arcus: access token missing required account_id / user_id claims. Run /arcus:login again or contact support.",
             file=sys.stderr,
         )
         return 5
 
-    expires_at = (
-        datetime.now(timezone.utc) + timedelta(seconds=int(pair.get("expires_in", 86400)))
-    ).isoformat()
+    expires_at = (datetime.now(timezone.utc) + timedelta(seconds=int(pair.get("expires_in", 86400)))).isoformat()
 
-    write_config({
-        "schema_version": 1,
-        "api_server": api_server,
-        "auth_server": auth_server,
-        "uuid": uuid,
-        "account_id": account_id,
-        "user_id": user_id,
-        "user_email": str(claims.get("email", "")),
-        "expires_at": expires_at,
-        "auth_status": "ok",
-    })
+    write_config(
+        {
+            "schema_version": 1,
+            "api_server": api_server,
+            "auth_server": auth_server,
+            "uuid": uuid,
+            "account_id": account_id,
+            "user_id": user_id,
+            "user_email": str(claims.get("email", "")),
+            "expires_at": expires_at,
+            "auth_status": "ok",
+        }
+    )
 
     email = str(claims.get("email") or "").strip()
     user_label = email or user_id

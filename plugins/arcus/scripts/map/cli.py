@@ -1,4 +1,5 @@
 """argparse entry point for /arcus:map slash commands."""
+
 from __future__ import annotations
 
 import argparse

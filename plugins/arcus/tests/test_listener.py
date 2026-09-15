@@ -8,9 +8,7 @@ from auth.listener import LoopbackListener
 
 
 def _post(url: str, body: dict) -> int:
-    req = urllib.request.Request(
-        url, data=json.dumps(body).encode(), headers={"Content-Type": "application/json"}
-    )
+    req = urllib.request.Request(url, data=json.dumps(body).encode(), headers={"Content-Type": "application/json"})
     try:
         with urllib.request.urlopen(req, timeout=2) as resp:
             return resp.status
@@ -26,6 +24,7 @@ def test_listener_binds_to_loopback_only():
         assert host == "127.0.0.1"
         # Verify the server socket is bound exclusively to 127.0.0.1, not 0.0.0.0
         import sys
+
         if sys.platform != "darwin":
             # On Linux, connecting to 0.0.0.0:port when only 127.0.0.1 is bound fails
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

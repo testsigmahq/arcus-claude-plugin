@@ -1,4 +1,5 @@
 """Default noise-exclusion list for context snapshots."""
+
 from __future__ import annotations
 
 import pytest

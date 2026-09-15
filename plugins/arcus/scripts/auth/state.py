@@ -1,4 +1,5 @@
 """AuthState facade: reads config + refresh token, lazily refreshes access token."""
+
 from __future__ import annotations
 
 import os

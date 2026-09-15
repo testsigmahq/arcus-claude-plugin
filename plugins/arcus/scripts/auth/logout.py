@@ -1,4 +1,5 @@
 """Clears local plugin auth state. Server-side revoke not in scope."""
+
 from __future__ import annotations
 
 import sys

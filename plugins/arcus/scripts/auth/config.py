@@ -1,4 +1,5 @@
 """Config + marketplace metadata reader for the arcus plugin auth flow."""
+
 from __future__ import annotations
 
 import json

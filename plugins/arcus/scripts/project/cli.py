@@ -1,4 +1,5 @@
 """argparse entry point for /arcus:project slash commands."""
+
 from __future__ import annotations
 
 import argparse

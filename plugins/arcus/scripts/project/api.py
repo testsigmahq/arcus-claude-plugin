@@ -1,4 +1,5 @@
 """HTTP client for plugin-facing project endpoints on agentic-test."""
+
 from __future__ import annotations
 
 import json

@@ -48,10 +48,14 @@ def test_read_config_missing_returns_none(tmp_path, monkeypatch):
 def test_load_plugin_hosts(tmp_path, monkeypatch):
     plugin_root = tmp_path / "plugins" / "arcus"
     plugin_root.mkdir(parents=True)
-    (plugin_root / "servers.json").write_text(json.dumps({
-        "apiServer": "https://staging.testsigma.com",
-        "authServer": "https://staging.testsigma.com",
-    }))
+    (plugin_root / "servers.json").write_text(
+        json.dumps(
+            {
+                "apiServer": "https://staging.testsigma.com",
+                "authServer": "https://staging.testsigma.com",
+            }
+        )
+    )
     monkeypatch.setenv("CLAUDE_PLUGIN_ROOT", str(plugin_root))
     hosts = config.load_plugin_hosts()
     assert hosts == {

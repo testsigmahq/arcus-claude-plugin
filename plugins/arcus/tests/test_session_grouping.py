@@ -1,6 +1,7 @@
 """
 Tests for session_grouping.py — specifically ticket_ids_union aggregation.
 """
+
 import session_grouping
 from session_grouping import merge_grouping_into_manifest
 
@@ -43,8 +44,7 @@ def test_grouping_keys_only_contains_server_consumed_fields(monkeypatch):
     ):
         assert removed not in gk, f"{removed} should be removed from grouping_keys"
     assert sorted(gk["ticket_ids_union"]) == ["PROJ-1", "PROJ-2"]
-    allowed = {"git_repo", "git_user_email", "git_user_name", "ticket_ids_union",
-               "git_branches_union", "git_branch"}
+    allowed = {"git_repo", "git_user_email", "git_user_name", "ticket_ids_union", "git_branches_union", "git_branch"}
     assert set(gk.keys()) <= allowed, f"Unexpected fields: {set(gk.keys()) - allowed}"
 
 
@@ -53,6 +53,7 @@ def test_git_name_captured(monkeypatch):
         if cmd[:3] == ["git", "config", "user.name"]:
             return "Aayush Raj"
         return None
+
     monkeypatch.setattr(session_grouping, "_run_cmd", fake_run_cmd)
     manifest = {}
     merge_grouping_into_manifest(manifest, {"cwd": "/tmp"}, hook_name="SessionStart")

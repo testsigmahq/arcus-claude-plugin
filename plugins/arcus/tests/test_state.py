@@ -13,17 +13,19 @@ def _now_iso(offset_seconds: int = 0) -> str:
 def authed_setup(monkeypatch, tmp_path):
     monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(tmp_path))
     monkeypatch.delenv("CLAUDE_PLUGIN_ROOT", raising=False)
-    config_mod.write_config({
-        "schema_version": 1,
-        "api_server": "https://ts.example",
-        "auth_server": "https://cg.example",
-        "uuid": "u1",
-        "account_id": "a1",
-        "user_id": "u",
-        "user_email": "e@x",
-        "expires_at": _now_iso(7200),
-        "auth_status": "ok",
-    })
+    config_mod.write_config(
+        {
+            "schema_version": 1,
+            "api_server": "https://ts.example",
+            "auth_server": "https://cg.example",
+            "uuid": "u1",
+            "account_id": "a1",
+            "user_id": "u",
+            "user_email": "e@x",
+            "expires_at": _now_iso(7200),
+            "auth_status": "ok",
+        }
+    )
     monkeypatch.setattr(state_mod, "load_refresh_token", lambda: "stored-refresh")
     return tmp_path
 
@@ -52,8 +54,7 @@ def test_access_token_uses_cached_when_fresh(authed_setup, monkeypatch):
 
     s = state_mod.AuthState.load()
     called = []
-    monkeypatch.setattr(state_mod, "refresh_tokens",
-                        lambda **kw: called.append(kw) or None)
+    monkeypatch.setattr(state_mod, "refresh_tokens", lambda **kw: called.append(kw) or None)
     assert s.access_token() == "cached-access"
     assert called == []
 
@@ -63,12 +64,16 @@ def test_access_token_refreshes_when_near_expiry(authed_setup, monkeypatch):
     s._access_token = "old"
     s._access_expires_at = datetime.now(timezone.utc) + timedelta(seconds=10)
 
-    monkeypatch.setattr(state_mod, "refresh_tokens", lambda **kw: {
-        "access_token": "new-access",
-        "refresh_token": "new-refresh",
-        "expires_in": 86400,
-        "token_type": "Bearer",
-    })
+    monkeypatch.setattr(
+        state_mod,
+        "refresh_tokens",
+        lambda **kw: {
+            "access_token": "new-access",
+            "refresh_token": "new-refresh",
+            "expires_in": 86400,
+            "token_type": "Bearer",
+        },
+    )
     saved = []
     monkeypatch.setattr(state_mod, "save_refresh_token", lambda v: saved.append(v))
 
