@@ -527,10 +527,31 @@ and do not leave a comment in their place — a comment is invisible in the tena
 
 **The label is the whole content of the marker**, so it carries what was needed
 and not that something is missing. `Not converted` tells a reader nothing they
-could act on; `Needs a step addon: scan a barcode into the receiving field` names
-the work and the person who can do it. Write the source's intent in the
-Operator's language, then the Cause, using the fixed set in
-`migration-directory.md`.
+could act on.
+
+The label claims its source step as any block does, and declares itself in the
+bracketed qualifier — `Residue:`, then a **Cause** from the fixed set in
+`migration-directory.md`, then what was needed, in the Operator's language:
+
+    block "Validate list of UI values (Residue: step addon — check all ten values in one pass)" {
+    }
+
+The prefix is fixed for the reason `Adopted:` and `Concession:` are fixed: the
+reviewer's question is "show me what this Migration did not do", and a fixed
+prefix makes that a sweep rather than a reading. A Cause outside the set is
+refused rather than read as prose, because a prefix admitting any wording means
+nothing.
+
+**This is what stops the shape being faked.** Coverage reads labels, not bodies,
+so a label claiming five steps over a block that performs none of them would
+account for all five. The Cause is what separates a marker from that, and the
+count cannot — a run of consecutive declined steps is honestly one marker. So an
+empty block names a Cause.
+
+The rule is one-way. A block that names a Cause *and* carries a body is a partly
+converted step — it does what it could and names the remainder — which is the
+case the section below is about. Only the empty block has to declare itself,
+because only the empty block can claim work nothing performs.
 
 ### A block never contains another block
 
@@ -570,7 +591,7 @@ need goes **into the label of the block that would have contained it**, as a
 parenthesised suffix after the source step's text.
 
 ```
-block "And the audit record is written (needs a step addon: read the audit
+block "And the audit record is written (Residue: step addon — read the audit
 table and assert one row)" {
 }
 ```
@@ -592,7 +613,7 @@ small. Write what the step does convert to in the body, and name the remainder
 in the suffix:
 
 ```
-block "Then I validate the receiving grid (needs a step addon: compare all ten
+block "Then I validate the receiving grid (Residue: step addon — compare all ten
 column values against the ASN)" {
   verifyPageHasElement(element.receivingGrid)
 }

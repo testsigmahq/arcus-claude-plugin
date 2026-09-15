@@ -44,8 +44,8 @@ SHAPES = {
         "tests/Demo/SignIn.test.sigma", 'if elementIs(element["sign in button"], "visible") {'),
     "a setting rides in brackets after the arguments": (
         "tests/Demo/SignIn.test.sigma", "[timeout = 60]"),
-    "a marker is the step's own block, its need in the label": (
-        "tests/Demo/SignIn.test.sigma", '(needs a step addon:'),
+    "a marker is the step's own block, its Cause and need in the label": (
+        "tests/Demo/SignIn.test.sigma", '(Residue: step addon —'),
     "a test binds a profile": (
         "tests/Demo/SignIn.test.sigma", 'profile = tdp["SignInData"].set('),
 }

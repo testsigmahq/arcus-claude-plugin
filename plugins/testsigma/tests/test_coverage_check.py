@@ -86,8 +86,13 @@ def test_a_dropped_step_is_named(tmp_path):
 def test_an_empty_marker_counts_as_accounted(tmp_path):
     # Residue and conversion both count. A declined step that stands as a marker
     # is accounted for; only silence is not.
+    #
+    # The marker names its Cause. Before claims existed an empty block could
+    # only be a marker, so the Cause was guidance; now that a label can claim
+    # steps its body does not perform, it is what separates a marker from a
+    # fake.
     marked = FULL.replace('      block "And I archive record \\"A1\\"" {\n        click(element["d"])\n      }',
-                          '      block "And I archive record \\"A1\\"" {\n      }')
+                          '      block "And I archive record \\"A1\\" (Residue: declined — the customer keeps this manual)" {\n      }')
     r = run(tmp_path, STEPS, marked)
     assert r.returncode == 0, r.stdout
 
@@ -535,3 +540,134 @@ Then the response code is "200"
             ''')
         assert r.returncode == 1
         assert "match no source step" in r.stdout
+
+
+# --- an empty block must name a Cause -----------------------------------------
+
+class TestAnEmptyBlockMustNameACause:
+    """The last route to faking a conversion, once claims exist.
+
+    Coverage reads labels and never read bodies, so a label naming five steps
+    over a block that performs none accounted for all five. A marker and a fake
+    were the same shape again — an empty block claiming work.
+
+    The Cause separates them, and the count cannot: five consecutive declined
+    steps are honestly one marker, so "an empty block claims at most one step"
+    refuses a legitimate shape while a one-step fake still passes.
+    """
+
+    STEPS = """\
+Given I am signed in
+When I scan the barcode
+Then I see the record
+"""
+
+    def test_an_empty_block_naming_a_cause_is_a_marker(self, tmp_path):
+        r = run(tmp_path, self.STEPS, '''\
+            test "x" {
+              block "Given I am signed in" {
+                click(element["a"])
+              }
+              block "When I scan the barcode (Residue: step addon — scan into the receiving field)" {
+              }
+              block "Then I see the record" {
+                click(element["b"])
+              }
+            }
+            ''')
+        assert r.returncode == 0, r.stdout + r.stderr
+        assert "accounted:    3 of 3" in r.stdout
+
+    def test_an_empty_block_naming_no_cause_is_refused(self, tmp_path):
+        r = run(tmp_path, self.STEPS, '''\
+            test "x" {
+              block "Given I am signed in" {
+                click(element["a"])
+              }
+              block "When I scan the barcode | Then I see the record" {
+              }
+            }
+            ''')
+        assert r.returncode == 1
+        assert "performs none" in r.stdout
+
+    def test_a_marker_may_claim_a_run_of_declined_steps(self, tmp_path):
+        # Why the count is not the test.
+        r = run(tmp_path, self.STEPS, '''\
+            test "x" {
+              block "Given I am signed in" {
+                click(element["a"])
+              }
+              block "When I scan the barcode | Then I see the record (Residue: declined — the customer converts these by hand)" {
+              }
+            }
+            ''')
+        assert r.returncode == 0, r.stdout + r.stderr
+        assert "accounted:    3 of 3" in r.stdout
+
+    def test_a_cause_outside_the_fixed_set_is_refused(self, tmp_path):
+        # Otherwise "Residue: whatever I like" is a prefix that means nothing.
+        r = run(tmp_path, self.STEPS, '''\
+            test "x" {
+              block "Given I am signed in" { click(element["a"]) }
+              block "When I scan the barcode (Residue: too hard — no)" {
+              }
+              block "Then I see the record" { click(element["b"]) }
+            }
+            ''')
+        assert r.returncode == 1
+        assert "outside the fixed set" in r.stdout
+        assert "too hard" in r.stdout
+
+    def test_the_prefix_is_matched_case_sensitively(self, tmp_path):
+        # The prefix is fixed so a reviewer can sweep for it. `residue:` passing
+        # would mean a grep for `Residue:` misses a marker the checker blessed,
+        # which is the whole argument for a fixed prefix undone quietly.
+        r = run(tmp_path, self.STEPS, '''\
+            test "x" {
+              block "Given I am signed in" { click(element["a"]) }
+              block "When I scan the barcode (residue: step addon — scan it)" {
+              }
+              block "Then I see the record" { click(element["b"]) }
+            }
+            ''')
+        assert r.returncode == 1
+        assert "name no Cause" in r.stdout
+
+    def test_a_block_left_open_at_the_end_is_still_judged(self, tmp_path):
+        # `empty` was appended only when a block closed, so a truncated file's
+        # last block escaped the judgement every other block gets.
+        r = run(tmp_path, "Given I am signed in\n", '''\
+            test "x" {
+              block "Given I am signed in" {
+            ''')
+        assert r.returncode == 1
+        assert "name no Cause" in r.stdout
+
+    def test_a_block_with_a_body_is_not_refused_for_lacking_a_cause(self, tmp_path):
+        r = run(tmp_path, self.STEPS, '''\
+            test "x" {
+              block "Given I am signed in" { click(element["a"]) }
+              block "When I scan the barcode" { click(element["c"]) }
+              block "Then I see the record" { click(element["b"]) }
+            }
+            ''')
+        assert r.returncode == 0, r.stdout + r.stderr
+
+    def test_a_cause_on_a_block_with_a_body_is_a_partly_converted_step(self, tmp_path):
+        # The rule is one-way. A block that converts what it can and names the
+        # remainder is how the format refuses a Divergence — the case most often
+        # missed, since such a block reads as fully converted. An earlier draft
+        # of this check refused it, which would have made the honest shape
+        # unwritable.
+        r = run(tmp_path, self.STEPS, '''\
+            test "x" {
+              block "Given I am signed in" { click(element["a"]) }
+              block "When I scan the barcode (Residue: step addon — scan into the receiving field)" {
+                click(element["c"])
+              }
+              block "Then I see the record" { click(element["b"]) }
+            }
+            ''')
+        assert r.returncode == 0, r.stdout + r.stderr
+        assert "accounted:    3 of 3" in r.stdout

@@ -69,7 +69,10 @@ def labels(sigma_text):
     """
     found = []
     nested = []
+    empty = []
     claiming_depth = None
+    current = None
+    body = []
     depth = 0
     for line in sigma_text.split("\n"):
         m = BLOCK.search(line)
@@ -79,12 +82,68 @@ def labels(sigma_text):
             if claiming_depth is None:
                 found.append(label)
                 claiming_depth = depth
+                current = label
+                # Whatever follows the opening brace on this same line is body:
+                # `block "x" { click(…) }` is not an empty block.
+                body = [line.split("{", 1)[1] if "{" in line else ""]
             else:
                 nested.append(label)
+                body.append(line)
+        elif current is not None:
+            body.append(line)
         depth += line.count("{") - line.count("}")
         if claiming_depth is not None and depth <= claiming_depth:
+            if not "".join(body).replace("{", "").replace("}", "").strip():
+                empty.append(current)
             claiming_depth = None
-    return found, nested
+            current = None
+            body = []
+    # A block left open at the end of the file never reached the branch above,
+    # so it would escape the judgement the others get.
+    if current is not None and not "".join(body).replace("{", "").replace("}", "").strip():
+        empty.append(current)
+    return found, nested, empty
+
+
+#: The Causes a Residue marker may name, as `migration-directory.md` fixes them.
+#: A prefix that admits any wording is a prefix that means nothing, so a Cause
+#: outside this set is refused rather than read as prose.
+CAUSES = (
+    "step addon",
+    "data generator addon",
+    "unresolved element",
+    "no catalogue",
+    "declined",
+)
+
+#: How a marker declares itself, inside the label's bracketed qualifier. Fixed
+#: for the reason `Adopted:` and `Concession:` are fixed elsewhere: the
+#: reviewer's question is "show me what this Migration did not do", and a fixed
+#: prefix makes that a sweep rather than a reading — which is also why it is
+#: matched case-sensitively. A prefix a grep for `Residue:` misses is not fixed.
+MARKER = re.compile(r"\(\s*Residue:\s*(.*)")
+
+
+def cause_of(label):
+    """What a label declares after `Residue:`, or None where it declares none.
+
+    The Cause is read by matching the declaration against the fixed set rather
+    than by scanning to a punctuation mark. An earlier form stopped at an em
+    dash, a hyphen or a close paren, which invented a syntax nothing documented
+    and mis-read `(Residue: step addon (see ticket) — …)` and an en dash.
+
+    Returns the raw declaration where it matches no Cause, so the report can say
+    what was named instead of calling it an absence.
+    """
+    m = MARKER.search(label)
+    if not m:
+        return None
+    declared = m.group(1).strip()
+    lowered = declared.lower()
+    for cause in sorted(CAUSES, key=len, reverse=True):
+        if lowered.startswith(cause):
+            return cause
+    return declared.rstrip(")").strip() or None
 
 
 #: What separates the steps of a claim inside one label. Measured safe: it
@@ -139,7 +198,7 @@ def main():
     steps = [s for s in pathlib.Path(args.steps).read_text(
         encoding="utf-8").split("\n") if s.strip()]
     text = pathlib.Path(args.test).read_text(encoding="utf-8", newline="")
-    found, nested = labels(text)
+    found, nested, empty = labels(text)
 
     # Coverage is a multiset, not a set. A scenario may write the same step
     # twice — `Click on Row At First Index` appears twice in the measured one —
@@ -166,6 +225,27 @@ def main():
     # A slice is assembled and checked before the next one starts, so only the
     # steps due so far are required. Blocks for later steps are not extras —
     # writing ahead is allowed, leaving a step behind is not.
+    # An empty block is a Residue marker, and says so by naming a Cause. That
+    # is what stops the shape being faked: coverage reads labels, so a label
+    # claiming five steps over a block that performs none would account for all
+    # five. The Cause separates a marker from a fake, and the count cannot —
+    # five consecutive declined steps are honestly one marker.
+    #
+    # The rule is one-way. A block that names a Cause *and* carries a body is a
+    # partly converted step: it does what it could and names the remainder,
+    # which is how the format refuses a Divergence. Only the empty one has to
+    # declare itself, because only the empty one can claim work nothing does.
+    unmarked = []
+    unknown_cause = []
+    for label in found:
+        cause = cause_of(label)
+        if label in empty:
+            if cause is None:
+                unmarked.append(label)
+            elif cause not in CAUSES:
+                unknown_cause.append(f"{label}\n    named: {cause}")
+
+
     due = steps[:args.through] if args.through else steps
     missing = []
     for step in due:
@@ -197,6 +277,20 @@ def main():
         print("claim of the block that performs it, or stands as an empty block")
         print("saying what was needed. Absent from the file, it is absent from")
         print("the test, and the test reads as a complete conversion.")
+    if unmarked:
+        print(f"\n{len(unmarked)} empty blocks claim work and name no Cause:")
+        for l in unmarked:
+            print(f"  {l}")
+        print("\nAn empty block is a Residue marker: it claims a step its own")
+        print("body performs none of, so it says which Cause left it undone.")
+        print("Without one it is a claim over a block that performs none of it.")
+    if unknown_cause:
+        print(f"\n{len(unknown_cause)} markers name a Cause outside the fixed set:")
+        for l in unknown_cause:
+            print(f"  {l}")
+        print("\nThe set is closed, and is in migration-directory.md:")
+        print("  " + ", ".join(CAUSES))
+        print("A prefix that admits any wording says nothing a reviewer can sweep.")
     if extra:
         print(f"\n{len(extra)} claims match no source step:")
         for l in extra:
@@ -213,7 +307,7 @@ def main():
         print("suffix after the source step's text, and leave the body to hold")
         print("whatever did convert.")
 
-    return 1 if missing or extra or nested else 0
+    return 1 if missing or extra or nested or unmarked or unknown_cause else 0
 
 
 if __name__ == "__main__":

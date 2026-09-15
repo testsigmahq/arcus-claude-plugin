@@ -683,3 +683,41 @@ class TestAClaimNamesEveryStepItPerforms:
 
     def test_it_points_at_the_escape_rule_because_a_claim_is_generated(self):
         assert has_paragraph_with(self._claim(), "escapes rather than a serialiser")
+
+
+class TestAMarkerDeclaresItsCause:
+    """An empty block claims work its body performs none of.
+
+    Before claims existed an empty block could only be a marker, so the Cause
+    was guidance. Now that a label may account for steps the block does not
+    perform, the Cause is what separates a marker from a claim over nothing.
+    """
+
+    def _marker(self):
+        return _section("unconverted region")
+
+    def test_the_prefix_is_fixed(self):
+        assert has_paragraph_with(self._marker(), "`Residue:`")
+
+    def test_the_cause_comes_from_the_fixed_set(self):
+        assert has_paragraph_with(self._marker(), "fixed set in", "migration-directory.md")
+
+    def test_a_cause_outside_the_set_is_refused_rather_than_read(self):
+        assert has_paragraph_with(self._marker(), "refused rather than read as prose")
+
+    def test_the_label_still_claims_its_step(self):
+        # Coverage is unaffected: the claim is the step text, and the Cause
+        # rides in the qualifier the matching already tolerates.
+        assert has_paragraph_with(self._marker(), "claims its source step")
+
+    def test_it_says_why_the_count_cannot_be_the_test(self):
+        # A run of consecutive declined steps is honestly one marker, so an
+        # "at most one step" rule refuses a legitimate shape.
+        assert has_paragraph_with(self._marker(), "count cannot")
+
+    def test_the_rule_is_one_way(self):
+        # A block naming a Cause and carrying a body is a partly converted step,
+        # which is how the format refuses a Divergence. An earlier draft of this
+        # rule refused it and would have made the honest shape unwritable.
+        assert has_paragraph_with(self._marker(), "The rule is one-way")
+        assert has_paragraph_with(self._marker(), "partly converted step")

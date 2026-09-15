@@ -106,9 +106,10 @@ is a test that reads as complete and is not — a Divergence, as
 about the gap does not repair that: the person who runs the test and the person
 who reads `residue.md` are rarely the same person or the same week.
 
-How the marker is written, and what its label must carry, are in
-`${CLAUDE_PLUGIN_ROOT}/references/authoring.md`. The short of it: the label names
-what was needed, not that something is missing.
+How the marker is written is in
+`${CLAUDE_PLUGIN_ROOT}/references/authoring.md`: the label claims its step, then
+declares `Residue:`, a Cause, and what was needed. Without it, an empty block
+cannot be told from a claim over work nothing performs.
 
 Then write the per-test document, `residue/<test>.md`, one per assembled test,
 with a row for each marker in it. Its shape is in
