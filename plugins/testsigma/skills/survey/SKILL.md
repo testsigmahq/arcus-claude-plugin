@@ -256,8 +256,8 @@ Tell the Operator, in their terms:
   since that is the count they will report to the customer
 - what was recorded, and that it now travels with the suite itself so the next
   session finds it
-- what happens next, which is mapping, and roughly how large it is in rows rather
-  than in hours
+- what happens next, which is the first **Conversion**: one scenario carried end
+  to end, out of the scenario count above
 
 Anything you could not settle goes into the Migration Directory before you finish:
 a question for the Operator into `open-questions.md`, something learned about

@@ -1,6 +1,6 @@
 ---
 name: map
-description: Use when mapping a surveyed suite's Source Steps into Testsigma expressions — building or continuing the Step Map, deciding how a Gherkin phrasing or Tosca module should be expressed, or working through unreviewed rows. Opens the helper behind each source line to recover what it really does, compares every proposed expression against that implementation before a row can be called reviewed, and resolves the elements each row needs from the source itself where the source carries them, and records anything the format cannot express as Residue with its cause.
+description: Use when a Conversion reaches Source Steps no reviewed row expresses yet — mapping each into a Testsigma expression, deciding how a Gherkin phrasing or Tosca module is expressed. Called by convert and scoped to the steps one scenario reaches. Opens the helper behind each source line to recover what it really does, compares every proposed expression against that implementation before a row can be called reviewed, resolves the elements each row needs from the source itself where the source carries them, and records anything the format cannot express as Residue with its cause.
 ---
 
 # Map: build the Step Map
@@ -27,15 +27,17 @@ them and covers everything else shown to the Operator. See
 The files this reads and writes are defined in
 `${CLAUDE_PLUGIN_ROOT}/references/migration-directory.md`.
 
-## Before anything: there must be a Migration to map into
+## Before anything: a Migration to map into, and a Conversion to map for
 
 If `.testsigma/migration/` is absent, survey has not run. Stop. There is no
-adapter chosen, no snapshot pinned and no Step Map to write rows into, and
-mapping without those produces rows nobody can trace back to a source.
+adapter chosen, no snapshot pinned and no Step Map to write rows into.
 
-If it is present, read it before working. `migration.md` names the adapter and
-the pinned snapshot; `step-map.md` holds the rows already decided. Where you need
-the state in full, read the rest of the Migration Directory files rather than
+A Conversion scopes the rows to the steps its **scenario** reaches (ADR-0012).
+Where none is running, take the next from `scenarios.md`.
+
+Read it before working: `migration.md` names the adapter and the pinned
+snapshot, `step-map.md` holds the rows already decided, and the rest of the
+Migration Directory holds the state in full — read those files rather than
 reaching for the Operator's own command.
 
 ## Step 0: Resolve everything before authoring anything
@@ -174,8 +176,8 @@ not be verified says so.
 ## Step 5: Resolve the elements a row references
 
 This step runs here only where the adapter declares `carries-locators: yes` or
-`sometimes`. Where it declares `no`, the resolve-elements skill takes them from
-the target project or the Operator, inside this same Conversion.
+`sometimes`. Where it declares `no`, the resolve-elements skill takes them,
+inside this same Conversion.
 
 The procedure — the three places to look, in order, and what happens when none of
 them answers — is defined in
