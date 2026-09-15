@@ -1,8 +1,6 @@
 from unittest.mock import MagicMock
 
-import pytest
-
-from capture_sinks import WebhookSink, build_default_sinks, CompositeSink
+from capture_sinks import CompositeSink, WebhookSink, build_default_sinks
 
 
 def test_webhook_sink_init_no_raise_when_unconfigured(monkeypatch):

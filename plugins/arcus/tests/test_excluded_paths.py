@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import pytest
-
 from session_context_storage import _is_excluded_path
 
 

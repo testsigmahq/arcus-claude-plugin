@@ -1,8 +1,7 @@
 """Tests for sensitive-path filtering in ingest_attachments."""
 
-import pytest
-
 import ingest_attachments
+import pytest
 
 
 @pytest.mark.parametrize("path,expected", [

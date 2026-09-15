@@ -84,7 +84,7 @@ def login(plugin_version: str, hostname: str) -> int:
     state = secrets_token_urlsafe(32)
     listener = LoopbackListener(expected_state=state, timeout_seconds=300.0)
     listener.start()
-    host_addr, port = listener.address()
+    _host_addr, port = listener.address()
 
     params = {
         "uuid": uuid,

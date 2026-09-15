@@ -33,9 +33,9 @@ def _log(msg: str) -> None:
         print(f"[arcus] {msg}", file=sys.stderr, flush=True)
 
 
+from auth.state import AuthState
 from capture_sinks import build_default_sinks, session_dir_for
 from session_context_storage import ensure_session_dirs, persist_prompt_file_references, persist_tool_file_snapshots
-from auth.state import AuthState
 
 _AUTH_WARN_HOOKS = {"SessionStart", "UserPromptSubmit"}
 
@@ -285,13 +285,13 @@ def main() -> None:
     try:
         sink = build_default_sinks()
         sink.handle_event(record)
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         _log(f"sink pipeline error: {exc}")
 
     try:
         _emit_auth_warning_if_needed(session_id, hook_name)
         _emit_capture_disclosure_if_needed(session_id, hook_name)
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         _log(f"auth warning emit failed: {exc}")
 
     sys.exit(0)

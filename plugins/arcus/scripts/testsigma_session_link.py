@@ -15,7 +15,6 @@ merge ticket keys with an earlier branch-only workflow.
 
 from __future__ import annotations
 
-import json
 from typing import Any
 
 

@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import json
 import threading
-import time
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from typing import Any
 
@@ -37,12 +36,12 @@ class LoopbackListener:
                 self.send_header("Access-Control-Allow-Headers", "Content-Type")
                 self.send_header("Access-Control-Max-Age", "600")
 
-            def do_OPTIONS(self):  # noqa: N802
+            def do_OPTIONS(self):
                 self.send_response(204)
                 self._cors()
                 self.end_headers()
 
-            def do_POST(self):  # noqa: N802
+            def do_POST(self):
                 if self.path != "/auth-token":
                     self.send_response(404)
                     self._cors()

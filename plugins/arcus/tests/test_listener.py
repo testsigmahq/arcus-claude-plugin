@@ -1,11 +1,9 @@
 import json
 import socket
-import threading
-import time
+import urllib.error
 import urllib.request
 
 import pytest
-
 from auth.listener import LoopbackListener
 
 
@@ -56,7 +54,9 @@ def test_accepts_valid_post_then_shuts():
     assert status == 200
     received = listener.wait_for_result(timeout=2)
     assert received == {"code": "test-code", "state": "state-xyz"}
-    with pytest.raises(Exception):
+    # Single-use: the server is down, so the second POST cannot connect at all.
+    # (_post swallows HTTPError, so only a transport failure escapes.)
+    with pytest.raises(urllib.error.URLError):
         _post(f"http://{host}:{port}/auth-token", {"code": "x", "state": "state-xyz"})
 
 
