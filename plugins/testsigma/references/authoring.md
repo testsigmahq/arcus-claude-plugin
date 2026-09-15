@@ -260,6 +260,45 @@ It carries what no listing can: the nesting, the quoting, `element.name` against
 `list blocks` gives a block's grammar; this gives a file's shape, and measured
 runs spent six `validate` calls rediscovering it.
 
+## The escapes a quoted string decodes
+
+A quoted string decodes exactly five things:
+
+    \"      a quote
+    \\      a backslash
+    \n      a newline
+    \t      a tab
+    ${      a literal dollar-brace, which would otherwise open an interpolation
+
+Anything else spelled as a backslash escape **drops the backslash and raises no
+diagnostic**. Nothing refuses it, nothing reports it, and what comes back is a
+perfectly valid string that is not the one written:
+
+    "before\u001fafter"      reads back as   beforeu001fafter
+    "C:\path"                reads back as   C:path
+
+So this is not a syntax error to be caught. It is a value silently replaced by a
+different value, which compiles, passes preflight and survives a round trip —
+the shape
+`${CLAUDE_PLUGIN_ROOT}/references/fault-classes.md#a-string-that-lost-a-backslash-on-its-way-in`
+exists for.
+
+**Quote with these five, never with a serialiser's.** The overlap is what makes
+this hard to see: a JSON serialiser emits `\"`, `\\`, `\n` and `\t` exactly as this
+format decodes them, so most of a generated string survives and reads correctly.
+What diverges is `\uXXXX` for control characters, and `\b`, `\f`, `\r` and `\/` —
+those arrive mangled while everything around them is fine, which is why the
+result looks like a working string with one wrong region in it.
+
+Generated text is where this lands most often: a locator, a request body, a block
+name assembled from several source steps, anything a program writes. Typed text
+is not exempt — a Windows path or a regular expression carries backslashes the
+moment a person writes one — so read any value containing a backslash rather than
+only the ones a program produced.
+
+A character that needs no escape needs no backslash. Where a value genuinely
+contains a backslash, write `\\`.
+
 ## Values, names and layout the validator enforces
 
 - **Environment names need bracket lookup.** An `UPPER_SNAKE` name is not

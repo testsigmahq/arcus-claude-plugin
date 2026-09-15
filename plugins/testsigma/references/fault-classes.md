@@ -37,6 +37,7 @@ is still open, then the rest.
 | Its expression is stronger or weaker than the source | `A difference that improves on the source`, `The target being smarter creates failure modes the source lacks`, `A verb that addresses a different thing` |
 | One verb serving more than one source construct | `One target verb serving two source constructs` |
 | A literal value carried across from the source | `A credential inlined from the source` |
+| A value carrying a backslash, or assembled by code | `A string that lost a backslash on its way in` |
 | The rows were produced by a converter rather than read | `A converter's positional heuristic drops and invents at once` |
 | The row relies on what a target verb does | `Verb semantics are Platform Facts, and are established before they are relied on` |
 | Nothing in the row explains what it does | `A fault that surfaces far from its cause` |
@@ -415,6 +416,31 @@ it has withheld something they need. `authoring.md` carries the handling rule.
 
 Never copy the value itself into the Migration Directory, a question, a commit
 message or a report.
+
+## A string that lost a backslash on its way in
+
+A quoted string decodes a small fixed set of escapes and nothing else. Any other
+backslash escape has the backslash dropped and no diagnostic raised, so
+`"C:\path"` becomes `C:path` and `"before\u001fafter"` becomes
+`beforeu001fafter`. `authoring.md` carries the set itself.
+
+Nothing downstream can see it. The result is a well-formed string, so it
+compiles, the tenant takes it, and a round trip returns it unchanged — it is now
+faithfully the wrong value. The test then drives a path that does not exist, or
+matches a pattern that cannot match, and fails somewhere with no relation to the
+line that wrote it.
+
+It reaches a conversion most often through **generated** text. A serialiser
+shares four of this format's escapes and diverges on the rest, so most of a
+generated string survives and one region of it does not — which is why the
+result reads as a working value. Anything a program assembles is where this
+lands: a locator, a request body, a block name built from several source steps.
+Typed text is not exempt, since a path or a regular expression carries
+backslashes as soon as anyone writes one.
+
+Read any value that arrives with a backslash in it, and compare the value in the
+working copy against the value in the source rather than against what the
+generating code intended. `authoring.md` carries the escape set.
 
 ## Names that match, behaviour that does not
 

@@ -8,6 +8,8 @@ They are observations of one CLI build against one tenant, so the reference says
 to re-probe rather than assume — ADR-0003.
 """
 
+import re
+
 import pytest
 
 from support import (
@@ -565,3 +567,61 @@ class TestTheThreeReferenceKindsBehaveDifferently:
         # The retracted sentence, asserted absent so it cannot drift back.
         section = self._section()
         assert "the test passes, having checked nothing" not in section
+
+
+# --- escapes -----------------------------------------------------------------
+
+#: Every escape the format decodes in a quoted string, as the reference lists
+#: them. A sixth cannot be assumed: an unknown escape loses its backslash and
+#: raises nothing, so a wrong belief here is written into a value rather than
+#: refused.
+DECODED_ESCAPES = ('\\"', "\\\\", "\\n", "\\t", "${")
+
+#: A row of the reference's escape table: the sequence, then what it means.
+_ESCAPE_ROW = re.compile(r"^ {4}(\S+)\s{2,}a ", re.M)
+
+
+def _escape_table():
+    """The sequences the reference lists, read from the table itself.
+
+    Asserting these as substrings of the whole section is not enough: `${`
+    occurs in every `${CLAUDE_PLUGIN_ROOT}` pointer, so deleting its row from
+    the table left the check green.
+    """
+    return _ESCAPE_ROW.findall(_section("escape"))
+
+
+class TestTheEscapeSetIsNamed:
+    def test_the_table_lists_exactly_the_decoded_escapes(self):
+        # Exactness is the point. A sixth entry is a reader told that something
+        # is decoded which is silently dropped instead.
+        assert tuple(_escape_table()) == DECODED_ESCAPES
+
+    def test_it_says_an_unknown_escape_is_dropped_rather_than_refused(self):
+        # A refusal would be ordinary. Losing the backslash in silence produces
+        # a valid string that is not the one written.
+        assert has_paragraph_with(_section("escape"), "drops the backslash")
+
+    def test_it_says_nothing_is_raised(self):
+        assert has_paragraph_with(_section("escape"), "no diagnostic")
+
+    def test_both_measured_cases_show_what_comes_back(self):
+        # Naming the input asserts nothing — prose saying `\u001f` decodes
+        # correctly contains it too. The mangled output is the claim.
+        body = _section("escape")
+        assert "beforeu001fafter" in body
+        assert has_paragraph_with(body, r"C:\path", "C:path")
+
+    def test_it_says_which_direction_to_quote_in(self):
+        # "serialiser" appearing anywhere passes on prose telling the reader to
+        # quote with one.
+        assert has_paragraph_with(_section("escape"), "never with a serialiser")
+
+    def test_it_does_not_claim_a_serialiser_shares_none_of_them(self):
+        # Four are shared and decode identically, so a reader told that nothing
+        # a serialiser emits survives will distrust the `\n` and `\t` this same
+        # section tells them to use.
+        assert has_paragraph_with(_section("escape"), "exactly as this format decodes")
+
+    def test_typed_text_is_not_described_as_exempt(self):
+        assert has_paragraph_with(_section("escape"), "Typed text is not exempt")
