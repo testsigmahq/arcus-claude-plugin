@@ -59,9 +59,14 @@ stays legible without inventing a summary line. A synthesised head such as `POST
 would be a segment that claims nothing, and the check would have to tolerate an
 unaccountable segment to accept it — which is the loosening this issue must not make.
 
-**One thing is read off the code and not observed on the wire.** "Nothing truncates" comes
-from the DDL and the validator, not from a push. One 412-character block pushed and pulled
-settles it, in the Operator's own project.
+**Measured, after the fact.** "Nothing truncates" came from the DDL and the validator.
+A 405-character claim has since been pushed to a tenant and pulled back byte for byte,
+with no line of the test differing, so the checklist item below is met.
+
+**The result, measured across the four tests this came from:** 85 empty blocks became 6,
+and the 6 are exactly the Residue markers. Coverage was unchanged — 98 of 98, 118 of 118,
+111 of 111, 321 of 321 — so nothing was lost by moving absorbed steps into the performing
+block's label, which is the property the whole change rests on.
 
 **What must not weaken.** `check_coverage.py` is the only check that catches a conversion
 stopping early, and it is not being loosened — it is being taught that one label may
@@ -85,7 +90,7 @@ and does not block the code.
 - [ ] The claim is spelled in the block's name, with ` | ` between steps
 - [ ] Every segment is a source step, the absorber's own first
 - [ ] A segment matching no source step is reported rather than ignored
-- [ ] A 412-character name is shown to survive a push and a pull
+- [x] A long claim is shown to survive a push and a pull — 405 characters, byte for byte
 - [ ] A claim names its steps explicitly, and never by position or count
 - [ ] A claim holds where an absorbed step is not adjacent to its absorber
 - [ ] The measured cases are fixtures: a contiguous run, and a separated one

@@ -670,5 +670,16 @@ class TestAClaimNamesEveryStepItPerforms:
     def test_length_is_stated_not_to_be_a_constraint(self):
         assert has_paragraph_with(self._claim(), "no cap in the format")
 
+    def test_the_round_trip_is_recorded_as_measured_rather_than_read(self):
+        # It was read off the DDL and the validator first, and an earlier draft
+        # of this section stated it as settled on that basis. A tenant has
+        # since returned a 405-character claim byte for byte.
+        assert has_paragraph_with(self._claim(), "byte for byte")
+
+    def test_it_still_says_to_verify_a_long_claim_once(self):
+        # One build, one tenant — ADR-0003. Measured is not the same as
+        # universal, and a truncation nobody looked for is the failure.
+        assert has_paragraph_with(self._claim(), "pushing and pulling once")
+
     def test_it_points_at_the_escape_rule_because_a_claim_is_generated(self):
         assert has_paragraph_with(self._claim(), "escapes rather than a serialiser")

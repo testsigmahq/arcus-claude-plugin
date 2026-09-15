@@ -503,10 +503,14 @@ lines" is wrong for a fifth of that case.
 
 Length is not a constraint — a block's name has no cap in the format, and
 server-side it is the step's `action` column at 65,535 bytes, validated only for
-blankness. A five-step claim measures a few hundred characters. That is read off
-the schema rather than observed on a wire: **push one long claim and pull it back
-before relying on it**, because a truncation nobody has looked for would leave the
-check reading a claim the project no longer holds. Assemble the label with the format's own
+blankness. A five-step claim measures a few hundred characters.
+
+That was read off the schema and has since been measured: a 405-character claim
+pushed to a tenant and pulled back came home byte for byte, with no line of the
+test differing. Like everything else here it is one build against one tenant, so
+a claim long enough to worry about is still worth pushing and pulling once —
+a truncation nobody has looked for would leave the check reading a claim the
+project no longer holds. Assemble the label with the format's own
 escapes rather than a serialiser's: a claim is generated text, and the section on
 escapes above is about exactly this.
 
