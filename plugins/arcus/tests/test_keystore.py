@@ -67,3 +67,37 @@ def test_delete_clears_both_keyring_and_file(monkeypatch, tmp_path):
     keystore.delete_refresh_token()
     assert deleted == [(SERVICE, USERNAME)]
     assert not fpath.exists()
+
+
+def test_acl_locks_file_to_owner_on_windows(monkeypatch, tmp_path):
+    """Windows gets an explicit owner-only ACL; 0o600 alone is not enough there."""
+    calls = []
+    monkeypatch.setattr(keystore.os, "name", "nt")
+    monkeypatch.setenv("USERNAME", "tester")
+    monkeypatch.setattr(keystore.subprocess, "run", lambda cmd, **kw: calls.append(cmd))
+
+    keystore._restrict_windows_acl(str(tmp_path / "refresh.token"))
+
+    assert calls and calls[0][0] == "icacls"
+    assert calls[0][-2:] == ["/grant:r", "tester:F"]
+
+
+def test_acl_is_a_noop_off_windows(monkeypatch, tmp_path):
+    calls = []
+    monkeypatch.setattr(keystore.os, "name", "posix")
+    monkeypatch.setattr(keystore.subprocess, "run", lambda cmd, **kw: calls.append(cmd))
+
+    keystore._restrict_windows_acl(str(tmp_path / "refresh.token"))
+
+    assert calls == []
+
+
+def test_save_applies_acl(monkeypatch, tmp_path):
+    seen = []
+    monkeypatch.setattr(keystore, "_keyring", None)
+    monkeypatch.setattr(keystore, "_fallback_path", lambda: str(tmp_path / "refresh.token"))
+    monkeypatch.setattr(keystore, "_restrict_windows_acl", lambda p: seen.append(p))
+
+    keystore.save_refresh_token("secret")
+
+    assert seen == [str(tmp_path / "refresh.token")]

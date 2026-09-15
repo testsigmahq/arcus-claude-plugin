@@ -20,7 +20,7 @@ def plugin_data_dir() -> str:
     to `arcus-inline` for repo/dev installs.
     """
     plugin_root = os.environ.get("CLAUDE_PLUGIN_ROOT", "")
-    parts = plugin_root.rstrip("/").split("/")
+    parts = plugin_root.replace("\\", "/").rstrip("/").split("/")
     if len(parts) >= 4 and "cache" in parts:
         i = parts.index("cache")
         if i + 2 < len(parts):
@@ -51,7 +51,7 @@ def write_config(cfg: dict[str, Any]) -> None:
         with os.fdopen(fd, "w", encoding="utf-8") as f:
             json.dump(cfg, f, indent=2)
         os.chmod(tmp, 0o600)
-        os.rename(tmp, config_path())
+        os.replace(tmp, config_path())
     except Exception:
         try:
             os.unlink(tmp)

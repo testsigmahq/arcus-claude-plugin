@@ -75,7 +75,7 @@ class ContextCaptureSink(Protocol):
 def plugin_data_dir() -> str:
     claude_home = os.environ.get("CLAUDE_CONFIG_DIR") or os.path.join(os.path.expanduser("~"), ".claude")
     plugin_root = os.environ.get("CLAUDE_PLUGIN_ROOT", "")
-    parts = plugin_root.rstrip("/").split("/")
+    parts = plugin_root.replace("\\", "/").rstrip("/").split("/")
     if len(parts) >= 4 and "cache" in parts:
         i = parts.index("cache")
         if i + 2 < len(parts):
@@ -154,7 +154,7 @@ def _circuit_path() -> str:
 def _circuit_open() -> bool:
     """True if the breaker is tripped and we're still inside the cooldown window."""
     try:
-        with open(_circuit_path()) as f:
+        with open(_circuit_path(), encoding="utf-8") as f:
             state = json.load(f)
     except (OSError, json.JSONDecodeError):
         return False
@@ -174,7 +174,7 @@ def _circuit_record(success: bool) -> None:
     """Update breaker state after a POST attempt."""
     path = _circuit_path()
     try:
-        with open(path) as f:
+        with open(path, encoding="utf-8") as f:
             state = json.load(f)
     except (OSError, json.JSONDecodeError):
         state = {}
@@ -189,7 +189,7 @@ def _circuit_record(success: bool) -> None:
             new_state["next_retry_at"] = (datetime.now(_tz.utc) + timedelta(seconds=backoff)).isoformat()
     try:
         os.makedirs(os.path.dirname(path), exist_ok=True)
-        with open(path, "w") as f:
+        with open(path, "w", encoding="utf-8") as f:
             json.dump(new_state, f)
     except OSError as exc:
         _log(f"circuit-breaker write failed: {exc}")

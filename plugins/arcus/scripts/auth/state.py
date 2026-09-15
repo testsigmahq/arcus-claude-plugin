@@ -1,7 +1,6 @@
 """AuthState facade: reads config + refresh token, lazily refreshes access token."""
 from __future__ import annotations
 
-import fcntl
 import os
 from contextlib import contextmanager
 from dataclasses import dataclass
@@ -11,6 +10,13 @@ from typing import Any
 from auth.config import plugin_data_dir, read_config, write_config
 from auth.keystore import load_refresh_token, save_refresh_token
 from auth.refresh import refresh_tokens
+
+try:
+    import fcntl  # type: ignore[attr-defined]
+except ImportError:
+    # Windows has no fcntl. Token refresh can then race across concurrent
+    # processes; acceptable for a single-user CLI.
+    fcntl = None
 
 
 def _parse_iso(s: str) -> datetime | None:
@@ -28,11 +34,13 @@ def _refresh_lock():
     path = os.path.join(data_dir, "refresh.lock")
     fd = os.open(path, os.O_RDWR | os.O_CREAT, 0o600)
     try:
-        fcntl.flock(fd, fcntl.LOCK_EX)
+        if fcntl:
+            fcntl.flock(fd, fcntl.LOCK_EX)
         yield
     finally:
         try:
-            fcntl.flock(fd, fcntl.LOCK_UN)
+            if fcntl:
+                fcntl.flock(fd, fcntl.LOCK_UN)
         finally:
             os.close(fd)
 
