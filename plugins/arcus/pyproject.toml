@@ -15,3 +15,26 @@ dev = [
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["scripts"]
+
+[tool.ruff]
+line-length = 128
+target-version = "py39"
+
+[tool.ruff.lint]
+# RUF100 keeps `# noqa` honest: a suppression for an unselected rule is dead weight.
+select = ["B", "E", "F", "I", "N", "RUF100", "W", "UP"]
+ignore = [
+    "E501",   # line too long (handled by formatter)
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = [
+    "E402",   # import not at top of file (test setup requires it)
+    "N806",   # variable in function should be lowercase
+]
+"scripts/**" = [
+    "E402",   # import not at top of file (sys.path setup requires it)
+]
+
+[tool.ruff.format]
+quote-style = "double"
