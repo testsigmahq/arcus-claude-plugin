@@ -189,7 +189,11 @@ def _run_cmd(cmd: list[str], cwd: str | None) -> str | None:
         work_dir = None
     try:
         result = subprocess.run(
-            cmd, capture_output=True, text=True, timeout=5, cwd=work_dir,
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=5,
+            cwd=work_dir,
         )
         if result.returncode != 0:
             return None
@@ -245,9 +249,7 @@ def _parse_git_branch_listing(stdout: str) -> tuple[str | None, list[str]]:
     return current, names
 
 
-def _ingest_git_branches_from_bash(
-    gk: dict[str, Any], payload: dict[str, Any], hook_name: str
-) -> None:
+def _ingest_git_branches_from_bash(gk: dict[str, Any], payload: dict[str, Any], hook_name: str) -> None:
     """Update grouping keys from Bash tool_input/tool_response git commands."""
     tool_name = (payload.get("tool_name") or "").strip().lower()
     if tool_name != "bash":

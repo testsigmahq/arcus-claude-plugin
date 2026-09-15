@@ -4,31 +4,34 @@ import ingest_attachments
 import pytest
 
 
-@pytest.mark.parametrize("path,expected", [
-    (".env", True),
-    ("/foo/.env", True),
-    ("/foo/.env.local", True),
-    ("/foo/.env.staging", True),
-    ("/foo/.envrc", True),
-    ("/foo/.netrc", True),
-    ("/foo/.pgpass", True),
-    ("/foo/credentials.json", True),
-    ("/foo/secrets.yaml", True),
-    ("/foo/service-account-prod.json", True),
-    ("/foo/gcp_key.json", True),
-    ("/home/user/.ssh/id_rsa", True),
-    ("/home/user/.ssh/known_hosts", True),  # in .ssh dir
-    ("/home/user/.aws/credentials", True),
-    ("/foo/cert.pem", True),
-    ("/foo/server.key", True),
-    ("/foo/keystore.jks", True),
-    # Should NOT match
-    ("/foo/regular.py", False),
-    ("/foo/README.md", False),
-    ("/foo/id_rsa.pub", False),  # public key, not private
-    ("/foo/main.py", False),
-    ("/foo/EnvVariables.txt", False),  # not literally .env
-])
+@pytest.mark.parametrize(
+    "path,expected",
+    [
+        (".env", True),
+        ("/foo/.env", True),
+        ("/foo/.env.local", True),
+        ("/foo/.env.staging", True),
+        ("/foo/.envrc", True),
+        ("/foo/.netrc", True),
+        ("/foo/.pgpass", True),
+        ("/foo/credentials.json", True),
+        ("/foo/secrets.yaml", True),
+        ("/foo/service-account-prod.json", True),
+        ("/foo/gcp_key.json", True),
+        ("/home/user/.ssh/id_rsa", True),
+        ("/home/user/.ssh/known_hosts", True),  # in .ssh dir
+        ("/home/user/.aws/credentials", True),
+        ("/foo/cert.pem", True),
+        ("/foo/server.key", True),
+        ("/foo/keystore.jks", True),
+        # Should NOT match
+        ("/foo/regular.py", False),
+        ("/foo/README.md", False),
+        ("/foo/id_rsa.pub", False),  # public key, not private
+        ("/foo/main.py", False),
+        ("/foo/EnvVariables.txt", False),  # not literally .env
+    ],
+)
 def test_is_sensitive_path(path, expected):
     assert ingest_attachments._is_sensitive_path(path) is expected
 

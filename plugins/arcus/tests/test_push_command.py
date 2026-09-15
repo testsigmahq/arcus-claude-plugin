@@ -90,8 +90,4 @@ def test_push_doc_mentions_status_flag():
     assert "Passed" in body and "Failed" in body
     # Only send when the test was actually run in this session:
     lower = body.lower()
-    assert (
-        "if the tests were run" in lower
-        or "if you ran" in lower
-        or "when the test was run" in lower
-    )
+    assert "if the tests were run" in lower or "if you ran" in lower or "when the test was run" in lower

@@ -1,4 +1,5 @@
 """Wraps GET /desktop/v1/<uuid>/refresh on chitragupt."""
+
 from __future__ import annotations
 
 import json

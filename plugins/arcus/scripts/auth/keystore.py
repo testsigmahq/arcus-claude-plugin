@@ -1,4 +1,5 @@
 """Refresh-token storage: env override > OS keychain > file fallback."""
+
 from __future__ import annotations
 
 import os
@@ -13,6 +14,7 @@ _USERNAME = "refresh-token"
 # Keyring is optional. If import or backend init fails, fall back to file.
 try:
     import keyring as _kr  # type: ignore[import-not-found]
+
     _kr.get_keyring()  # ensure a backend is available
     _keyring = _kr
 except Exception:  # Broad on purpose: keyring backends are flaky.

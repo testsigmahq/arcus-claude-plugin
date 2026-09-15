@@ -37,9 +37,11 @@ def _log(msg: str) -> None:
         log_path = os.path.join(plugin_data_dir(), "hook.log")
         with open(log_path, "a", encoding="utf-8") as _lf:
             import datetime
+
             _lf.write(f"{datetime.datetime.now().isoformat()} {line}\n")
     except Exception:
         pass
+
 
 try:
     import fcntl  # type: ignore[attr-defined]
@@ -50,8 +52,7 @@ except ImportError:
     fcntl = None
     if os.environ.get("ARCUS_DEBUG", "").strip() not in ("", "0", "false", "False"):
         print(
-            "[arcus] warning: fcntl unavailable (Windows?). Concurrent hooks may race "
-            "on manifest / token writes.",
+            "[arcus] warning: fcntl unavailable (Windows?). Concurrent hooks may race on manifest / token writes.",
             file=sys.stderr,
             flush=True,
         )
@@ -142,9 +143,9 @@ def _log_webhook_failure(record: dict[str, Any], err: str, session_id: str) -> N
 # Persist consecutive-failure count + a next-retry timestamp across hook
 # processes so we don't hammer a dead endpoint on every tool call.
 
-_CIRCUIT_THRESHOLD = 5         # open after this many consecutive failures
-_CIRCUIT_MIN_BACKOFF = 300     # 5 min cooldown after threshold
-_CIRCUIT_MAX_BACKOFF = 1800    # cap at 30 min
+_CIRCUIT_THRESHOLD = 5  # open after this many consecutive failures
+_CIRCUIT_MIN_BACKOFF = 300  # 5 min cooldown after threshold
+_CIRCUIT_MAX_BACKOFF = 1800  # cap at 30 min
 
 
 def _circuit_path() -> str:
@@ -163,8 +164,10 @@ def _circuit_open() -> bool:
         return False
     try:
         from datetime import datetime
+
         nra_dt = datetime.fromisoformat(nra.replace("Z", "+00:00"))
         from datetime import timezone as _tz
+
         return nra_dt > datetime.now(_tz.utc)
     except (ValueError, AttributeError):
         return False
@@ -180,6 +183,7 @@ def _circuit_record(success: bool) -> None:
         state = {}
     from datetime import datetime, timedelta
     from datetime import timezone as _tz
+
     if success:
         new_state = {"consecutive_failures": 0}
     else:
@@ -253,6 +257,7 @@ def apply_testsigma_from_events_response(
     if wf:
         try:
             from auth.config import read_config, write_config
+
             cfg = read_config()
             if cfg and cfg.get("active_workflow_id") != wf:
                 cfg["active_workflow_id"] = wf
@@ -321,11 +326,7 @@ class ManifestSink:
             session_id = str(payload.get("session_id") or payload.get("conversation_id") or "unknown-session")
             hook_name = str(record.get("hook_event_name") or "Unknown")
             _log(f"hook={hook_name} session={session_id} payload={json.dumps(payload)}")
-            sdir = (
-                os.path.join(self._base, "sessions", session_id)
-                if self._base
-                else session_dir_for(session_id)
-            )
+            sdir = os.path.join(self._base, "sessions", session_id) if self._base else session_dir_for(session_id)
             os.makedirs(sdir, exist_ok=True)
 
             manifest_path = os.path.join(sdir, "session_manifest.json")

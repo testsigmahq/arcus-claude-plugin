@@ -31,25 +31,62 @@ _BAD_PATH = re.compile(r"[^\w\-.]+")
 # Directory names that are dependency caches, build output, or VCS metadata —
 # capturing files under them is noise, never the user's own work. Matched
 # case-insensitively against every component of a path.
-_DEFAULT_EXCLUDED_DIRS = frozenset({
-    # JS / web
-    "node_modules", "bower_components", "jspm_packages", ".pnp", ".yarn",
-    ".next", ".nuxt", ".svelte-kit", ".angular", ".astro", ".expo", ".docusaurus",
-    ".cache", ".parcel-cache", ".turbo", ".vite", ".webpack",
-    # generic build output
-    "dist", "build", "out", ".output", "coverage", ".nyc_output",
-    # python
-    ".venv", "venv", "__pycache__", ".mypy_cache", ".pytest_cache",
-    ".ruff_cache", ".tox", ".eggs",
-    # jvm / go / php / rust
-    "target", "vendor", ".gradle", ".mvn",
-    # infra
-    ".terraform", ".serverless",
-    # ios / mac
-    "pods", "carthage", "deriveddata",
-    # vcs + editors
-    ".git", ".hg", ".svn", ".idea", ".vscode",
-})
+_DEFAULT_EXCLUDED_DIRS = frozenset(
+    {
+        # JS / web
+        "node_modules",
+        "bower_components",
+        "jspm_packages",
+        ".pnp",
+        ".yarn",
+        ".next",
+        ".nuxt",
+        ".svelte-kit",
+        ".angular",
+        ".astro",
+        ".expo",
+        ".docusaurus",
+        ".cache",
+        ".parcel-cache",
+        ".turbo",
+        ".vite",
+        ".webpack",
+        # generic build output
+        "dist",
+        "build",
+        "out",
+        ".output",
+        "coverage",
+        ".nyc_output",
+        # python
+        ".venv",
+        "venv",
+        "__pycache__",
+        ".mypy_cache",
+        ".pytest_cache",
+        ".ruff_cache",
+        ".tox",
+        ".eggs",
+        # jvm / go / php / rust
+        "target",
+        "vendor",
+        ".gradle",
+        ".mvn",
+        # infra
+        ".terraform",
+        ".serverless",
+        # ios / mac
+        "pods",
+        "carthage",
+        "deriveddata",
+        # vcs + editors
+        ".git",
+        ".hg",
+        ".svn",
+        ".idea",
+        ".vscode",
+    }
+)
 # Component-level globs (e.g. compiled python package dirs).
 _DEFAULT_EXCLUDED_DIR_GLOBS = ("*.egg-info",)
 
@@ -150,9 +187,7 @@ def _append_index(session_dir: str, entry: dict[str, Any]) -> None:
         f.write(line)
 
 
-_AT_FILE_REF = re.compile(
-    r"(?<!\S)@(~[/\\][^\s]+|/[^\s]+|\.\./[^\s]+|\./[^\s]+|[^\s@:]+/[^\s]+|[^\s@:]+\.\w+)"
-)
+_AT_FILE_REF = re.compile(r"(?<!\S)@(~[/\\][^\s]+|/[^\s]+|\.\./[^\s]+|\./[^\s]+|[^\s@:]+/[^\s]+|[^\s@:]+\.\w+)")
 
 
 def _strip_trailing_punct(s: str) -> str:

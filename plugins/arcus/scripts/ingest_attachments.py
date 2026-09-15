@@ -18,27 +18,29 @@ import json
 import os
 from typing import Any
 
-_SENSITIVE_BASENAMES = frozenset({
-    ".env",
-    ".envrc",
-    ".netrc",
-    ".pgpass",
-    "credentials",
-    "credentials.json",
-    "credentials.yaml",
-    "credentials.yml",
-    "secrets.json",
-    "secrets.yaml",
-    "secrets.yml",
-    "gcp_key.json",
-    "gcp-key.json",
-    "htpasswd",
-    ".htpasswd",
-    "id_rsa",
-    "id_dsa",
-    "id_ecdsa",
-    "id_ed25519",
-})
+_SENSITIVE_BASENAMES = frozenset(
+    {
+        ".env",
+        ".envrc",
+        ".netrc",
+        ".pgpass",
+        "credentials",
+        "credentials.json",
+        "credentials.yaml",
+        "credentials.yml",
+        "secrets.json",
+        "secrets.yaml",
+        "secrets.yml",
+        "gcp_key.json",
+        "gcp-key.json",
+        "htpasswd",
+        ".htpasswd",
+        "id_rsa",
+        "id_dsa",
+        "id_ecdsa",
+        "id_ed25519",
+    }
+)
 _SENSITIVE_SUFFIXES = (".pem", ".key", ".p12", ".pfx", ".keystore", ".jks")
 
 
@@ -167,12 +169,14 @@ def build_ingest_attachments(session_dir: str, record: dict[str, Any]) -> list[d
                 if isinstance(v, str):
                     candidates.append(v)
         if any(_is_sensitive_path(c) for c in candidates):
-            out.append({
-                "kind": kind,
-                "relative_key": relative_key.replace("\\", "/"),
-                "skipped": True,
-                "reason": "sensitive_path",
-            })
+            out.append(
+                {
+                    "kind": kind,
+                    "relative_key": relative_key.replace("\\", "/"),
+                    "skipped": True,
+                    "reason": "sensitive_path",
+                }
+            )
             return
         try:
             raw = open(abs_path, "rb").read()

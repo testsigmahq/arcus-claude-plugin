@@ -16,14 +16,17 @@ def _fake_resp(status: int, body: dict) -> MagicMock:
 
 def test_refresh_success_returns_pair():
     with patch("auth.refresh.urlopen") as urlopen:
-        urlopen.return_value = _fake_resp(200, {
-            "data": {
-                "access_token": "new-access",
-                "refresh_token": "new-refresh",
-                "expires_in": 86400,
-                "token_type": "Bearer",
-            }
-        })
+        urlopen.return_value = _fake_resp(
+            200,
+            {
+                "data": {
+                    "access_token": "new-access",
+                    "refresh_token": "new-refresh",
+                    "expires_in": 86400,
+                    "token_type": "Bearer",
+                }
+            },
+        )
         pair = refresh.refresh_tokens(
             host="https://chitragupt.example",
             uuid="abc",
@@ -36,7 +39,10 @@ def test_refresh_success_returns_pair():
 
 def test_refresh_returns_none_on_401():
     err = HTTPError(
-        url="x", code=401, msg="Unauthorized", hdrs=None,
+        url="x",
+        code=401,
+        msg="Unauthorized",
+        hdrs=None,
         fp=io.BytesIO(b"refresh failed"),
     )
     with patch("auth.refresh.urlopen", side_effect=err):

@@ -1,4 +1,5 @@
 """argparse entry point for /arcus:login and /arcus:logout slash commands."""
+
 from __future__ import annotations
 
 import argparse

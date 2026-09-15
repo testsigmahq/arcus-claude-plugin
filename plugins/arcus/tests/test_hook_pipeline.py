@@ -15,14 +15,19 @@ def test_hook_runs_to_completion_without_auth(tmp_path, monkeypatch):
 
     repo = Path(__file__).parents[1]
     script = repo / "scripts" / "capture_hook.py"
-    payload = json.dumps({
-        "hook_event_name": "PreToolUse",
-        "session_id": "s-test",
-        "tool_input": {},
-    })
+    payload = json.dumps(
+        {
+            "hook_event_name": "PreToolUse",
+            "session_id": "s-test",
+            "tool_input": {},
+        }
+    )
     proc = subprocess.run(
         [sys.executable, str(script)],
-        input=payload, capture_output=True, text=True, env=env,
+        input=payload,
+        capture_output=True,
+        text=True,
+        env=env,
     )
     assert proc.returncode == 0, f"hook exited {proc.returncode}: {proc.stderr}"
     assert "Traceback" not in proc.stderr, f"unexpected traceback: {proc.stderr}"

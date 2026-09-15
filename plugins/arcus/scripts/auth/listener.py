@@ -4,6 +4,7 @@ Single-use: accepts the first POST to /auth-token whose body's `state` matches
 the expected state, then shuts down. If no valid POST arrives within
 `timeout_seconds`, `wait_for_result` returns None.
 """
+
 from __future__ import annotations
 
 import json
@@ -71,9 +72,7 @@ class LoopbackListener:
                 self.wfile.write(b'{"ok":true}')
                 listener._got_result.set()
                 # Single-use: shut down after the first valid POST
-                shutdown_thread = threading.Thread(
-                    target=listener.stop, daemon=True
-                )
+                shutdown_thread = threading.Thread(target=listener.stop, daemon=True)
                 shutdown_thread.start()
 
         self._server = HTTPServer(("127.0.0.1", 0), Handler)
