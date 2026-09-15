@@ -147,6 +147,20 @@ Platform-specific behaviour worth knowing when changing `scripts/`:
 - Split paths from `CLAUDE_PLUGIN_ROOT` on both separators, or normalise
   backslashes first.
 
+## Releasing
+
+The plugin version lives in two files and they must always match:
+
+- `plugins/arcus/.claude-plugin/plugin.json` — what Claude Code installs from
+- `plugins/arcus/pyproject.toml` — the scripts package metadata
+
+Bump both in the same commit, following semver: patch for bug fixes, minor for
+new commands or hooks, major for anything that breaks an existing install.
+
+```bash
+grep -rn '"version"\|^version' plugins/arcus/.claude-plugin/plugin.json plugins/arcus/pyproject.toml
+```
+
 ## License
 
 MIT — see [LICENSE](LICENSE).
