@@ -51,7 +51,7 @@ class AuthState:
     refresh_token_value: str | None = None
 
     @classmethod
-    def load(cls) -> "AuthState":
+    def load(cls) -> AuthState:
         cfg = read_config()
         rtok = load_refresh_token() if cfg else None
         return cls(config=cfg, refresh_token_value=rtok)

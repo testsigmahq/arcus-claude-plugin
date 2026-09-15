@@ -1,10 +1,8 @@
 from datetime import datetime, timedelta, timezone
-from unittest.mock import patch
 
 import pytest
-
-from auth import state as state_mod
 from auth import config as config_mod
+from auth import state as state_mod
 
 
 def _now_iso(offset_seconds: int = 0) -> str:

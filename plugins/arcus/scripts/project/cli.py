@@ -13,6 +13,7 @@ sys.path.insert(0, str(_plugin_root / "scripts"))
 
 from auth.config import read_config, write_config
 from auth.state import AuthState
+
 from project.api import list_projects, patch_workflow_project
 
 

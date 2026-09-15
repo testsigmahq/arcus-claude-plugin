@@ -1,10 +1,8 @@
 import json
 import os
-import sys
 import subprocess
+import sys
 from pathlib import Path
-
-import pytest
 
 
 def test_hook_runs_to_completion_without_auth(tmp_path, monkeypatch):

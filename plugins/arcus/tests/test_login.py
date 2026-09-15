@@ -1,10 +1,7 @@
-import json
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock
 
-import pytest
-
-from auth import login as login_mod
 from auth import config as config_mod
+from auth import login as login_mod
 
 
 def test_login_writes_config_after_successful_exchange(monkeypatch, tmp_path):

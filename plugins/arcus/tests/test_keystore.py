@@ -1,11 +1,6 @@
-import os
-import sys
 import types
 
-import pytest
-
 from auth import keystore
-
 
 SERVICE = "arcus"
 USERNAME = "refresh-token"

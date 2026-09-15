@@ -25,8 +25,8 @@ from typing import Any, Protocol
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
-from auth.state import AuthState
 from auth.login import decode_jwt_claims
+from auth.state import AuthState
 
 
 def _log(msg: str) -> None:
@@ -56,8 +56,8 @@ except ImportError:
             flush=True,
         )
 
-from session_grouping import merge_grouping_into_manifest
 from ingest_attachments import build_ingest_attachments
+from session_grouping import merge_grouping_into_manifest
 from testsigma_session_link import (
     merge_testsigma_link,
     parse_workflow_ids_from_ingest_response,
@@ -178,7 +178,8 @@ def _circuit_record(success: bool) -> None:
             state = json.load(f)
     except (OSError, json.JSONDecodeError):
         state = {}
-    from datetime import datetime, timedelta, timezone as _tz
+    from datetime import datetime, timedelta
+    from datetime import timezone as _tz
     if success:
         new_state = {"consecutive_failures": 0}
     else:
@@ -527,7 +528,7 @@ class CompositeSink:
         for sink in self._sinks:
             try:
                 sink.handle_event(record)
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 _log(f"{type(sink).__name__}: handle_event raised — {exc}")
 
 
@@ -544,6 +545,6 @@ def build_default_sinks() -> ContextCaptureSink:
     sinks: list = [ManifestSink(), EventsJSONLSink()]
     try:
         sinks.append(WebhookSink())
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         _log(f"build_default_sinks: WebhookSink disabled — {exc}")
     return CompositeSink(sinks)

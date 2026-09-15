@@ -15,7 +15,7 @@ try:
     import keyring as _kr  # type: ignore[import-not-found]
     _kr.get_keyring()  # ensure a backend is available
     _keyring = _kr
-except Exception:  # noqa: BLE001 — broad on purpose; keyring backends are flaky
+except Exception:  # Broad on purpose: keyring backends are flaky.
     _keyring = None
 
 
@@ -54,7 +54,7 @@ def load_refresh_token() -> str | None:
             v = _keyring.get_password(_SERVICE, _USERNAME)
             if v:
                 return v
-        except Exception:  # noqa: BLE001
+        except Exception:
             pass
     try:
         with open(_fallback_path(), encoding="utf-8") as f:
@@ -69,7 +69,7 @@ def save_refresh_token(token: str) -> None:
         try:
             _keyring.set_password(_SERVICE, _USERNAME, token)
             return
-        except Exception:  # noqa: BLE001
+        except Exception:
             pass
     path = _fallback_path()
     Path(path).parent.mkdir(parents=True, exist_ok=True)
@@ -83,7 +83,7 @@ def delete_refresh_token() -> None:
     if _keyring is not None:
         try:
             _keyring.delete_password(_SERVICE, _USERNAME)
-        except Exception:  # noqa: BLE001
+        except Exception:
             pass
     try:
         os.unlink(_fallback_path())

@@ -1,9 +1,7 @@
-import json
-from unittest.mock import patch, MagicMock
-from urllib.error import HTTPError
 import io
-
-import pytest
+import json
+from unittest.mock import MagicMock, patch
+from urllib.error import HTTPError
 
 from auth import refresh
 
