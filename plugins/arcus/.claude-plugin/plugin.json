@@ -1,7 +1,7 @@
 {
   "name": "arcus",
   "description": "Capture Claude Code session context for Testsigma — SSO auth, project pinning, ticket mapping, and automatic grouping signals (branch, repo, tickets).",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "author": {
     "name": "Testsigma"
   },
