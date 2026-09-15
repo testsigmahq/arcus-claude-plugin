@@ -184,6 +184,30 @@ carries three other meanings, one of which is "used by N other tests" — which
 never fires for an upload at all. An Operator who looked the number up would find
 the wrong one of the four.
 
+## Which kinds a Delivery never sends
+
+The variable pool (`variables.sigma`) and the environment files
+(`*.env.sigma`) are **pull-only**. `push` refuses them at
+the kind with `TSS1301`, before any credential is read, so this is a property of
+the kind and not an outcome of a permission. It is reached two ways — by the
+file's declared kind, and by its path, since a project-scoped file sits under no
+application marker — so a Delivery that walks paths meets the same refusal as one
+that reads models.
+
+The reason is worth carrying, because a reader told only "pull-only" can still go
+and build a way to send them back. The server holds these values encrypted and has no
+way to recognise ciphertext it has already written. Sending a pulled value back
+would encrypt it **a second time** and destroy the secret, with nothing on either
+side able to say that had happened.
+
+Which kinds are pull-only is a live judgement made **per kind**, not a property of
+being project-scoped or of hanging above the version: uploads were in this set and
+left it. So the rule covers these two and generalises in neither direction — a new
+kind is established by probing the build, never by reasoning from these.
+
+`${CLAUDE_PLUGIN_ROOT}/references/adoption.md` says what the two files mean and
+how they are pulled.
+
 ## The flags
 
 **`--dry-run` runs before every push.** Not where there is reason to doubt the

@@ -159,13 +159,15 @@ State is only kept if it is committed, which is the whole point of putting it he
 ## Step 5: Inventory what the target project already holds
 
 Ask the Operator whether anyone has already converted part of this suite by hand.
-A Migration that does not know what the project holds authors a second copy of it.
 
 If they say yes, pull the project into `.testsigma/migration/existing/` and commit —
-`testsigma pull version --write` and what hangs above the version, as
-`${CLAUDE_PLUGIN_ROOT}/references/adoption.md` lists. That inventory lets mapping
-adopt a step group rather than rebuild it, and element resolution reuse a team's
-screen; the same reference says what must be true before a row may claim one.
+`testsigma pull version --write` and what hangs above it, as
+`${CLAUDE_PLUGIN_ROOT}/references/adoption.md` lists. That lets mapping adopt a
+step group rather than rebuild it, and element resolution reuse a team's screen.
+
+Run `pull variables --write` and `pull env <name-or-id> --write` once per
+environment **unconditionally**, and read the `TSS1431` the version pull prints —
+adoption.md says what each of the two misses.
 
 **Ask whether the project may be written to.** A project holding work a team
 depends on is often read-only, and only they hold that fact. Record it in

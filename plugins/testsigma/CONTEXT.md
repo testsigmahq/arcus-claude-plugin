@@ -70,6 +70,19 @@ the source line names, or inside a value written in a small language of its own.
 The defining property is that the source line alone cannot tell you which.
 _Avoid_: macro, compound step, wrapper
 
+**Variable Pool**:
+The project-scoped set of every variable key the project holds, pulled as
+`variables.sigma`. An environment can only put a value over a key the pool
+already holds, so the pool is the registry of keys and an environment file is a
+list of overrides rather than a short dictionary.
+_Avoid_: defaults, globals, the variables
+
+**Mask**:
+What a read shows where an encrypted value is: a run of bullet characters, never
+the value and never its ciphertext. Any run is a mask — the rule carries no
+count — and a mask is handled as the credential it stands for.
+_Avoid_: redacted value, placeholder, dots
+
 **Source Adapter**:
 The document that tells an agent how to read one source format into Source
 Steps. One per format, and the only part of a migration that knows the format.

@@ -417,6 +417,19 @@ it has withheld something they need. `authoring.md` carries the handling rule.
 Never copy the value itself into the Migration Directory, a question, a commit
 message or a report.
 
+The same hazard arrives from the target side, and is worse there because it does
+not look like a secret. An encrypted variable pulls back as a **mask** rather
+than as ciphertext, precisely because nothing will ever send it back. A mask is
+**any run of bullet characters**, and the rule carries no count. A shorter run
+is the same leak as a longer one, so a guard written against whatever width the
+product happens to write waves every other width through.
+
+So a mask is handled as the credential it stands for. It never reaches a
+question, a fact file, a commit message or a report, and it is never written into
+a working copy as though it were a value — `TSS1116` is the precedent, the push
+refusal for a test-data cell holding a mask, whose own words are that a run of
+bullets is what a read shows where a secret is and not the secret itself.
+
 ## A string that lost a backslash on its way in
 
 A quoted string decodes a small fixed set of escapes and nothing else. Any other

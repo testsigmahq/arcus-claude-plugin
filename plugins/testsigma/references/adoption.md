@@ -47,6 +47,39 @@ what the project holds at the snapshot the Migration started from, and an edited
 one has stopped saying that. A Migration authors under the suite's own test
 directory and never under `existing/`.
 
+## The pool is the key registry, and an environment only overrides
+
+`variables.sigma` and the `*.env.sigma` files do not say the same kind of thing.
+The server resolves one reference by taking the environment's value where it has
+one and the pool's otherwise, over a join that starts from the pool. An
+environment **cannot add a key the pool does not already hold**, and cannot take
+one away. So `variables.sigma` lists **every key** the project has, and an
+environment file lists **only** what that environment overrides.
+
+Read an environment file as a short list, then, rather than as an incomplete one,
+and **never complete an environment file from the pool**. Filling each one out
+into a whole dictionary spells one server state as several files, every one of
+them stale the moment a key is added to the pool — the same second copy this
+reference exists to prevent, arriving in the one place it was not looking.
+
+Pull both **unconditionally**. `pull version` raises `TSS1431` naming the kinds
+it does not reach, but only where they are absent, and never for an **empty
+pool**, which it declines to nag about; and a run that pulled the envs once goes
+stale the moment someone adds one server-side. The notice and the commands each
+catch what the other misses, so a Migration does both.
+
+An empty pool is neither refused nor skipped: `pull variables --write` writes a
+real `variables { }` file. A present but empty `variables.sigma` therefore means
+*looked, found nothing*, where an absent one cannot be told from nobody having
+run it.
+
+What this is worth is measurable. A Migration of a 585-entity project pulled the
+version and counted **1550** unresolved environment references (TSF2022). Pulling
+the pool and the project's five environments left **4**.
+
+Neither kind is ever sent back — see *Which kinds a Delivery never sends* in
+`${CLAUDE_PLUGIN_ROOT}/references/delivery.md`.
+
 ## The bytes an upload holds, and what they are evidence of
 
 `pull uploads --write` says an upload exists and what it is called. It does not
