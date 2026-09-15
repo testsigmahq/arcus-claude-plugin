@@ -121,6 +121,32 @@ arcus-claude-plugin/
     └── pyproject.toml
 ```
 
+## Development
+
+All commands run from `plugins/arcus/`.
+
+```bash
+pytest                 # test suite
+ruff check .           # lint
+ruff format .          # format
+```
+
+Supported on macOS, Linux and Windows, and on Python 3.9 and newer — the
+scripts rely only on the standard library, with `keyring` used for refresh-token
+storage when a backend is available and a mode-restricted file as the fallback.
+Platform-specific behaviour worth knowing when changing `scripts/`:
+
+- `fcntl` does not exist on Windows. Import it defensively and treat the
+  advisory lock as best-effort rather than assuming it is held.
+- Use `os.replace()`, not `os.rename()`, for atomic writes — `os.rename()`
+  fails on Windows when the destination already exists.
+- Pass `encoding="utf-8"` explicitly to `open()`; the platform default is not
+  UTF-8 on Windows.
+- `os.chmod(path, 0o600)` only sets the read-only bit on Windows, so
+  owner-only permissions need an explicit ACL (see `scripts/auth/keystore.py`).
+- Split paths from `CLAUDE_PLUGIN_ROOT` on both separators, or normalise
+  backslashes first.
+
 ## License
 
 MIT — see [LICENSE](LICENSE).
