@@ -87,6 +87,46 @@ def labels(sigma_text):
     return found, nested
 
 
+#: What separates the steps of a claim inside one label. Measured safe: it
+#: survives a round trip, reads in the app's step list, and appears in none of
+#: the converted suites this was built against.
+SEPARATOR = " | "
+
+
+def claimed(label):
+    """The source steps one label accounts for.
+
+    A target construct can be several source steps — an `api` block is the
+    request, its send and its assertions — so the block performing them names
+    each in its label. ADR-0015 has the measurement and why the alternatives
+    were rejected.
+
+    The whole label is tried first and split only if it matches nothing, so this
+    widens what a label may account for and changes nothing that already
+    matched: a step whose own text contains the separator still claims itself.
+    An empty segment is returned rather than filtered, because a label claiming
+    nothing must reach the report instead of leaving the arithmetic.
+    """
+    return [part for part in label.split(SEPARATOR)]
+
+
+def _take(remaining, text):
+    """Spend one occurrence of `text` from the steps still owed, if it is owed.
+
+    A step is claimed by a label equalling it, or equalling it with a bracketed
+    qualifier — two identical steps in one scenario read better as `… (PIX
+    Visibility)`. Nothing looser: an unrelated label sharing a prefix would
+    absorb a step it never performed.
+    """
+    key = normalise(text)
+    base = re.sub(r"\s*\([^()]*\)$", "", key).strip()
+    for candidate in (key, base):
+        if remaining.get(candidate):
+            remaining[candidate] -= 1
+            return True
+    return False
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--steps", required=True,
@@ -116,14 +156,13 @@ def main():
     remaining = collections.Counter(normalise(s) for s in steps)
     extra = []
     for label in found:
-        key = normalise(label)
-        base = re.sub(r"\s*\([^()]*\)$", "", key).strip()
-        for candidate in (key, base):
-            if remaining.get(candidate):
-                remaining[candidate] -= 1
-                break
-        else:
-            extra.append(label)
+        # The whole label first: a source step whose own text contains the
+        # separator claims itself, exactly as it did before claims existed.
+        if _take(remaining, label):
+            continue
+        for segment in claimed(label):
+            if not _take(remaining, segment):
+                extra.append(segment if segment.strip() else label)
     # A slice is assembled and checked before the next one starts, so only the
     # steps due so far are required. Blocks for later steps are not extras —
     # writing ahead is allowed, leaving a step behind is not.
@@ -145,7 +184,7 @@ def main():
         # The measured failure had zero labelled blocks: the test was written as
         # bare statements, so there was nothing to compare and nothing noticed.
         print("\nNo block carries a source step's text. A converted scenario is")
-        print("assembled one block per source step, labelled with that step, so")
+        print("assembled as blocks whose labels name the source steps they perform, so")
         print("that what is present can be compared with what should be. Without")
         print("the envelope this check cannot run, and its silence is not a pass.")
         return 1
@@ -154,13 +193,16 @@ def main():
         print(f"\n{len(missing)} source steps are accounted for by nothing:")
         for s in missing:
             print(f"  {s}")
-        print("\nEach one is converted, or stands as an empty block naming what")
-        print("was needed. Absent from the file, it is absent from the test, and")
-        print("the test reads as a complete conversion of its source.")
+        print("\nEach one is converted in a block of its own, or named in the")
+        print("claim of the block that performs it, or stands as an empty block")
+        print("saying what was needed. Absent from the file, it is absent from")
+        print("the test, and the test reads as a complete conversion.")
     if extra:
-        print(f"\n{len(extra)} blocks match no source step:")
+        print(f"\n{len(extra)} claims match no source step:")
         for l in extra:
             print(f"  {l}")
+        print("\nA claim names the source steps its block performs. One that")
+        print("names something else accounts for nothing, whatever it reads like.")
     if nested:
         print(f"\n{len(nested)} blocks are written inside another block:")
         for l in nested:

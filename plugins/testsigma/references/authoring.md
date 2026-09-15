@@ -470,6 +470,46 @@ cheap, it is per-file, and it is the only thing that confirms what the tenant no
 holds. Inferring success from a count is reading a number that measures something
 else, which is its own fault class.
 
+## A block claims every source step it performs
+
+One block usually expresses one source step, and its label is that step's text —
+that is what the coverage check reads. But a Testsigma construct sometimes *is*
+several source steps. An `api` block holds the request, its send and its
+assertions, so a Gherkin sequence that sets a body, sends a POST, checks the
+status and checks a field is one block, and four of those five steps have no
+statement of their own to stand in.
+
+They are converted. So the block performing them **claims** them, naming each in
+its label with ` | ` between:
+
+    block "When I set the request body | And I send the POST request | Then the response code is \"200\"" {
+      api "send" { … }
+    }
+
+**The absorber's own step comes first**, so the app's step list — which is this
+label — still opens with something a reader recognises. A synthesised head such
+as `POST /orders` claims nothing and is reported as a claim matching no source
+step.
+
+**Every segment is a source step as the source spells it**, whole, or whole with
+a bracketed qualifier. Nothing looser: a claim that could absorb a step it does
+not name is a claim that can invent coverage, which is the one thing the check
+exists to refuse.
+
+**A claim names its steps, never a position.** In a measured suite the GET
+pattern repeated eighteen times and twelve absorbed steps sat a line or two after
+the block performing them, because the source interleaves a wait. "The next N
+lines" is wrong for a fifth of that case.
+
+Length is not a constraint — a block's name has no cap in the format, and
+server-side it is the step's `action` column at 65,535 bytes, validated only for
+blankness. A five-step claim measures a few hundred characters. That is read off
+the schema rather than observed on a wire: **push one long claim and pull it back
+before relying on it**, because a truncation nobody has looked for would leave the
+check reading a claim the project no longer holds. Assemble the label with the format's own
+escapes rather than a serialiser's: a claim is generated text, and the section on
+escapes above is about exactly this.
+
 ## A deliberately unconverted region gets a marker, not a silence
 
 An empty inline block — a named container with no body — validates, pushes, and

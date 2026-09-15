@@ -357,3 +357,181 @@ class TestASliceIsCheckedBeforeTheNextOneStarts:
         r = run(tmp_path, self.STEPS, skipped, extra=["--through", "2"])
         assert r.returncode == 1
         assert "Given one" in r.stdout
+
+
+# --- one block claiming several source steps ---------------------------------
+
+class TestAClaimMayAccountForSeveralSteps:
+    """A target construct can absorb several source steps.
+
+    Testsigma's `api` block *is* the request, its send and its assertions, so
+    five Gherkin steps become one block. Before this, four of the five had no
+    statement of their own and were assembled as empty blocks — the shape that
+    means Residue, nobody could express this. Measured across four converted
+    tests: 85 empty blocks, 79 of them absorbed rather than declined, so the
+    real markers were outnumbered thirteen to one.
+
+    A claim listing its steps restores the empty block to one meaning. The rule
+    is a widening of what one label may account for, and of nothing else: a
+    segment still matches a step exactly, or exactly with a bracketed qualifier.
+    """
+
+    ABSORBED = """\
+Given I am signed in
+When I set the request body
+And I send the POST request
+Then the response code is "200"
+"""
+
+    def test_one_label_accounts_for_every_step_it_lists(self, tmp_path):
+        r = run(tmp_path, self.ABSORBED, '''\
+            test "x" {
+              block "Given I am signed in" {
+                click(element["a"])
+              }
+              block "When I set the request body | And I send the POST request | Then the response code is \\"200\\"" {
+                api "send" {
+                  method = "POST"
+                }
+              }
+            }
+            ''')
+        assert r.returncode == 0, r.stdout + r.stderr
+        assert "accounted:    4 of 4" in r.stdout
+
+    def test_the_steps_need_not_be_adjacent_in_the_source(self, tmp_path):
+        # Measured: in one test the GET pattern repeats 18 times and 12 of the
+        # absorbed steps sit a line or two after their absorber, because the
+        # source interleaves a wait. A positional claim would be wrong there.
+        steps = """\
+When I send the GET request
+And I wait for the spinner
+Then I store the value from the response
+"""
+        r = run(tmp_path, steps, '''\
+            test "x" {
+              block "When I send the GET request | Then I store the value from the response" {
+                api "get" {
+                  method = "GET"
+                }
+              }
+              block "And I wait for the spinner" {
+                click(element["a"])
+              }
+            }
+            ''')
+        assert r.returncode == 0, r.stdout + r.stderr
+        assert "accounted:    3 of 3" in r.stdout
+
+    def test_a_segment_matching_no_source_step_is_reported(self, tmp_path):
+        # The failure this must not become: a label that claims five steps and
+        # writes one would invent coverage. A segment that matches nothing is
+        # an extra, exactly as a whole label that matches nothing is.
+        r = run(tmp_path, self.ABSORBED, '''\
+            test "x" {
+              block "Given I am signed in" {
+                click(element["a"])
+              }
+              block "When I set the request body | POST /orders | And I send the POST request | Then the response code is \\"200\\"" {
+                api "send" { method = "POST" }
+              }
+            }
+            ''')
+        assert r.returncode == 1
+        assert "POST /orders" in r.stdout
+        # Only the synthesised head is an extra. The four real steps beside it
+        # are claimed, so this proves segments were matched rather than the
+        # whole label failing as one — which is what happened before claims.
+        assert "accounted:    4 of 4" in r.stdout
+
+    def test_a_claim_does_not_satisfy_a_step_twice(self, tmp_path):
+        # Coverage is a multiset. A label naming one step twice accounts for it
+        # once, and the second mention is an extra.
+        steps = "When I send the POST request\n"
+        r = run(tmp_path, steps, '''\
+            test "x" {
+              block "When I send the POST request | When I send the POST request" {
+                api "send" { method = "POST" }
+              }
+            }
+            ''')
+        # The second mention is refused rather than absorbed: a label claiming
+        # a step it cannot perform twice is claiming coverage it does not have.
+        assert r.returncode == 1
+        assert "accounted:    1 of 1" in r.stdout
+        assert "match no source step" in r.stdout
+
+    def test_a_label_sharing_a_prefix_does_not_claim_the_step(self, tmp_path):
+        # The module has always said "nothing looser, or an unrelated block
+        # whose label happens to share a prefix would absorb a step it never
+        # did" — and nothing held it to that. A mutation loosening the match to
+        # a leading word passed the whole suite.
+        steps = "When I press the key twice\n"
+        r = run(tmp_path, steps, '''\
+            test "x" {
+              block "When I press" {
+                click(element["a"])
+              }
+            }
+            ''')
+        assert r.returncode == 1
+        assert "accounted:    0 of 1" in r.stdout
+        assert "When I press" in r.stdout
+
+    def test_a_segment_may_carry_a_bracketed_qualifier(self, tmp_path):
+        steps = """\
+When I send the POST request
+Then the response code is "200"
+"""
+        r = run(tmp_path, steps, '''\
+            test "x" {
+              block "When I send the POST request (orders) | Then the response code is \\"200\\" (orders)" {
+                api "send" { method = "POST" }
+              }
+            }
+            ''')
+        assert r.returncode == 0, r.stdout + r.stderr
+
+    def test_a_step_whose_own_text_contains_the_separator_claims_itself(self, tmp_path):
+        # The whole label is tried before it is split, so a claim widens what a
+        # label may account for and changes nothing that already matched. An
+        # earlier draft split unconditionally and turned this correct file into
+        # two spurious extras and one unaccounted step.
+        steps = "When I press a | b\n"
+        r = run(tmp_path, steps, '''\
+            test "x" {
+              block "When I press a | b" {
+                click(element["a"])
+              }
+            }
+            ''')
+        assert r.returncode == 0, r.stdout + r.stderr
+        assert "accounted:    1 of 1" in r.stdout
+
+    def test_a_qualifier_containing_the_separator_is_not_split(self, tmp_path):
+        steps = "When I press the key\n"
+        r = run(tmp_path, steps, '''\
+            test "x" {
+              block "When I press the key (a | b)" {
+                click(element["a"])
+              }
+            }
+            ''')
+        assert r.returncode == 0, r.stdout + r.stderr
+
+    def test_a_label_claiming_nothing_reaches_the_report(self, tmp_path):
+        # `claimed()` once filtered empty segments, so a label of separators
+        # returned no segments, the matching loop never ran, and the block left
+        # the arithmetic entirely — neither matched nor reported.
+        r = run(tmp_path, "When I press a\n", '''\
+            test "x" {
+              block "When I press a" {
+                click(element["a"])
+              }
+              block " | " {
+                click(element["b"])
+              }
+            }
+            ''')
+        assert r.returncode == 1
+        assert "match no source step" in r.stdout

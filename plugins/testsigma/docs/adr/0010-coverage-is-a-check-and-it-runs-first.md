@@ -38,7 +38,8 @@ either.
 
 ## Consequences
 
-**A converted scenario is assembled one block per source step**, labelled with
+**A converted scenario is assembled one block per source step — ADR-0015 later
+widened this to let one block claim several, where a construct performs several**, labelled with
 that step's text. The comparison needs a name shared by both sides, and the
 source step's own words are the only one that survives the conversion. Bare
 statements are not refused for being bare; they are refused because a test

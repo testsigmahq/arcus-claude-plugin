@@ -625,3 +625,50 @@ class TestTheEscapeSetIsNamed:
 
     def test_typed_text_is_not_described_as_exempt(self):
         assert has_paragraph_with(_section("escape"), "Typed text is not exempt")
+
+
+# --- a block claiming several source steps -----------------------------------
+
+class TestAClaimNamesEveryStepItPerforms:
+    """One block can be several source steps, and must say so.
+
+    Measured across four converted tests: 85 empty blocks, 79 of them absorbed
+    into a neighbour and 6 genuinely declined. The shape that means "nobody
+    could express this" carried thirteen impostors for every real one, which is
+    worse than no signal at all (ADR-0015).
+    """
+
+    def _claim(self):
+        return _section("claims every source step")
+
+    def test_the_separator_is_given(self):
+        assert "` | `" in self._claim()
+
+    def test_the_absorbers_own_step_comes_first(self):
+        # The label is what the app shows as the step's name.
+        assert has_paragraph_with(self._claim(), "own step comes first")
+
+    def test_a_synthesised_head_is_refused_rather_than_tolerated(self):
+        # A segment that claims nothing would force the check to accept an
+        # unaccountable segment, which is the loosening this must not make.
+        assert has_paragraph_with(self._claim(), "claims nothing")
+
+    def test_a_segment_is_matched_whole(self):
+        assert has_paragraph_with(self._claim(), "whole, or whole with")
+
+    def test_it_says_why_nothing_looser_is_allowed(self):
+        assert has_paragraph_with(self._claim(), "invent coverage")
+
+    def test_a_claim_is_never_positional(self):
+        assert has_paragraph_with(self._claim(), "never a position")
+
+    def test_the_non_adjacent_evidence_is_given(self):
+        # Twelve absorbed steps sat after their absorber because the source
+        # interleaves a wait, so "the next N lines" is wrong and wrong silently.
+        assert has_paragraph_with(self._claim(), "interleaves a wait")
+
+    def test_length_is_stated_not_to_be_a_constraint(self):
+        assert has_paragraph_with(self._claim(), "no cap in the format")
+
+    def test_it_points_at_the_escape_rule_because_a_claim_is_generated(self):
+        assert has_paragraph_with(self._claim(), "escapes rather than a serialiser")

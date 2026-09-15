@@ -84,7 +84,14 @@ because a safety rule kept in two places is one that softens in one of them.
 A row whose other elements all resolved is not blocked. Decide per element, at
 the parameter value, which is what that column is for.
 
-## Step 3: A residue row becomes a marker, not a silence
+## Step 3: One block may claim several source steps
+
+Where one construct performs several source steps, that block **claims** them
+all, each named in its label. Absorbed steps are converted, not declined, so an
+empty block stays Residue and nothing else (ADR-0015). The syntax, and which
+constructs absorb, are in `${CLAUDE_PLUGIN_ROOT}/references/authoring.md`.
+
+## Step 4: A residue row becomes a marker, not a silence
 
 Every `residue` row that a scenario uses is assembled as the source step's own
 block, in the position the step would have occupied, with an empty body and the
@@ -94,11 +101,10 @@ in a nested marker.
 
 This is the difference between Residue and a Divergence, and it is decided here
 rather than in mapping. A step recorded as Residue and then left out of the test
-is a test that reads as complete and is not — which is the definition of a
-Divergence in `${CLAUDE_PLUGIN_ROOT}/CONTEXT.md`. The Migration Directory knowing
-about the gap does not repair that, because the person who runs the test and the
-person who reads `residue.md` are not the same person and often not the same
-week.
+is a test that reads as complete and is not — a Divergence, as
+`${CLAUDE_PLUGIN_ROOT}/CONTEXT.md` defines it. The Migration Directory knowing
+about the gap does not repair that: the person who runs the test and the person
+who reads `residue.md` are rarely the same person or the same week.
 
 How the marker is written, and what its label must carry, are in
 `${CLAUDE_PLUGIN_ROOT}/references/authoring.md`. The short of it: the label names
@@ -116,7 +122,7 @@ and it is not reported as done without qualification: report it as assembled wit
 *n* markers, so the count is visible beside the test rather than only in a
 document nobody opened.
 
-## Step 4: Build the test
+## Step 5: Build the test
 
 The rules the validator and the push enforce — which templates a new step may
 use, how environment names and layout must be written, what to do after the first
@@ -148,7 +154,7 @@ coverage for the slice, then commit —
 A failing slice is finished before the next begins; push once at the end. Why,
 in `${CLAUDE_PLUGIN_ROOT}/references/checks.md`.
 
-## Step 5: Check that every source step is accounted for
+## Step 6: Check that every source step is accounted for
 
 Run `${CLAUDE_PLUGIN_ROOT}/scripts/check_coverage.py --steps <steps> <test>`,
 passing the scenario's steps one per line — the ones already read while mapping.
@@ -173,7 +179,7 @@ and nothing was reading it.
 Report coverage as *n of m* beside the test, always — including when they match.
 A number that is only printed when it is wrong is one nobody learns to look for.
 
-## Step 6: Check document order and block nesting
+## Step 7: Check document order and block nesting
 
 This is the exit condition of this stage. A test is not assembled until it has
 passed this check, and a test that has not been checked is not done.
@@ -187,7 +193,7 @@ rather than asking the CLI, and why running the test cannot replace it, are in
 `${CLAUDE_PLUGIN_ROOT}/references/checks.md` under *where a step sits among its
 siblings*.
 
-## Step 7: Check every param against the profile its test declares
+## Step 8: Check every param against the profile its test declares
 
 Run `${CLAUDE_PLUGIN_ROOT}/scripts/check_profile_refs.py <workspace>`.
 
@@ -200,7 +206,7 @@ looks at it again.
 Tests declaring no profile are skipped, and that is deliberate rather than a
 limitation; `authoring.md` says why.
 
-## Step 8: Sweep for elements nothing references
+## Step 9: Sweep for elements nothing references
 
 Cheap, and it earns its place — as a secondary check. The primary one is
 call-chain coverage during mapping, and the difference is measured: in the
@@ -235,7 +241,7 @@ identifier for a later step to read — leaves nothing for this to notice. Those
 caught by the comparison in mapping or not at all, so do not report a clean sweep
 as evidence that no step was dropped.
 
-## Step 9: Report what is out of place
+## Step 10: Report what is out of place
 
 When the check fails, report which steps are out of place and the window each
 one had to fall inside. A report saying only that a test is wrong cannot be acted
@@ -249,7 +255,7 @@ pass. An unchecked step reading as clean is the failure mode ADR-0001 exists to
 prevent: three checks that cannot see the fault class are worse than none,
 because they read as reassurance.
 
-## Step 10: Record the check and commit
+## Step 11: Record the check and commit
 
 Write what ran into `check-record.md`, per test, naming the CLI build in use.
 The five checks, the order they run in, and what a check that could not run is

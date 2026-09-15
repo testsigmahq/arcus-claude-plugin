@@ -243,3 +243,26 @@ class TestAResidueRowBecomesAMarker:
             "a marker is a recorded absence, not a reason to abandon the test; "
             "say so, or it reads like the unresolved-element refusal above it"
         )
+
+
+class TestAbsorbedStepsAreClaimedRatherThanMarked:
+    def _body(self):
+        return document(ASSEMBLE).body
+
+    def test_the_skill_states_the_claim_rule(self):
+        assert has_paragraph_with(self._body(), "claims", "each named in its label")
+
+    def test_it_says_an_absorbed_step_is_converted_and_not_declined(self):
+        assert has_paragraph_with(self._body(), "converted, not declined")
+
+    def test_it_says_an_empty_block_is_residue_alone(self):
+        assert has_paragraph_with(self._body(), "Residue and nothing else")
+
+    def test_it_defers_the_syntax_rather_than_holding_a_copy(self):
+        # The skill sits a handful of words inside its budget; the reference
+        # owns how the target is written. Asserting the filename alone passes
+        # on the text this was written against — the skill already pointed at
+        # authoring.md three times elsewhere.
+        assert has_paragraph_with(
+            self._body(), "which constructs absorb", "references/authoring.md"
+        )
