@@ -6,12 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/scripts/install_certs.sh\"",
-            "timeout": 30
-          },
-          {
-            "type": "command",
-            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/scripts/capture_hook.py\"",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/scripts/arcus-py.cmd\" \"${CLAUDE_PLUGIN_ROOT}/scripts/capture_hook.py\"",
             "timeout": 60
           }
         ]
@@ -22,7 +17,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/scripts/capture_hook.py\"",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/scripts/arcus-py.cmd\" \"${CLAUDE_PLUGIN_ROOT}/scripts/capture_hook.py\"",
             "async": true,
             "timeout": 120
           }
@@ -35,7 +30,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/scripts/capture_hook.py\"",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/scripts/arcus-py.cmd\" \"${CLAUDE_PLUGIN_ROOT}/scripts/capture_hook.py\"",
             "async": true,
             "timeout": 600
           }
@@ -48,7 +43,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/scripts/capture_hook.py\"",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/scripts/arcus-py.cmd\" \"${CLAUDE_PLUGIN_ROOT}/scripts/capture_hook.py\"",
             "async": true,
             "timeout": 600
           }
@@ -61,7 +56,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/scripts/capture_hook.py\"",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/scripts/arcus-py.cmd\" \"${CLAUDE_PLUGIN_ROOT}/scripts/capture_hook.py\"",
             "async": true,
             "timeout": 600
           }
@@ -74,7 +69,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/scripts/capture_hook.py\"",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/scripts/arcus-py.cmd\" \"${CLAUDE_PLUGIN_ROOT}/scripts/capture_hook.py\"",
             "async": true,
             "timeout": 120
           }
@@ -87,7 +82,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/scripts/capture_hook.py\"",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/scripts/arcus-py.cmd\" \"${CLAUDE_PLUGIN_ROOT}/scripts/capture_hook.py\"",
             "async": true,
             "timeout": 600
           }
@@ -99,7 +94,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/scripts/capture_hook.py\"",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/scripts/arcus-py.cmd\" \"${CLAUDE_PLUGIN_ROOT}/scripts/capture_hook.py\"",
             "async": true,
             "timeout": 600
           }
@@ -111,7 +106,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/scripts/capture_hook.py\"",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/scripts/arcus-py.cmd\" \"${CLAUDE_PLUGIN_ROOT}/scripts/capture_hook.py\"",
             "async": true,
             "timeout": 120
           }
@@ -123,7 +118,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/scripts/capture_hook.py\"",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/scripts/arcus-py.cmd\" \"${CLAUDE_PLUGIN_ROOT}/scripts/capture_hook.py\"",
             "timeout": 5
           }
         ]

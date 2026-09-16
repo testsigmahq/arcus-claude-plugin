@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import os
-import subprocess
 from pathlib import Path
+
+import hostos
 
 from auth.config import plugin_data_dir
 
@@ -19,28 +20,6 @@ try:
     _keyring = _kr
 except Exception:  # Broad on purpose: keyring backends are flaky.
     _keyring = None
-
-
-def _restrict_windows_acl(path: str) -> None:
-    """Owner-only ACL for the fallback token file.
-
-    ``0o600`` only flips the read-only bit on Windows, so the plaintext refresh
-    token would otherwise be readable by every account on the machine.
-    """
-    if os.name != "nt":
-        return
-    user = os.environ.get("USERNAME")
-    if not user:
-        return
-    try:
-        subprocess.run(
-            ["icacls", path, "/inheritance:r", "/grant:r", f"{user}:F"],
-            capture_output=True,
-            timeout=10,
-            check=False,
-        )
-    except (OSError, subprocess.TimeoutExpired):
-        pass  # Best effort: the keyring backend is the primary store.
 
 
 def _fallback_path() -> str:
@@ -78,7 +57,7 @@ def save_refresh_token(token: str) -> None:
     fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
     with os.fdopen(fd, "w", encoding="utf-8") as f:
         f.write(token)
-    _restrict_windows_acl(path)
+    hostos.restrict_file(path)
 
 
 def delete_refresh_token() -> None:

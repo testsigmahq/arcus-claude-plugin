@@ -1,3 +1,4 @@
+import os
 import types
 
 from auth import keystore
@@ -31,7 +32,9 @@ def test_file_fallback_when_keyring_unavailable(monkeypatch, tmp_path):
     assert keystore.load_refresh_token() == "file-fallback-value"
 
     path = tmp_path / "refresh.token"
-    assert oct(path.stat().st_mode)[-3:] == "600"
+    if os.name != "nt":
+        # Windows has no POSIX mode bits; hostos.restrict_file sets an ACL instead.
+        assert oct(path.stat().st_mode)[-3:] == "600"
 
 
 def test_save_routes_to_keyring_when_available(monkeypatch):
@@ -64,34 +67,12 @@ def test_delete_clears_both_keyring_and_file(monkeypatch, tmp_path):
     assert not fpath.exists()
 
 
-def test_acl_locks_file_to_owner_on_windows(monkeypatch, tmp_path):
-    """Windows gets an explicit owner-only ACL; 0o600 alone is not enough there."""
-    calls = []
-    monkeypatch.setattr(keystore.os, "name", "nt")
-    monkeypatch.setenv("USERNAME", "tester")
-    monkeypatch.setattr(keystore.subprocess, "run", lambda cmd, **kw: calls.append(cmd))
-
-    keystore._restrict_windows_acl(str(tmp_path / "refresh.token"))
-
-    assert calls and calls[0][0] == "icacls"
-    assert calls[0][-2:] == ["/grant:r", "tester:F"]
-
-
-def test_acl_is_a_noop_off_windows(monkeypatch, tmp_path):
-    calls = []
-    monkeypatch.setattr(keystore.os, "name", "posix")
-    monkeypatch.setattr(keystore.subprocess, "run", lambda cmd, **kw: calls.append(cmd))
-
-    keystore._restrict_windows_acl(str(tmp_path / "refresh.token"))
-
-    assert calls == []
-
-
-def test_save_applies_acl(monkeypatch, tmp_path):
+def test_save_restricts_the_fallback_file(monkeypatch, tmp_path):
+    """The file fallback must never be left world-readable; hostos owns the how."""
     seen = []
     monkeypatch.setattr(keystore, "_keyring", None)
     monkeypatch.setattr(keystore, "_fallback_path", lambda: str(tmp_path / "refresh.token"))
-    monkeypatch.setattr(keystore, "_restrict_windows_acl", lambda p: seen.append(p))
+    monkeypatch.setattr(keystore.hostos, "restrict_file", lambda p: seen.append(p))
 
     keystore.save_refresh_token("secret")
 

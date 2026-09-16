@@ -24,6 +24,7 @@ import os
 import re
 from typing import Any
 
+import hostos
 from capture_sinks import session_dir_for
 
 _BAD_PATH = re.compile(r"[^\w\-.]+")
@@ -151,10 +152,7 @@ def _safe_relative_storage_path(file_path: str, cwd: str) -> str:
                 continue
             if p == "..":
                 continue
-            safe = _BAD_PATH.sub("_", p)
-            if not safe:
-                safe = "part"
-            parts.append(safe)
+            parts.append(hostos.safe_component(_BAD_PATH.sub("_", p)))
         if not parts:
             parts = ["file"]
         return "/".join(parts)
@@ -242,7 +240,8 @@ def persist_prompt_file_references(session_id: str, event_data: dict[str, Any]) 
         rel = _safe_relative_storage_path(abs_path, cwd)
         parts = [p for p in rel.split("/") if p]
         dest = os.path.join(base, *parts)
-        os.makedirs(os.path.dirname(dest), exist_ok=True)
+        if not hostos.makedirs(os.path.dirname(dest)):
+            continue
 
         try:
             with open(abs_path, "rb") as f:
@@ -254,7 +253,7 @@ def persist_prompt_file_references(session_id: str, event_data: dict[str, Any]) 
             raw = raw[: max_b - 200] + b"\n... [truncated by TESTSIGMA_CONTEXT_FILE_MAX_BYTES]\n"
 
         try:
-            with open(dest, "wb") as f:
+            with open(hostos.long_path(dest), "wb") as f:
                 f.write(raw)
         except OSError:
             continue
@@ -306,7 +305,8 @@ def persist_tool_file_snapshots(session_id: str, event_data: dict[str, Any]) -> 
     if tn == "edit":
         parts[-1] = parts[-1] + ".edit.json"
     dest = os.path.join(base, *parts)
-    os.makedirs(os.path.dirname(dest), exist_ok=True)
+    if not hostos.makedirs(os.path.dirname(dest)):
+        return
 
     max_b = _max_bytes()
     content: str | None = None
@@ -338,7 +338,7 @@ def persist_tool_file_snapshots(session_id: str, event_data: dict[str, Any]) -> 
         content = content[: max_b - 200] + "\n... [truncated by TESTSIGMA_CONTEXT_FILE_MAX_BYTES]\n"
 
     try:
-        with open(dest, "w", encoding="utf-8", errors="replace") as f:
+        with open(hostos.long_path(dest), "w", encoding="utf-8", errors="replace") as f:
             f.write(content)
     except OSError:
         return
@@ -359,5 +359,5 @@ def ensure_session_dirs(session_id: str) -> str:
     """Create session root and standard subdirs; return session directory path."""
     sdir = session_dir_for(session_id)
     for sub in ("attachments", "context_files"):
-        os.makedirs(os.path.join(sdir, sub), exist_ok=True)
+        hostos.makedirs(os.path.join(sdir, sub))
     return sdir

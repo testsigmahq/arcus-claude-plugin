@@ -17,14 +17,14 @@ Before running the map CLI, the agent MUST:
 1. Read the pinned project by running:
 
    ```bash
-   python3 "${CLAUDE_PLUGIN_ROOT}/scripts/project/cli.py" current
+   "${CLAUDE_PLUGIN_ROOT}/scripts/arcus-py.cmd" "${CLAUDE_PLUGIN_ROOT}/scripts/project/cli.py" current
    ```
 
 2. If output is `(no project pinned; run /arcus:project use <id>)`, ABORT. Tell the user to pin a project first via `/arcus:project use <id>`. Do NOT execute the map command.
 3. If a project is pinned, resolve its name with:
 
    ```bash
-   python3 "${CLAUDE_PLUGIN_ROOT}/scripts/project/cli.py" list
+   "${CLAUDE_PLUGIN_ROOT}/scripts/arcus-py.cmd" "${CLAUDE_PLUGIN_ROOT}/scripts/project/cli.py" list
    ```
 
    then show the user the pinned project (id + name) and the ticket key, and ask for explicit confirmation.
@@ -35,5 +35,5 @@ Confirmation is mandatory every invocation — even if the same ticket was mappe
 Execute (only after explicit user confirmation):
 
 ```bash
-python3 "${CLAUDE_PLUGIN_ROOT}/scripts/map/cli.py" $ARGUMENTS
+"${CLAUDE_PLUGIN_ROOT}/scripts/arcus-py.cmd" "${CLAUDE_PLUGIN_ROOT}/scripts/map/cli.py" $ARGUMENTS
 ```

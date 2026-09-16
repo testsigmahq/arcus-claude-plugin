@@ -1,4 +1,5 @@
 import json
+import os
 from pathlib import Path
 
 from auth import config
@@ -36,7 +37,9 @@ def test_read_write_config_atomic(tmp_path, monkeypatch):
     assert config.read_config() == cfg
 
     path = Path(config.config_path())
-    assert oct(path.stat().st_mode)[-3:] == "600"
+    if os.name != "nt":
+        # Windows has no POSIX mode bits; hostos.restrict_file sets an ACL instead.
+        assert oct(path.stat().st_mode)[-3:] == "600"
 
 
 def test_read_config_missing_returns_none(tmp_path, monkeypatch):
@@ -45,25 +48,61 @@ def test_read_config_missing_returns_none(tmp_path, monkeypatch):
     assert config.read_config() is None
 
 
-def test_load_plugin_hosts(tmp_path, monkeypatch):
+def test_load_regions_reads_the_shipped_servers_file(tmp_path, monkeypatch):
     plugin_root = tmp_path / "plugins" / "arcus"
     plugin_root.mkdir(parents=True)
     (plugin_root / "servers.json").write_text(
         json.dumps(
             {
-                "apiServer": "https://staging.testsigma.com",
-                "authServer": "https://staging.testsigma.com",
+                "defaultRegion": "us",
+                "regions": {
+                    "us": {
+                        "label": "United States",
+                        "apiServer": "https://staging.testsigma.com",
+                        "authServer": "https://staging-auth.testsigma.com",
+                    }
+                },
             }
         )
     )
     monkeypatch.setenv("CLAUDE_PLUGIN_ROOT", str(plugin_root))
-    hosts = config.load_plugin_hosts()
-    assert hosts == {
-        "apiServer": "https://staging.testsigma.com",
-        "authServer": "https://staging.testsigma.com",
-    }
+
+    regions, default = config.load_regions()
+    assert default == "us"
+    assert regions["us"]["apiServer"] == "https://staging.testsigma.com"
+    assert config.resolve_region(None) == (
+        "us",
+        "https://staging.testsigma.com",
+        "https://staging-auth.testsigma.com",
+    )
 
 
-def test_load_plugin_hosts_missing_returns_empty(tmp_path, monkeypatch):
+def test_load_regions_drops_half_configured_entries(tmp_path, monkeypatch):
+    """A region with only one host would resolve to an empty URL and fail late."""
+    plugin_root = tmp_path / "plugins" / "arcus"
+    plugin_root.mkdir(parents=True)
+    (plugin_root / "servers.json").write_text(
+        json.dumps(
+            {
+                "defaultRegion": "us",
+                "regions": {
+                    "us": {
+                        "apiServer": "https://a.example",
+                        "authServer": "https://b.example",
+                    },
+                    "broken": {"apiServer": "https://only-one.example"},
+                },
+            }
+        )
+    )
+    monkeypatch.setenv("CLAUDE_PLUGIN_ROOT", str(plugin_root))
+
+    regions, _ = config.load_regions()
+    assert set(regions) == {"us"}
+    assert config.resolve_region("broken") is None
+
+
+def test_load_regions_missing_file_returns_empty(tmp_path, monkeypatch):
     monkeypatch.setenv("CLAUDE_PLUGIN_ROOT", str(tmp_path))
-    assert config.load_plugin_hosts() == {}
+    assert config.load_regions() == ({}, "")
+    assert config.resolve_region(None) is None

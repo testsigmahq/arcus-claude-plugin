@@ -1,4 +1,5 @@
 import json
+import os
 import socket
 import urllib.error
 import urllib.request
@@ -17,29 +18,42 @@ def _post(url: str, body: dict) -> int:
 
 
 def test_listener_binds_to_loopback_only():
+    """The auth listener must never be reachable from off-box.
+
+    Asserts the bound address directly rather than probing 0.0.0.0: connecting
+    there routes to loopback on Linux and macOS alike, so the probe succeeded
+    and proved nothing.
+    """
     listener = LoopbackListener(expected_state="abc", timeout_seconds=2)
     listener.start()
     try:
         host, port = listener.address()
         assert host == "127.0.0.1"
-        # Verify the server socket is bound exclusively to 127.0.0.1, not 0.0.0.0
-        import sys
+        assert listener._server is not None
+        assert listener._server.server_address[0] == "127.0.0.1"
 
-        if sys.platform != "darwin":
-            # On Linux, connecting to 0.0.0.0:port when only 127.0.0.1 is bound fails
-            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            s.settimeout(0.5)
-            try:
-                with pytest.raises((ConnectionRefusedError, socket.timeout, OSError)):
-                    s.connect(("0.0.0.0", port))
-            finally:
-                s.close()
-        else:
-            # On macOS, 0.0.0.0 routes to loopback; verify bind address directly
-            assert listener._server is not None
-            assert listener._server.server_address[0] == "127.0.0.1"
+        # A non-loopback local address must not answer.
+        outward = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        outward.settimeout(0.5)
+        try:
+            local_ip = socket.gethostbyname(socket.gethostname())
+        except OSError:
+            local_ip = None
+        try:
+            if local_ip and not local_ip.startswith("127."):
+                with pytest.raises((ConnectionRefusedError, socket.timeout, TimeoutError, OSError)):
+                    outward.connect((local_ip, port))
+        finally:
+            outward.close()
     finally:
         listener.stop()
+
+
+def test_listener_does_not_reuse_addresses_on_windows():
+    """SO_REUSEADDR lets another local process bind the same port on Windows."""
+    from auth import listener as listener_mod
+
+    assert listener_mod._AuthHTTPServer.allow_reuse_address == (os.name != "nt")
 
 
 def test_accepts_valid_post_then_shuts():
