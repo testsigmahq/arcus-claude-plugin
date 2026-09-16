@@ -1,6 +1,6 @@
 # Arcus (Claude Code plugin)
 
-Hooks-based capture of **Claude Code session context** for downstream systems (e.g. Testsigma): prompts, tool inputs/outputs (including large reads), subagent boundaries, stop/summary signals, and transcript paths.
+Hooks-based capture of **Claude Code session context** for downstream systems (e.g. Arcus): prompts, tool inputs/outputs (including large reads), subagent boundaries, stop/summary signals, and transcript paths.
 
 ## Install
 
@@ -40,15 +40,15 @@ Capture only ships data once you log in:
 /arcus:login        # SSO; stores refresh token in OS keychain. Run once per machine.
 ```
 
-The command asks which region your Testsigma account is in before opening the
+The command asks which region your Arcus account is in before opening the
 browser, because each region is a separate deployment and signing in to the
 wrong one sends this session's captured data to the wrong place:
 
 | Region | Key | API server | Auth server |
 | --- | --- | --- | --- |
-| United States (default) | `us` | `agentic-test.testsigma.com` | `arcus.testsigma.com` |
-| India | `in` | `agentic-test-in.testsigma.com` | `arcus-in.testsigma.com` |
-| Europe | `eu` | `agentic-test-eu.testsigma.com` | `arcus-eu.testsigma.com` |
+| United States (default) | `US` | `agentic-test.testsigma.com` | `arcus.testsigma.com` |
+| India | `IN` | `agentic-test-in.testsigma.com` | `arcus-in.testsigma.com` |
+| Europe | `EU` | `agentic-test-eu.testsigma.com` | `arcus-eu.testsigma.com` |
 
 The chosen region's hosts are written into the plugin's `config.json`, so every
 later call — token refresh, project listing, event ingest — follows it
@@ -67,7 +67,7 @@ Until then hooks run as a **no-op** — nothing is sent remotely.
 | --- | --- |
 | `/arcus:login` | Authenticate via SSO. Asks for your region, then stores the refresh token in your OS keychain. |
 | `/arcus:logout` | Clear local credentials (server-side revoke not yet supported). |
-| `/arcus:project list [search]` | List accessible Testsigma projects (optional substring filter). |
+| `/arcus:project list [search]` | List accessible Arcus projects (optional substring filter). |
 | `/arcus:project use <project_id>` | Pin a project; future events carry it. |
 | `/arcus:project current` | Show the pinned project. |
 | `/arcus:map ticket <KEY>` | Link a ticket (Jira / ADO / Linear / ClickUp / GitHub) to the session's workflow. |
@@ -91,11 +91,11 @@ Until then hooks run as a **no-op** — nothing is sent remotely.
 
 Each hook POSTs to `{host}/api/v1/plugin/events` (host from `/arcus:login`). Read/Write/Edit file snapshots and large binaries (base64 images, long strings) are also captured and sent as attachments. Nothing is written to a local event log.
 
-Per-session state lives under `$CLAUDE_PLUGIN_DATA/sessions/<session_id>/` (override with `TESTSIGMA_CONTEXT_DIR`) — a `session_manifest.json` (cwd, transcript, git/ticket grouping signals, Testsigma link) plus `attachments/` and `context_files/`.
+Per-session state lives under `$CLAUDE_PLUGIN_DATA/sessions/<session_id>/` (override with `TESTSIGMA_CONTEXT_DIR`) — a `session_manifest.json` (cwd, transcript, git/ticket grouping signals, Arcus link) plus `attachments/` and `context_files/`.
 
 ## Privacy & data controls
 
-Once you log in (`/arcus:login`), this plugin transmits your session — prompts, tool calls/inputs/outputs, and file contents it captures — to Testsigma. See the [Testsigma Privacy Policy](https://testsigma.com/privacy-policy) for what's collected and how it's handled. Until you log in, hooks are a no-op and nothing is sent.
+Once you log in (`/arcus:login`), this plugin transmits your session — prompts, tool calls/inputs/outputs, and file contents it captures — to Arcus. See the [Testsigma Privacy Policy](https://testsigma.com/privacy-policy) for what's collected and how it's handled. Until you log in, hooks are a no-op and nothing is sent.
 
 **Sensitive files are always blocked** regardless of settings — `.env*`, private keys (`*.pem`/`*.key`/`*.p12`/`*.jks`), `credentials*`, `service-account*.json`, `.netrc`, `.pgpass`, and anything under `~/.ssh`, `~/.gnupg`, `~/.aws/credentials`, `~/.gcloud/legacy_credentials`. Blocked files are sent as `{skipped: true, reason: 'sensitive_path'}`.
 

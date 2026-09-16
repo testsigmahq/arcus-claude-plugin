@@ -1,9 +1,9 @@
 ---
-description: List Testsigma projects and pin the active project for Arcus
+description: List Arcus projects and pin the active project
 ---
 
-Manage which Testsigma project this plugin tags new events with. The
-workflow inside Testsigma is resolved automatically per session/branch —
+Manage which Arcus project this plugin tags new events with. The
+workflow inside Arcus is resolved automatically per session/branch —
 you only need to pick a project.
 
 Subcommands:

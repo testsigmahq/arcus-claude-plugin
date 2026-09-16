@@ -82,18 +82,19 @@ def login(plugin_version: str, hostname: str, region: str | None = None) -> int:
     if resolved is None:
         choices = region_choices()
         if choices:
-            listed = ", ".join(f"{key} ({label})" for key, label in choices)
+            listed = ", ".join(f"{key.upper()} ({label})" for key, label in choices)
             print(f"arcus: unknown region {requested!r}. Choose one of: {listed}", file=sys.stderr)
         else:
             print(
-                "arcus: servers.json has no usable regions. Reinstall the plugin from your Testsigma marketplace.",
+                "arcus: servers.json has no usable regions. Reinstall the plugin from your Arcus marketplace.",
                 file=sys.stderr,
             )
         return 1
     region_key, api_server, auth_server = resolved
     if previous and previous != region_key:
         print(
-            f"arcus: switching region {previous} -> {region_key}. Sessions captured under the old region stay there.",
+            f"arcus: switching region {previous.upper()} -> {region_key.upper()}. "
+            "Sessions captured under the old region stay there.",
             file=sys.stderr,
         )
 
@@ -163,7 +164,7 @@ def login(plugin_version: str, hostname: str, region: str | None = None) -> int:
     email = str(claims.get("email") or "").strip()
     user_label = email or user_id
     print("arcus: signed in", file=sys.stderr)
-    print(f"  region    {region_key}", file=sys.stderr)
+    print(f"  region    {region_key.upper()}", file=sys.stderr)
     print(f"  account   {account_id}", file=sys.stderr)
     print(f"  user      {user_label}", file=sys.stderr)
     print("token stored in OS keychain. You can close the browser tab.", file=sys.stderr)

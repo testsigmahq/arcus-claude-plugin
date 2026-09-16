@@ -114,7 +114,7 @@ def test_login_refuses_an_unknown_region(monkeypatch, tmp_path, capsys):
     assert rc == 1
     assert config_mod.read_config() is None
     err = capsys.readouterr().err
-    assert "atlantis" in err and "us (United States)" in err
+    assert "atlantis" in err and "US (United States)" in err
 
 
 def test_every_shipped_region_resolves_to_both_hosts():
@@ -161,7 +161,7 @@ def test_explicit_region_switches_and_warns(monkeypatch, tmp_path, capsys):
     _run_login(monkeypatch, region="in")
 
     assert config_mod.read_config()["region"] == "in"
-    assert "switching region eu -> in" in capsys.readouterr().err
+    assert "switching region EU -> IN" in capsys.readouterr().err
 
 
 def test_logout_forgets_the_region(monkeypatch, tmp_path):

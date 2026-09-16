@@ -2,13 +2,13 @@
 description: Show Arcus commands and how to use them
 ---
 
-Arcus captures Claude Code session context (prompts, tool I/O, file snapshots, subagent boundaries) and ingests it into Testsigma. Sessions are grouped by git branch and linked to a Testsigma workflow; you pick the project and map tickets.
+Arcus captures Claude Code session context (prompts, tool I/O, file snapshots, subagent boundaries) and ingests it. Sessions are grouped by git branch and linked to an Arcus workflow; you pick the project and map tickets.
 
 ## Commands
 
-- `/arcus:login` — Authenticate via SSO. Asks which region your Testsigma account is in (`us` default, `in`, `eu`), then stores the refresh token in your OS keychain. Run once per machine.
+- `/arcus:login` — Authenticate via SSO. Asks which region your Arcus account is in (`US` default, `IN`, `EU`), then stores the refresh token in your OS keychain. Run once per machine.
 - `/arcus:logout` — Clear local credentials. Server-side revoke not yet supported.
-- `/arcus:project list [search]` — List Testsigma projects you can access. Optional substring filter.
+- `/arcus:project list [search]` — List Arcus projects you can access. Optional substring filter.
 - `/arcus:project use <project_id>` — Pin a project. Future events tag this project.
 - `/arcus:project current` — Show pinned project.
 - `/arcus:map ticket <KEY>` — Link ticket (Jira / ADO / Linear / ClickUp / GitHub) to the workflow resolved from this session. Provider auto-detected from sprint membership.

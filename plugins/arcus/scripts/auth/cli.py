@@ -21,11 +21,11 @@ from auth.logout import logout
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="arcus-auth")
     sub = parser.add_subparsers(dest="cmd", required=True)
-    login_parser = sub.add_parser("login", help="Authenticate with Testsigma via browser")
+    login_parser = sub.add_parser("login", help="Authenticate with Arcus via browser")
     login_parser.add_argument(
         "--region",
         default=os.environ.get("ARCUS_REGION"),
-        help="Testsigma region to authenticate against (us, in, eu). Defaults to us.",
+        help="Arcus region to authenticate against (US, IN, EU). Case-insensitive; defaults to US.",
     )
     sub.add_parser("regions", help="List the available regions")
     sub.add_parser("logout", help="Clear local credentials")
@@ -42,7 +42,8 @@ def main(argv: list[str] | None = None) -> int:
                 note = "default"
             else:
                 note = ""
-            print(f"{key}\t{label}\t{note}")
+            # Keys are stored lowercase but shown uppercase; input is case-insensitive.
+            print(f"{key.upper()}\t{label}\t{note}")
         return 0
     if args.cmd == "login":
         return login(plugin_version=plugin_version(), hostname=socket.gethostname(), region=args.region)

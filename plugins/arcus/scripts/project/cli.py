@@ -102,7 +102,7 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="arcus-project")
     sub = parser.add_subparsers(dest="cmd", required=True)
 
-    p_list = sub.add_parser("list", help="List Testsigma projects")
+    p_list = sub.add_parser("list", help="List Arcus projects")
     p_list.add_argument("search", nargs="?", default=None, help="Substring filter")
     p_list.set_defaults(func=_cmd_list)
 

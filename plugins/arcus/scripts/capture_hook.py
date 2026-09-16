@@ -70,9 +70,9 @@ def _emit_auth_warning_if_needed(session_id: str, hook_name: str) -> None:
     except OSError:
         pass
     if state == "revoked":
-        msg = "⚠️ arcus: session expired. Please run /arcus:login to resume Testsigma capture."
+        msg = "⚠️ arcus: session expired. Please run /arcus:login to resume Arcus capture."
     else:
-        msg = "⚠️ arcus: not logged in. Run /arcus:login to enable Testsigma capture."
+        msg = "⚠️ arcus: not logged in. Run /arcus:login to enable Arcus capture."
     try:
         hostos.makedirs(os.path.dirname(marker))
         with open(marker, "w", encoding="utf-8") as f:
@@ -97,7 +97,7 @@ def _emit_capture_disclosure_if_needed(session_id: str, hook_name: str) -> None:
         return
     msg = (
         "ℹ️ arcus: this session (prompts, tool calls, and file contents) is being "
-        "captured and sent to Testsigma. See https://testsigma.com/privacy-policy"
+        "captured and sent to Arcus. See https://testsigma.com/privacy-policy"
     )
     try:
         hostos.makedirs(os.path.dirname(marker))

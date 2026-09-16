@@ -1,14 +1,14 @@
 ---
-description: Authenticate with Testsigma so Arcus can capture and ingest your sessions
+description: Authenticate with Arcus so it can capture and ingest your sessions
 ---
 
-Run the Arcus auth login flow. This opens a browser tab to your Testsigma
+Run the Arcus auth login flow. This opens a browser tab to your Arcus
 instance, asks you to log in (if you are not already), and authorizes the
 plugin. The token is stored locally in your OS keychain.
 
 ## Required pre-flight (do NOT skip)
 
-Each Testsigma region is a separate deployment. Signing in to the wrong one
+Each Arcus region is a separate deployment. Signing in to the wrong one
 fails, or sends this session's captured prompts and file contents to the wrong
 place. Resolve the region before running the login command:
 
@@ -29,8 +29,8 @@ place. Resolve the region before running the login command:
    region stay there.
 
 3. **If no region is marked `signed in`**, this is a first login. Show the user
-   every region (key + label), say that **United States (`us`) is the default**,
-   and ask which one their Testsigma account is in. Do NOT guess from their
+   every region (key + label), say that **United States (`US`) is the default**,
+   and ask which one their Arcus account is in. Do NOT guess from their
    locale, timezone, or email domain, and do NOT skip to the execute block.
 
 Execute (only after the region is settled):
@@ -40,7 +40,8 @@ Execute (only after the region is settled):
 ```
 
 Omitting `--region` reuses the region already stored for this machine, and falls
-back to `us` only on a machine that has never signed in.
+back to `US` only on a machine that has never signed in. Region keys are
+case-insensitive.
 
 If the browser doesn't open automatically, copy the URL printed to stderr and
 paste it into your browser. The flow times out after 5 minutes — re-run if you
