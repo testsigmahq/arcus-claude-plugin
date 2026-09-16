@@ -12,10 +12,10 @@ Server-side can merge with PR data, commits, etc. This is client-side signal onl
 
 from __future__ import annotations
 
-import os
 import re
-import subprocess
 from typing import Any
+
+import hostos
 
 # --- Regexes ----------------------------------------------------------------
 
@@ -183,23 +183,8 @@ def _to_https_git_url(url: str) -> str:
 
 
 def _run_cmd(cmd: list[str], cwd: str | None) -> str | None:
-    """Run a shell command and return stripped stdout, or None on failure."""
-    work_dir = (cwd or "").strip() or None
-    if work_dir and not os.path.isdir(work_dir):
-        work_dir = None
-    try:
-        result = subprocess.run(
-            cmd,
-            capture_output=True,
-            text=True,
-            timeout=5,
-            cwd=work_dir,
-        )
-        if result.returncode != 0:
-            return None
-        return result.stdout.strip() or None
-    except (OSError, subprocess.TimeoutExpired, FileNotFoundError):
-        return None
+    """Run a command and return stripped stdout, or None on failure."""
+    return hostos.run_text(cmd, cwd)
 
 
 def _detect_git_repo(cwd: str | None) -> str | None:

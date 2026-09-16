@@ -1,4 +1,5 @@
 import json
+import os
 from pathlib import Path
 
 from auth import config
@@ -36,7 +37,9 @@ def test_read_write_config_atomic(tmp_path, monkeypatch):
     assert config.read_config() == cfg
 
     path = Path(config.config_path())
-    assert oct(path.stat().st_mode)[-3:] == "600"
+    if os.name != "nt":
+        # Windows has no POSIX mode bits; hostos.restrict_file sets an ACL instead.
+        assert oct(path.stat().st_mode)[-3:] == "600"
 
 
 def test_read_config_missing_returns_none(tmp_path, monkeypatch):

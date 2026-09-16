@@ -7,7 +7,7 @@ Run the Arcus auth login flow. This will open a browser tab to your Testsigma in
 Execute:
 
 ```bash
-python3 "${CLAUDE_PLUGIN_ROOT}/scripts/auth/cli.py" login
+"${CLAUDE_PLUGIN_ROOT}/scripts/arcus-py.cmd" "${CLAUDE_PLUGIN_ROOT}/scripts/auth/cli.py" login
 ```
 
 If the browser doesn't open automatically, copy the URL printed to stderr and paste it into your browser. The flow times out after 5 minutes — re-run if you miss it.

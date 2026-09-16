@@ -14,7 +14,7 @@ metadata the CLI needs. It does **not** read files, compile, or handle auth itse
 1. Read the pinned project:
 
    ```bash
-   python3 "${CLAUDE_PLUGIN_ROOT}/scripts/project/cli.py" current
+   "${CLAUDE_PLUGIN_ROOT}/scripts/arcus-py.cmd" "${CLAUDE_PLUGIN_ROOT}/scripts/project/cli.py" current
    ```
 
 2. If the output is `(no project pinned; run /arcus:project use <id>)`, ABORT. Tell

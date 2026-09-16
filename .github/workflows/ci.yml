@@ -1,0 +1,121 @@
+name: CI
+
+on:
+  push:
+    branches: [dev, prod]
+  pull_request:
+    branches: [dev, prod]
+  workflow_dispatch:
+
+# A push to a branch that also has a PR open would otherwise run twice.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: ${{ matrix.os }} / py${{ matrix.python }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        # Windows is the reason this matrix exists: the plugin's platform
+        # branches are all in scripts/hostos.py and only Windows exercises the
+        # msvcrt, ACL and MAX_PATH sides of them. 3.9 is the declared floor and
+        # 3.13 the current release; the middle versions catch anything that
+        # changed in between.
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python: ["3.9", "3.13"]
+        include:
+          - os: windows-latest
+            python: "3.10"
+          - os: windows-latest
+            python: "3.12"
+
+    defaults:
+      run:
+        working-directory: plugins/arcus
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Install test dependencies
+        run: python -m pip install --quiet pytest pytest-mock
+
+      - name: Run the test suite
+        run: python -m pytest -q
+
+  launcher:
+    name: launcher / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+
+      # scripts/arcus-py.cmd is a polyglot: cmd.exe runs its batch block, a
+      # POSIX shell swallows that block as a heredoc and runs the sh section.
+      # Each shell has to be proven separately — a syntax error in one half is
+      # invisible from the other.
+      - name: Launcher resolves an interpreter (cmd.exe)
+        if: runner.os == 'Windows'
+        shell: cmd
+        run: |
+          cd plugins\arcus
+          scripts\arcus-py.cmd -c "import sys; print('cmd branch ok', sys.version)"
+
+      - name: Launcher resolves an interpreter (POSIX sh)
+        if: runner.os != 'Windows'
+        shell: sh
+        run: |
+          cd plugins/arcus
+          ./scripts/arcus-py.cmd -c "import sys; print('posix branch ok', sys.version)"
+
+      # Git Bash is what Claude Code actually uses for hooks on Windows, so the
+      # sh half of the polyglot must work there too.
+      - name: Launcher resolves an interpreter (Git Bash)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          cd plugins/arcus
+          sh ./scripts/arcus-py.cmd -c "import sys; print('git bash ok', sys.version)"
+
+      - name: Hook end-to-end through the launcher
+        shell: bash
+        run: |
+          cd plugins/arcus
+          export CLAUDE_PLUGIN_ROOT="$PWD"
+          export TESTSIGMA_CONTEXT_DIR="${RUNNER_TEMP}/arcus-ctx"
+          printf '%s' '{"session_id":"ci-1","hook_event_name":"PostToolUse","cwd":"'"$PWD"'","tool_name":"Read","tool_input":{"file_path":"'"$PWD"'/scripts/hostos.py"},"tool_response":{"content":"café"}}' \
+            | sh ./scripts/arcus-py.cmd ./scripts/capture_hook.py
+          test -f "${TESTSIGMA_CONTEXT_DIR}/sessions/ci-1/session_manifest.json" \
+            || { echo "no manifest written"; exit 1; }
+          echo "manifest written:"
+          cat "${TESTSIGMA_CONTEXT_DIR}/sessions/ci-1/session_manifest.json"
+
+  lint:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: plugins/arcus
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/ruff-action@v4.1.0
+        with:
+          args: check .
+          src: plugins/arcus
+      - uses: astral-sh/ruff-action@v4.1.0
+        with:
+          args: format --check .
+          src: plugins/arcus

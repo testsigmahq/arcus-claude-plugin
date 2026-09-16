@@ -15,5 +15,5 @@ Subcommands:
 Execute:
 
 ```bash
-python3 "${CLAUDE_PLUGIN_ROOT}/scripts/project/cli.py" $ARGUMENTS
+"${CLAUDE_PLUGIN_ROOT}/scripts/arcus-py.cmd" "${CLAUDE_PLUGIN_ROOT}/scripts/project/cli.py" $ARGUMENTS
 ```

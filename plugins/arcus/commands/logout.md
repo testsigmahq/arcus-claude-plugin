@@ -9,5 +9,5 @@ Server-side session revocation is not yet supported — sign out only clears loc
 Execute:
 
 ```bash
-python3 "${CLAUDE_PLUGIN_ROOT}/scripts/auth/cli.py" logout
+"${CLAUDE_PLUGIN_ROOT}/scripts/arcus-py.cmd" "${CLAUDE_PLUGIN_ROOT}/scripts/auth/cli.py" logout
 ```

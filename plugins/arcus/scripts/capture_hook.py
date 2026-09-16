@@ -14,6 +14,7 @@ Environment (all optional — auth/host now come from /arcus:login config.json):
 from __future__ import annotations
 
 import base64
+import glob
 import hashlib
 import json
 import os
@@ -33,6 +34,7 @@ def _log(msg: str) -> None:
         print(f"[arcus] {msg}", file=sys.stderr, flush=True)
 
 
+import hostos
 from auth.state import AuthState
 from capture_sinks import build_default_sinks, session_dir_for
 from session_context_storage import ensure_session_dirs, persist_prompt_file_references, persist_tool_file_snapshots
@@ -72,7 +74,7 @@ def _emit_auth_warning_if_needed(session_id: str, hook_name: str) -> None:
     else:
         msg = "⚠️ arcus: not logged in. Run /arcus:login to enable Testsigma capture."
     try:
-        os.makedirs(os.path.dirname(marker), exist_ok=True)
+        hostos.makedirs(os.path.dirname(marker))
         with open(marker, "w", encoding="utf-8") as f:
             f.write(state)
     except OSError:
@@ -98,12 +100,38 @@ def _emit_capture_disclosure_if_needed(session_id: str, hook_name: str) -> None:
         "captured and sent to Testsigma. See https://testsigma.com/privacy-policy"
     )
     try:
-        os.makedirs(os.path.dirname(marker), exist_ok=True)
+        hostos.makedirs(os.path.dirname(marker))
         with open(marker, "w", encoding="utf-8") as f:
             f.write(_utc_now())
     except OSError:
         pass
     print(json.dumps({"systemMessage": msg}), flush=True)
+
+
+def _install_macos_certs_once() -> None:
+    """Run python.org's "Install Certificates.command" once per machine (macOS only).
+
+    Without it, a python.org interpreter has no CA bundle and every ingest POST
+    fails with CERTIFICATE_VERIFY_FAILED. Guarded by platform rather than shipped
+    as a shell hook so it is simply absent on Windows and Linux.
+    """
+    if sys.platform != "darwin":
+        return
+    marker = os.path.join(os.path.expanduser("~"), ".cache", "arcus", "certs_installed")
+    if os.path.exists(marker):
+        return
+    ran = False
+    for cmd in sorted(glob.glob("/Applications/Python */Install Certificates.command")):
+        if hostos.run_text(["bash", cmd], timeout=120) is not None:
+            ran = True
+    if not ran:
+        return
+    if hostos.makedirs(os.path.dirname(marker)):
+        try:
+            with open(marker, "w", encoding="utf-8") as f:
+                f.write(_utc_now())
+        except OSError:
+            pass
 
 
 BASE64_HINT = re.compile(r"^[A-Za-z0-9+/=\s]+$")
@@ -159,9 +187,9 @@ def _write_blob(session_id: str, raw: bytes, ext: str) -> tuple[str, str]:
     h = hashlib.sha256(raw).hexdigest()[:16]
     name = f"{h}_{uuid.uuid4().hex[:8]}{ext}"
     attach_dir = os.path.join(session_dir_for(session_id), "attachments")
-    os.makedirs(attach_dir, exist_ok=True)
+    hostos.makedirs(attach_dir)
     path = os.path.join(attach_dir, name)
-    with open(path, "wb") as f:
+    with open(hostos.long_path(path), "wb") as f:
         f.write(raw)
     return path, h
 
@@ -258,6 +286,11 @@ def main() -> None:
     if not hook_name:
         _log(f"skipping event with no hook_event_name (session={session_id})")
         sys.exit(0)
+    if hook_name == "SessionStart":
+        try:
+            _install_macos_certs_once()
+        except Exception as exc:
+            _log(f"cert install skipped: {exc}")
     threshold = _externalize_threshold()
 
     try:

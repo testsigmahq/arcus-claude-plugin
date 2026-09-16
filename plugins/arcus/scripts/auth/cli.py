@@ -13,10 +13,9 @@ _plugin_root = Path(__file__).resolve().parent.parent.parent
 os.environ.setdefault("CLAUDE_PLUGIN_ROOT", str(_plugin_root))
 sys.path.insert(0, str(_plugin_root / "scripts"))
 
+from auth.config import plugin_version
 from auth.login import login
 from auth.logout import logout
-
-PLUGIN_VERSION = "0.1.0"
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -27,7 +26,7 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     if args.cmd == "login":
-        return login(plugin_version=PLUGIN_VERSION, hostname=socket.gethostname())
+        return login(plugin_version=plugin_version(), hostname=socket.gethostname())
     if args.cmd == "logout":
         return logout()
     parser.print_help()

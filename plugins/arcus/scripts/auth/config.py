@@ -68,6 +68,30 @@ def delete_config() -> None:
         pass
 
 
+def _plugin_root() -> Path:
+    """Plugin root from the environment, else derived from this file's location."""
+    root = os.environ.get("CLAUDE_PLUGIN_ROOT", "")
+    if root:
+        return Path(root)
+    # scripts/auth/config.py -> plugin root is parent.parent.parent.
+    return Path(__file__).resolve().parent.parent.parent
+
+
+def plugin_version() -> str:
+    """The plugin version, read from ``.claude-plugin/plugin.json``.
+
+    That manifest is the single source of truth: Claude Code parses it before any
+    of this code runs, so it is the one place the version cannot be computed.
+    Everything else derives from it rather than keeping its own copy.
+    """
+    try:
+        with open(_plugin_root() / ".claude-plugin" / "plugin.json", encoding="utf-8") as f:
+            version = json.load(f).get("version")
+    except (OSError, json.JSONDecodeError):
+        return "unknown"
+    return version if isinstance(version, str) and version else "unknown"
+
+
 def load_plugin_hosts() -> dict[str, str]:
     """Read the deployment servers shipped with the plugin (`servers.json`).
 

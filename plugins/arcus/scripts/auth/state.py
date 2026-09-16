@@ -8,16 +8,11 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
+import hostos
+
 from auth.config import plugin_data_dir, read_config, write_config
 from auth.keystore import load_refresh_token, save_refresh_token
 from auth.refresh import refresh_tokens
-
-try:
-    import fcntl  # type: ignore[attr-defined]
-except ImportError:
-    # Windows has no fcntl. Token refresh can then race across concurrent
-    # processes; acceptable for a single-user CLI.
-    fcntl = None
 
 
 def _parse_iso(s: str) -> datetime | None:
@@ -29,21 +24,9 @@ def _parse_iso(s: str) -> datetime | None:
 
 @contextmanager
 def _refresh_lock():
-    """Serialize refresh across concurrent processes."""
-    data_dir = plugin_data_dir()
-    os.makedirs(data_dir, exist_ok=True)
-    path = os.path.join(data_dir, "refresh.lock")
-    fd = os.open(path, os.O_RDWR | os.O_CREAT, 0o600)
-    try:
-        if fcntl:
-            fcntl.flock(fd, fcntl.LOCK_EX)
+    """Serialize token refresh across concurrent processes."""
+    with hostos.file_lock(os.path.join(plugin_data_dir(), "refresh")):
         yield
-    finally:
-        try:
-            if fcntl:
-                fcntl.flock(fd, fcntl.LOCK_UN)
-        finally:
-            os.close(fd)
 
 
 @dataclass

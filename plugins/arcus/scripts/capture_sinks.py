@@ -25,6 +25,7 @@ from typing import Any, Protocol
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
+import hostos
 from auth.login import decode_jwt_claims
 from auth.state import AuthState
 
@@ -42,20 +43,6 @@ def _log(msg: str) -> None:
     except Exception:
         pass
 
-
-try:
-    import fcntl  # type: ignore[attr-defined]
-except ImportError:
-    # Windows: no fcntl. Concurrent hook processes can race on manifest writes
-    # and token refresh. Acceptable for single-user dev, but flag the limitation
-    # so anyone running parallel hooks on Windows knows what to expect.
-    fcntl = None
-    if os.environ.get("ARCUS_DEBUG", "").strip() not in ("", "0", "false", "False"):
-        print(
-            "[arcus] warning: fcntl unavailable (Windows?). Concurrent hooks may race on manifest / token writes.",
-            file=sys.stderr,
-            flush=True,
-        )
 
 from ingest_attachments import build_ingest_attachments
 from session_grouping import merge_grouping_into_manifest
@@ -193,7 +180,7 @@ def _circuit_record(success: bool) -> None:
             backoff = min(_CIRCUIT_MIN_BACKOFF * (2 ** (n - _CIRCUIT_THRESHOLD)), _CIRCUIT_MAX_BACKOFF)
             new_state["next_retry_at"] = (datetime.now(_tz.utc) + timedelta(seconds=backoff)).isoformat()
     try:
-        os.makedirs(os.path.dirname(path), exist_ok=True)
+        hostos.makedirs(os.path.dirname(path))
         with open(path, "w", encoding="utf-8") as f:
             json.dump(new_state, f)
     except OSError as exc:
@@ -265,47 +252,41 @@ def apply_testsigma_from_events_response(
         except Exception as exc:
             _log(f"apply_testsigma: active_workflow_id update failed: {exc}")
     try:
-        with open(manifest_path, "a+", encoding="utf-8") as mf:
-            if fcntl:
-                fcntl.flock(mf.fileno(), fcntl.LOCK_EX)
-            try:
-                mf.seek(0)
-                raw = mf.read()
-                manifest = json.loads(raw) if raw.strip() else {}
-                if not isinstance(manifest, dict):
-                    manifest = {}
-                ts = manifest.setdefault("testsigma", {})
+        with hostos.file_lock(manifest_path), open(manifest_path, "a+", encoding="utf-8") as mf:
+            mf.seek(0)
+            raw = mf.read()
+            manifest = json.loads(raw) if raw.strip() else {}
+            if not isinstance(manifest, dict):
+                manifest = {}
+            ts = manifest.setdefault("testsigma", {})
 
-                if hook_name == "UserPromptSubmit":
-                    if ts.get("ticket_resolve_done"):
-                        return
-                    gk = manifest.get("grouping_keys") or {}
-                    tu = gk.get("ticket_ids_union") if isinstance(gk, dict) else None
-                    if isinstance(tu, list) and tu:
-                        if wf:
-                            ts["workflow_id"] = wf
-                            ts["context_id"] = ctx or wf
-                            ts["link_source"] = "api"
-                            ts["session_group_key"] = wf
-                            ts["ticket_resolve_done"] = True
-                        else:
-                            ts["link_source"] = "api_failed"
+            if hook_name == "UserPromptSubmit":
+                if ts.get("ticket_resolve_done"):
                     return
-
-                if hook_name == "SessionStart" or not ts.get("workflow_id"):
+                gk = manifest.get("grouping_keys") or {}
+                tu = gk.get("ticket_ids_union") if isinstance(gk, dict) else None
+                if isinstance(tu, list) and tu:
                     if wf:
                         ts["workflow_id"] = wf
                         ts["context_id"] = ctx or wf
                         ts["link_source"] = "api"
                         ts["session_group_key"] = wf
-                    elif ts.get("link_source") == "pending":
+                        ts["ticket_resolve_done"] = True
+                    else:
                         ts["link_source"] = "api_failed"
-                mf.seek(0)
-                mf.truncate()
-                json.dump(manifest, mf, indent=2, ensure_ascii=False)
-            finally:
-                if fcntl:
-                    fcntl.flock(mf.fileno(), fcntl.LOCK_UN)
+                return
+
+            if hook_name == "SessionStart" or not ts.get("workflow_id"):
+                if wf:
+                    ts["workflow_id"] = wf
+                    ts["context_id"] = ctx or wf
+                    ts["link_source"] = "api"
+                    ts["session_group_key"] = wf
+                elif ts.get("link_source") == "pending":
+                    ts["link_source"] = "api_failed"
+            mf.seek(0)
+            mf.truncate()
+            json.dump(manifest, mf, indent=2, ensure_ascii=False)
     except Exception as exc:
         _log(f"apply_testsigma: manifest update failed: {exc}")
 
@@ -327,37 +308,31 @@ class ManifestSink:
             hook_name = str(record.get("hook_event_name") or "Unknown")
             _log(f"hook={hook_name} session={session_id} payload={json.dumps(payload)}")
             sdir = os.path.join(self._base, "sessions", session_id) if self._base else session_dir_for(session_id)
-            os.makedirs(sdir, exist_ok=True)
+            hostos.makedirs(sdir)
 
             manifest_path = os.path.join(sdir, "session_manifest.json")
-            with open(manifest_path, "a+", encoding="utf-8") as mf:
-                if fcntl:
-                    fcntl.flock(mf.fileno(), fcntl.LOCK_EX)
-                try:
-                    mf.seek(0)
-                    body = mf.read()
-                    if body.strip():
-                        try:
-                            manifest = json.loads(body)
-                        except json.JSONDecodeError:
-                            manifest = {}
-                    else:
+            with hostos.file_lock(manifest_path), open(manifest_path, "a+", encoding="utf-8") as mf:
+                mf.seek(0)
+                body = mf.read()
+                if body.strip():
+                    try:
+                        manifest = json.loads(body)
+                    except json.JSONDecodeError:
                         manifest = {}
-                    manifest.setdefault("session_id", session_id)
-                    if payload.get("cwd"):
-                        manifest["cwd"] = payload["cwd"]
-                    if payload.get("transcript_path"):
-                        manifest["transcript_path"] = payload["transcript_path"]
-                    manifest["last_hook"] = hook_name
-                    manifest["updated_at"] = record.get("received_at", "")
-                    merge_grouping_into_manifest(manifest, payload, hook_name)
-                    merge_testsigma_link(manifest, session_id, hook_name, payload)
-                    mf.seek(0)
-                    mf.truncate()
-                    json.dump(manifest, mf, indent=2, ensure_ascii=False)
-                finally:
-                    if fcntl:
-                        fcntl.flock(mf.fileno(), fcntl.LOCK_UN)
+                else:
+                    manifest = {}
+                manifest.setdefault("session_id", session_id)
+                if payload.get("cwd"):
+                    manifest["cwd"] = payload["cwd"]
+                if payload.get("transcript_path"):
+                    manifest["transcript_path"] = payload["transcript_path"]
+                manifest["last_hook"] = hook_name
+                manifest["updated_at"] = record.get("received_at", "")
+                merge_grouping_into_manifest(manifest, payload, hook_name)
+                merge_testsigma_link(manifest, session_id, hook_name, payload)
+                mf.seek(0)
+                mf.truncate()
+                json.dump(manifest, mf, indent=2, ensure_ascii=False)
         except Exception as exc:
             _log(f"ManifestSink: write failed: {exc}")
 
@@ -504,17 +479,11 @@ class EventsJSONLSink:
             payload = record.get("payload") or {}
             session_id = str(payload.get("session_id") or payload.get("conversation_id") or "unknown-session")
             sdir = session_dir_for(session_id)
-            os.makedirs(sdir, exist_ok=True)
+            hostos.makedirs(sdir)
             events_path = os.path.join(sdir, "events.jsonl")
             line = json.dumps(record, ensure_ascii=False) + "\n"
-            with open(events_path, "a", encoding="utf-8") as f:
-                if fcntl:
-                    fcntl.flock(f.fileno(), fcntl.LOCK_EX)
-                try:
-                    f.write(line)
-                finally:
-                    if fcntl:
-                        fcntl.flock(f.fileno(), fcntl.LOCK_UN)
+            with hostos.file_lock(events_path), open(events_path, "a", encoding="utf-8") as f:
+                f.write(line)
         except Exception as exc:
             _log(f"EventsJSONLSink: write failed: {exc}")
 
