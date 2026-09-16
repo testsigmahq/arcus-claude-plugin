@@ -40,13 +40,32 @@ Capture only ships data once you log in:
 /arcus:login        # SSO; stores refresh token in OS keychain. Run once per machine.
 ```
 
+The command asks which region your Testsigma account is in before opening the
+browser, because each region is a separate deployment and signing in to the
+wrong one sends this session's captured data to the wrong place:
+
+| Region | Key | API server | Auth server |
+| --- | --- | --- | --- |
+| United States (default) | `us` | `agentic-test.testsigma.com` | `arcus.testsigma.com` |
+| India | `in` | `agentic-test-in.testsigma.com` | `arcus-in.testsigma.com` |
+| Europe | `eu` | `agentic-test-eu.testsigma.com` | `arcus-eu.testsigma.com` |
+
+The chosen region's hosts are written into the plugin's `config.json`, so every
+later call — token refresh, project listing, event ingest — follows it
+automatically. To switch, run `/arcus:logout` then `/arcus:login` again.
+
+Regions are defined in `plugins/arcus/servers.json`, keyed by region rather than
+suffixed per field, so a region cannot be half-configured with one host missing.
+`resolve_region()` returns nothing for an unknown key rather than falling back to
+a default host, so a typo fails loudly instead of authenticating elsewhere.
+
 Until then hooks run as a **no-op** — nothing is sent remotely.
 
 ## Commands
 
 | Command | Purpose |
 | --- | --- |
-| `/arcus:login` | Authenticate via SSO. Stores refresh token in OS keychain. |
+| `/arcus:login` | Authenticate via SSO. Asks for your region, then stores the refresh token in your OS keychain. |
 | `/arcus:logout` | Clear local credentials (server-side revoke not yet supported). |
 | `/arcus:project list [search]` | List accessible Testsigma projects (optional substring filter). |
 | `/arcus:project use <project_id>` | Pin a project; future events carry it. |

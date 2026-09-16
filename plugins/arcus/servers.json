@@ -1,4 +1,20 @@
 {
-  "apiServer": "https://agentic-test.testsigma.com",
-  "authServer": "https://arcus.testsigma.com"
+  "defaultRegion": "us",
+  "regions": {
+    "us": {
+      "label": "United States",
+      "apiServer": "https://agentic-test.testsigma.com",
+      "authServer": "https://arcus.testsigma.com"
+    },
+    "in": {
+      "label": "India",
+      "apiServer": "https://agentic-test-in.testsigma.com",
+      "authServer": "https://arcus-in.testsigma.com"
+    },
+    "eu": {
+      "label": "Europe",
+      "apiServer": "https://agentic-test-eu.testsigma.com",
+      "authServer": "https://arcus-eu.testsigma.com"
+    }
+  }
 }

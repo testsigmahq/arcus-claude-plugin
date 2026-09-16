@@ -14,7 +14,7 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
-from auth.config import load_plugin_hosts, write_config
+from auth.config import current_region, region_choices, resolve_region, write_config
 from auth.keystore import save_refresh_token
 from auth.listener import LoopbackListener
 
@@ -69,16 +69,33 @@ def exchange_code(host: str, uuid: str, code: str, timeout: float = 10.0) -> dic
     return None
 
 
-def login(plugin_version: str, hostname: str) -> int:
-    hosts = load_plugin_hosts()
-    api_server = hosts.get("apiServer", "")
-    auth_server = hosts.get("authServer", "")
-    if not api_server or not auth_server:
+def login(plugin_version: str, hostname: str, region: str | None = None) -> int:
+    requested = (region or "").strip()
+    previous = current_region()
+    # Sticky: only an explicit --region moves an install, so an expired token
+    # cannot silently relocate someone to the default region.
+    resolved = resolve_region(requested or previous)
+    if resolved is None and not requested and previous:
+        # Retired region: fall back rather than blocking sign-in entirely.
+        print(f"arcus: configured region {previous!r} is no longer available; using the default.", file=sys.stderr)
+        resolved = resolve_region(None)
+    if resolved is None:
+        choices = region_choices()
+        if choices:
+            listed = ", ".join(f"{key} ({label})" for key, label in choices)
+            print(f"arcus: unknown region {requested!r}. Choose one of: {listed}", file=sys.stderr)
+        else:
+            print(
+                "arcus: servers.json has no usable regions. Reinstall the plugin from your Testsigma marketplace.",
+                file=sys.stderr,
+            )
+        return 1
+    region_key, api_server, auth_server = resolved
+    if previous and previous != region_key:
         print(
-            "arcus: servers.json missing apiServer / authServer. Reinstall the plugin from your Testsigma marketplace.",
+            f"arcus: switching region {previous} -> {region_key}. Sessions captured under the old region stay there.",
             file=sys.stderr,
         )
-        return 1
 
     uuid = uuid_4()
     state = secrets_token_urlsafe(32)
@@ -131,6 +148,7 @@ def login(plugin_version: str, hostname: str) -> int:
     write_config(
         {
             "schema_version": 1,
+            "region": region_key,
             "api_server": api_server,
             "auth_server": auth_server,
             "uuid": uuid,
@@ -145,6 +163,7 @@ def login(plugin_version: str, hostname: str) -> int:
     email = str(claims.get("email") or "").strip()
     user_label = email or user_id
     print("arcus: signed in", file=sys.stderr)
+    print(f"  region    {region_key}", file=sys.stderr)
     print(f"  account   {account_id}", file=sys.stderr)
     print(f"  user      {user_label}", file=sys.stderr)
     print("token stored in OS keychain. You can close the browser tab.", file=sys.stderr)
