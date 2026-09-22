@@ -514,6 +514,18 @@ project no longer holds. Assemble the label with the format's own
 escapes rather than a serialiser's: a claim is generated text, and the section on
 escapes above is about exactly this.
 
+## Shared step groups carry contracts, not duplicate fragments
+
+A runtime variable crosses a step-group boundary by name. Check every producer
+and consumer together: the producer stores the runtime value under the same name
+the consumer reads. Similar names do not form a contract, and a missing runtime
+value is the silent reference kind described above.
+
+Put a navigation invariant used by several tests in the shared step group that
+owns the resulting application state. When the shared step group takes ownership,
+remove the duplicate navigation steps from every caller. Leaving both copies in
+a caller changes the path and hides which copy establishes the state.
+
 ## A deliberately unconverted region gets a marker, not a silence
 
 An empty inline block — a named container with no body — validates, pushes, and

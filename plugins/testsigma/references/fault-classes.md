@@ -29,7 +29,7 @@ is still open, then the rest.
 | What the row shows | Read these first |
 |---|---|
 | Every row, whatever else it shows | `Names that match, behaviour that does not`, `A name that has drifted from its behaviour`, `Four shapes a helper takes, and three of them read as one action` |
-| It came from a helper, and the helper has a body | `A composite step definition converted partway`, `A dropped side effect is judged by its consumers, not locally`, `Defensive code in the source is a map of the application's rough edges` |
+| It came from a helper, and the helper has a body | `A composite step definition converted partway`, `A helper's state semantics were reduced to its name`, `A dropped side effect is judged by its consumers, not locally`, `Defensive code in the source is a map of the application's rough edges` |
 | A wait, a poll, a refresh or an until | `A readiness check that answers the wrong question`, `A race that commits the wrong value rather than failing` |
 | A pattern, a format, or a regular expression | `A format string is a program, not a value`, `A value transformed on its way to the browser` |
 | It names an element | `An element bound from the corpus rather than from the call site`, `Correct syntax pointed at the wrong thing` |
@@ -123,6 +123,19 @@ compiles and still passes.
 The fourth is a wait that is really a loop. It is stated as an instruction with
 its trigger names rather than described here, in the mapping skill, because it
 is applied while reading a helper rather than consulted afterwards.
+
+## A helper's state semantics were reduced to its name
+
+A helper name can survive while its state semantics disappear. Read the helper
+body and preserve its ordered work: trim or other normalization before a
+comparison, replace or another mutation before the next read, and every wait
+that makes the resulting value stable. A target step with the same broad name
+is not equivalent when it skips one of those operations.
+
+Read controls by the state the source reads. In particular, a Java helper that
+reads a `textarea` with `getAttribute("value")` reads the value attribute, not
+visible text. Mapping that helper to an element-text verb can compile, push and
+still compare a different value.
 
 ## A composite step definition converted partway
 

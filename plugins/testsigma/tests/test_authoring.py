@@ -569,6 +569,23 @@ class TestTheThreeReferenceKindsBehaveDifferently:
         assert "the test passes, having checked nothing" not in section
 
 
+class TestSharedStepGroupContracts:
+    def test_runtime_producers_match_consumer_names(self):
+        assert has_paragraph_with(
+            _text(), "runtime", "producer", "consumer", "same name"
+        )
+
+    def test_shared_navigation_lives_in_the_shared_group(self):
+        assert has_paragraph_with(
+            _text(), "navigation invariant", "shared step group", "caller"
+        )
+
+    def test_callers_remove_steps_the_shared_group_now_owns(self):
+        assert has_paragraph_with(
+            _text(), "duplicate", "caller", "remove"
+        )
+
+
 # --- escapes -----------------------------------------------------------------
 
 #: Every escape the format decodes in a quoted string, as the reference lists

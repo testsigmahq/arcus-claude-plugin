@@ -210,6 +210,15 @@ how they are pulled.
 
 ## The flags
 
+Preserve server review before sending local changes. Pull the bound entity,
+read the server review, merge it with the local fix, and run `--dry-run` on the
+merged file. Never use `--overwrite-remote` to skip this reconciliation.
+
+Deliver shared changes in dependency order: push each dependency before its
+callers. A shared step-group change can alter every test that calls it, so run
+`--dry-run` for every affected caller before pushing those callers, even where
+the caller file itself did not change.
+
 **`--dry-run` runs before every push.** Not where there is reason to doubt the
 bindings — before every push. The trap above is precisely the one that supplies no
 reason to doubt: the file validates clean, the names look right, and nothing on

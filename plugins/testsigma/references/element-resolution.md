@@ -31,6 +31,16 @@ listing. Where it holds one, it is the only place that can see a duplicate comin
 anyone being asked anything. This is the whole reason the two questions share one
 reading.
 
+A source locator is a candidate until it is checked against the live DOM. It
+must resolve to a unique, visible control in the application state where the
+step uses it. A matching string or a single match in a static snapshot does not
+establish either property.
+
+Keep interaction semantics with the locator evidence. Use the normal click
+first. Use a JavaScript click only when evidence from the live application shows
+why the normal click cannot perform the source action; record that evidence with
+the mapping. JavaScript click is not a general repair for a weak locator.
+
 **Operator capture, last resort.** Ask only when neither the source nor the
 existing project can supply the element. Their time is the last resort and not
 the first: a capture asked for unnecessarily is time spent on what the code

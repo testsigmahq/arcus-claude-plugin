@@ -127,6 +127,16 @@ class TestTheProcedure:
             _text("naming"), "owning source class", "number"
         )
 
+    def test_a_matching_locator_is_checked_in_the_live_dom(self):
+        assert has_paragraph_with(
+            _text(), "live dom", "unique", "visible"
+        ), "a locator string alone does not prove that the usable control was found"
+
+    def test_javascript_click_requires_evidence_after_a_normal_click(self):
+        assert has_paragraph_with(
+            _text(), "normal click", "javascript", "evidence"
+        ), "JavaScript click must remain an evidenced fallback"
+
 
 # --- what each caller owns ---------------------------------------------------
 

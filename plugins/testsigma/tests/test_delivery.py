@@ -150,6 +150,21 @@ class TestTheFlags:
     def test_removing_a_version_block_is_not_a_delete(self):
         assert has_paragraph_with(_text(), "version block", "deletes nothing")
 
+    def test_server_review_is_pulled_and_merged_before_delivery(self):
+        assert has_paragraph_with(
+            _text(), "server review", "pull", "merge", "dry-run"
+        )
+
+    def test_shared_dependencies_are_sent_before_their_callers(self):
+        assert has_paragraph_with(
+            _text(), "dependency", "before", "caller"
+        )
+
+    def test_every_affected_caller_gets_its_own_dry_run(self):
+        assert has_paragraph_with(
+            _text(), "every affected caller", "--dry-run"
+        )
+
 
 # --- uploads -----------------------------------------------------------------
 

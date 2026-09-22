@@ -22,6 +22,7 @@ from support import (
     SKILLS_DIR,
     command_files,
     document,
+    has_paragraph_with,
     skill_files,
 )
 
@@ -176,6 +177,20 @@ def test_the_conduct_part_is_scheduled_by_the_stage_that_uses_it():
         "is read once per stage"
     )
     assert "once" in step_zero, "and must say it is read once rather than per row"
+
+
+def test_a_helper_is_compared_by_its_state_semantics_not_only_its_name():
+    section = CATALOGUE.section("helper's state semantics")
+    assert has_paragraph_with(section, "trim", "replace", "wait"), (
+        "a Java helper can preserve its name while losing normalization, mutation, or timing"
+    )
+
+
+def test_textarea_reads_preserve_value_attribute_semantics():
+    section = CATALOGUE.section("helper's state semantics")
+    assert has_paragraph_with(
+        section, "textarea", "getAttribute", "value", "visible text"
+    ), "textarea state must not be mapped to an element-text read"
 
 
 def test_no_document_points_at_the_catalogue_without_a_section():
