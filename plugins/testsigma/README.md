@@ -36,6 +36,13 @@ the test, commits, and reports how many tests are delivered of how many
 scenarios. One Conversion per invocation, so a Migration delivers a working test
 on its first day rather than in its third week.
 
+**`copilot`** — run once per delivered test, after its Conversion. It runs the
+test live on the execution agent on your machine, pauses where a step fails,
+proposes an edit, and pushes it only when you agree. Every accepted edit is
+recorded against the test, and ruled either true of that test only or a defect
+in the Step Map row, which re-opens every test built on it. A scenario is
+finished when its test passes a Copilot Run. `resume` names the next one to run.
+
 `convert` calls `map`, which proposes and reviews rows, and `assemble`, which
 builds tests from reviewed rows. Either can be run on its own where the work
 calls for it.

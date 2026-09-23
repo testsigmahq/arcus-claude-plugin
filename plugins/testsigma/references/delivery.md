@@ -30,6 +30,15 @@ unattended run that happened to be going at the time.
 So Delivery is deliberate, infrequent, and watched. Everything below assumes a
 person is present.
 
+### A Copilot Run delivers one test
+
+A debug run executes the saved server test, never the local file, so `copilot`
+pushes the one test it runs, and every edit it makes during the run (ADR-0016).
+That is a Delivery of one test, and nothing in it is exempt from this document:
+the dry run, no flags, dependency order, per-upload consent. It fits ADR-0014
+because the Operator is present for the whole of it — they start the run and
+agree to each push — so every write is attributable to a moment they chose.
+
 ## Which project these rules govern
 
 Usually a Migration has exactly **one** Testsigma project: the Target Project it
