@@ -231,6 +231,8 @@ Tell the Operator, in this order:
   Operator alone can act on
 - any scenarios re-opened because a row they were built on was decided again,
   named with the decision that changed
+- that the test has not run in a browser yet, and that its scenario is finished
+  only when a Copilot Run of it passes — `copilot`, in its own invocation
 
 Then stop. Anything unresolved goes where it belongs first: a question for the
 Operator into `open-questions.md`, something learned about Testsigma into

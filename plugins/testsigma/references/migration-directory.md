@@ -244,6 +244,46 @@ and one test collects many rows.
 Each entry names the marker block that stands in the test, so the document and
 the test can be read against each other.
 
+**`runs/<test>.md`** — one document per delivered test, one row per Copilot Run of
+it: the run, when it started, its Debug verdict, the steps skipped and the edits
+made. Written by `copilot` as each run ends, before anything else, because
+starting another debug run of the same test deletes the earlier run's step
+results and the verdict can then no longer be read.
+
+`<test>` here and below is the `Test` cell of `assembled.md` without its
+`.sigma`, so the three per-test documents and the delivered test are joined by
+one spelling.
+
+A test is **proved** when its latest row reads `passed` and that run started on
+or after the test's `Assembled` date. A run older than the assembly proved a test
+that has since been rebuilt, which is a different test. `copilot_status.py`
+applies this, and every "proved" count comes off it.
+
+**`drift/<test>.md`** — one document per test a Copilot Run edited: every edit put
+to the Operator and accepted, with their answer. **Drift** is an edit made live
+to a delivered test, so the test no longer says exactly what its Step Map rows
+say. It is recorded per test because it is true of the test; the row's
+`Version` does not move for it.
+
+Each row carries a **Ruling**, and it is one of two:
+
+- `test-local` — true of this test only: a wait this screen needs, a locator this
+  page changed, a value this scenario's data wants. The row stays as it is.
+- `row defect` — true of the Source Step. The row is decided again and its
+  `Version` bumped, so every test that consumed the old version re-opens. The
+  Drift row stays, as the record of where the defect was found.
+
+A re-opened test is rebuilt from the Step Map, which carries none of its
+test-local Drift. So the next Copilot Run of it re-applies each test-local row
+first, with the Operator shown the earlier ruling. That is what this document is
+read for, and why a retracted edit gets a row saying so rather than being
+deleted: an absent row would be re-applied by nobody and questioned by nobody.
+
+`Changes what is checked` is `yes` where the edit loosens an assertion, changes
+an expected value or drops a check. A fixed column rather than prose for the
+reason a Concession has a fixed prefix: the reviewer's question is "show me every
+edit that weakened a test", and that has to be a sweep.
+
 **`check-record.md`** — which checks ran against which Unit of Work. A check that
 could not run is recorded as not checked, never as a pass. When the CLI gains a
 check it did not have, the Units converted before it are marked as not checked
@@ -295,6 +335,11 @@ are per test and cannot exist before a test does, so assembly creates the
 directory when it writes the first one. An absent `residue/` means no test has
 been assembled yet, which is different from every assembled test being clean —
 and a file that survey had pre-created empty could not tell those apart.
+
+`runs/` and `drift/` are not among the nine either, for the same reason, and
+`copilot` creates each when it writes the first document in it. An absent
+`runs/` means no delivered test has run live yet, and an absent `drift/` means
+no live edit has been accepted.
 
 `migration.md`:
 
@@ -413,6 +458,30 @@ block carrying the same label.
 
 | Marker label | Source Step | Cause | Standing | What was needed |
 |---|---|---|---|---|
+```
+
+`runs/<test>.md`:
+
+```markdown
+# Runs: <test name>
+
+One row per Copilot Run. The Debug verdict is `passed`, `failed` or `stopped`,
+and is the CLI's, never re-judged here.
+
+| Run | Started | Verdict | Steps skipped | Edits | Notes |
+|---|---|---|---|---|---|
+```
+
+`drift/<test>.md`:
+
+```markdown
+# Drift: <test name>
+
+Every live edit the Operator accepted. A Ruling is `test-local` or `row defect`.
+A retracted edit gets a row saying so; none is deleted.
+
+| Step | Row | Edit | Why | Changes what is checked | Ruling | Operator's answer | Date |
+|---|---|---|---|---|---|---|---|
 ```
 
 `check-record.md`:

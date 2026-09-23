@@ -179,6 +179,23 @@ is *push* as the name of the act, which said what was typed rather than what
 happened.
 _Avoid_: publish, sync, ship, the push
 
+**Copilot Run**:
+One debug run of one delivered test, on the execution agent on the Operator's
+machine, with the Operator watching. It pauses where a step fails; an edit the
+Operator accepts is pushed and the failed step runs again. It ends with the
+CLI's Debug verdict — passed, failed or stopped — and a delivered test is
+**proved** only by a passed one. Proved is not Equivalence: it says the test
+runs, not that it checks what the source checked.
+_Avoid_: verification, smoke run, validation run
+
+**Drift**:
+An edit made to a delivered test during a Copilot Run, so the test no longer says
+exactly what its Step Map rows say. Each is agreed by the Operator and ruled
+either test-local — true of this test, the row stays — or a row defect — true of
+the Source Step, so the row is decided again and its dependents re-open. Drift is
+recorded; unrecorded, it is a Divergence.
+_Avoid_: patch, hotfix, override
+
 **Adoption**:
 Binding a Step Map row to an entity the target project already held, instead of
 authoring a second one. What makes it adoption rather than a guess is that the

@@ -109,6 +109,15 @@ Nothing here is relayed to the Operator as the script prints it. Its output name
 files and paths, which is the detail the audience rule above keeps out of what
 they see; the counts and the scenario name are what is theirs.
 
+**Say how many delivered tests are proved.** Run
+`${CLAUDE_PLUGIN_ROOT}/scripts/copilot_status.py --suite <the suite>` and report
+tests proved of tests delivered, from its output. A delivered test is proved only
+by a passed Copilot Run since it was last assembled (ADR-0016), so a test that
+passed once and was re-opened since counts as not proved, and the script says
+which. Count every edit in `drift/` whose `Changes what is checked` reads `yes`,
+and name them: each is a test made weaker, by agreement, and one that nobody can
+find is a Divergence.
+
 ## Step 3: Count what is unreviewed
 
 Count the rows in `step-map.md` by their status, and report the count of
@@ -171,13 +180,18 @@ Tell the Operator, in their terms and in this order:
 - how many Step Map rows are unreviewed, and where reviewing picks up
 - every unanswered question, in full, in both of its files
 
-Then name the next thing to do, as one action rather than a list of options. A
+Then name the next thing to do, as one action rather than a list of options.
+Where `copilot_status.py` names a test to run, that is it: a Copilot Run of that
+test comes before the next Conversion, because a row defect found in the third
+test has three dependents and found in the fortieth has forty. Otherwise it is
+the next Conversion. A
 report that ends in a menu has handed the archaeology back to the Operator, which
 is the thing this command exists to stop.
 
 **Where the queue is empty, say that the work is not delivered.** Every
 Conversion ends at a committed working copy and none of them pushes, so a
-Migration with nothing pending has produced every test and sent none of them.
+Migration with nothing pending has produced every test and sent none of them
+beyond the single tests each Copilot Run pushed to run.
 Nothing else in a session says this: the stages report what they finished, and a
 reader who has watched each one succeed reasonably concludes the work arrived.
 

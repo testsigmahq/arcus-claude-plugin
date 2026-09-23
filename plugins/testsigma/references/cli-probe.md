@@ -34,6 +34,14 @@ how the two programs are told apart, not because a stage reaches for it. A
 Migration that ran its own tests would also be arranging state in the Target
 Project outside a Delivery, which ADR-0014 gives to **the Operator**.
 
+**One exception, and it is not `run`.** A delivered test gets one Copilot Run
+(ADR-0016): `test debug` executes it on the execution agent on the Operator's
+machine, with the Operator watching and deciding every edit. No Conversion
+executes anything, and `run` stays out of scope. Only `copilot` drives
+`test debug` and `agents list`, and it says how; a build whose help lists no
+`test debug` has no live run, and the delivered tests are recorded as not
+covered by one.
+
 `attach` is the one command whose effects are felt everywhere later, and
 `${CLAUDE_PLUGIN_ROOT}/references/authoring.md` describes what it establishes.
 
