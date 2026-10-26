@@ -1,0 +1,43 @@
+# Platforms when writing
+
+A project lists its platforms (`web`, `android`, `ios`). `arcus check` compiles **every test against every one of
+them**, and a step that a platform skips is an error (`ARC2001`).
+
+## The consequence
+
+Platforms belong to the project, not to a test. A test with a web-only step (`nav`, `hover`, `press`, cookies…) cannot
+live in a project whose platforms include `android` or `ios`: `check` fails on the mobile ones. And a test with
+mobile-only steps (`swipe`, `launch app`, `press back`…) fails on `web`.
+
+So before writing, compare what the user wants to test with the project's platforms:
+
+- **They match:** go on.
+- **The test is for one platform, and the project has more:** tell the user. Options: a separate Arcus project for that
+  platform (`arcus init --project <id>` adds it to the same repo), or changing this project's platforms with
+  `arcus project platforms add|remove` (their decision, since it makes `check` stricter or looser for every test).
+  Do not rewrite a test into a weaker form just to make it compile everywhere.
+
+## Writing for several platforms
+
+- Default `arcus docs --project <name>` lists only the forms that compile on all of the project's platforms. Write from
+  that list.
+- A locator mode that a platform lacks is skipped there. For a target that has to work everywhere, make an element with
+  one locator per platform (`only <platform>`). See `${CLAUDE_PLUGIN_ROOT}/references/elements.md`.
+- Looping over an element and some condition forms are web only. `arcus docs --all` marks the platforms of every form.
+
+## Mobile
+
+Authoring for Android and iOS works like web: `arcus docs` lists the device actions (app control, `swipe`, `pinch`,
+`switch context`, and so on). In this version of the plugin the test cannot be run, so there is no device or app
+preflight. Say that the test is checked, not run.
+
+## What cannot be written yet
+
+If the user asks for one of these, say it is not supported yet, and do not work around it:
+
+- `api` steps and add-on steps (blocked by the compile).
+- Groups and calls to groups.
+- `host` lines in an element.
+- Header lines above a test (`sigmascript`, `platform`, `tags`).
+- Sub-folders under `tests/`.
+- Any action or form that `arcus docs --all` does not list.

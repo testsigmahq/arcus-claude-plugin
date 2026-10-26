@@ -1,40 +1,48 @@
 ---
-description: Show Arcus commands and how to use them
+description: Show what the Arcus plugin does and how to use it
 ---
 
-Arcus captures Claude Code session context (prompts, tool I/O, file snapshots, subagent boundaries) and ingests it. Sessions are grouped by git branch and linked to an Arcus workflow; you pick the project and map tickets.
+The Arcus plugin helps you write Arcus tests in your repo and send them to an Arcus project. Tests and elements are
+`.sigma` files. The `arcus` command-line tool checks them offline and pushes them. The plugin teaches Claude to use it
+well, and it sends nothing to Arcus by itself.
 
-## Commands
+## Skills
 
-- `/arcus:login` — Authenticate via SSO. Asks which region your Arcus account is in (`US` default, `IN`, `EU`), then stores the refresh token in your OS keychain. Run once per machine.
-- `/arcus:logout` — Clear local credentials. Server-side revoke not yet supported.
-- `/arcus:project list [search]` — List Arcus projects you can access. Optional substring filter.
-- `/arcus:project use <project_id>` — Pin a project. Future events tag this project.
-- `/arcus:project current` — Show pinned project.
-- `/arcus:map ticket <KEY>` — Link ticket (Jira / ADO / Linear / ClickUp / GitHub) to the workflow resolved from this session. Provider auto-detected from sprint membership.
-- `/arcus:test [feature]` — Author Testsigma script e2e tests for this repo, validate them, and offer to run them.
-- `/arcus:push` — Push the test cases authored this session to Agentic Test; pick a sprint or leave unmapped. The `testsigma` CLI does the work.
+- `/arcus:setup` — Check that the `arcus` CLI is installed, that you are signed in, and that this repo is bound to an
+  Arcus project with the right platforms. Stops with the one thing to do when something is missing.
+- `/arcus:author [what to test]` — Write a test (and the elements it needs) as `.sigma` files. Claude learns the
+  language from `arcus docs`, writes, runs `arcus check`, fixes, and formats. It does not stop until the check is clean.
+- `/arcus:push [files]` — Send tests and elements to Arcus. Always starts with `arcus push --dry-run` and shows you the
+  plan. Pushes only after you say yes, then explains every result.
 
 ## Typical flow
 
-1. `/arcus:login` — once per machine; pick your region when asked.
-2. `/arcus:project list` then `/arcus:project use <id>` — pick where sessions land.
-3. Start working on a branch. Each Claude session resolves to a workflow automatically.
-4. `/arcus:map ticket <KEY>` — link ticket to the workflow when you know it.
-5. `/arcus:test` to author tests, then `/arcus:push` to push them into a sprint.
+1. `/arcus:setup` once per repo. Sign in yourself when it asks (`arcus auth login --region us|in|eu`).
+2. `/arcus:author login flow` — Claude writes the files and checks them.
+3. Look at the files, and at `git diff`.
+4. `/arcus:push` — read the plan, say yes, and commit `arcus.lock` with the tests.
 
-## Where data lives
+## This version
 
-Per session: `$CLAUDE_PLUGIN_DATA/sessions/<session_id>/`
-- `session_manifest.json` — grouping keys (branch, git user, ticket IDs) + `testsigma` link block
-- `context_files/` — Read/Write/Edit snapshots mirroring project tree
-- `attachments/` — binary payloads + dup of context_files
+- It does not run tests. Tests are checked and pushed, not run. A clean check means the CLI accepts a test, not that it
+  passes against the app.
+- There is no `pull`. Arcus is the source of truth. If Arcus has newer edits to a test, the push says so and you bring
+  the file to Arcus's text by hand.
+- Not supported yet (the CLI refuses them): `api` steps, groups, `host` lines, and sub-folders under `tests/`.
 
-Hook events POST to `{chitragupt_host}/api/v1/plugin/events` (host from `/arcus:login`).
+## Files
+
+- `arcus.json` — which Arcus projects this repo holds, their platforms, and where their folders are. Written by
+  `arcus init`.
+- `arcus.lock` — which file is which Arcus test or element. Commit it.
+- `.arcus/` — local state. Not committed.
+- `<folder>/<project>/tests/` and `elements/` — the documents.
 
 ## Troubleshooting
 
-- Browser didn't open on login → copy URL from stderr, paste manually. Flow times out after 5 min.
-- Events not ingesting → check `/arcus:project current` is set and login still valid (re-run `/arcus:login`).
-- Wrong workflow linked → re-run `/arcus:map ticket <KEY>` with correct ticket.
-- Signed in to the wrong region → `/arcus:logout`, then `/arcus:login` and pick the right one. The region is shown when login succeeds.
+- `arcus: command not found` — `npm i -g @testsigma/arcus-cli` (needs Node 22 or newer), then `/arcus:setup`.
+- `Not signed in` or exit code `2` — run `arcus auth login` yourself, then try again.
+- `Which project?` — the repo holds several projects. Say which one, or run from inside its folder.
+- A push is refused or in conflict — the plan says which file and why. Run `arcus docs --topic gotchas` for the common
+  mistakes.
+- Automation is turned off — a project admin must turn it on in Arcus.
