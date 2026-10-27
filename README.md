@@ -8,7 +8,7 @@ the talking to Arcus. The plugin itself sends nothing anywhere.
 
 - Claude Code.
 - The `arcus` CLI, on your `PATH`: `npm i -g @testsigma/arcus-cli`. It needs Node 22 or newer. `/arcus:run` needs CLI
-  0.1.1 or newer.
+  0.1.1 or newer. `/arcus:push` names the Arcus project and folder from CLI 0.1.2.
 - An Arcus account. You sign in yourself, in a terminal: `arcus auth login --region us|in|eu`. Only `push` and `init`
   need it. Writing, checking and running do not.
 - To run tests: the Testsigma agent, running on your machine. It gives the CLI the browsers.

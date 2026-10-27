@@ -17,7 +17,7 @@ pushes them. The plugin teaches Claude to use it well, and it sends nothing to A
   screenshot, and tells you whether the test, the app or the setup is wrong. It fixes a test that is wrong, up to three
   rounds, and never weakens a test to make it pass. Nothing is sent to Arcus. No sign-in is needed.
 - `/arcus:push [files]` — Send tests and elements to Arcus. Always starts with `arcus push --dry-run` and shows you the
-  plan. Pushes only after you say yes, then explains every result.
+  plan. Says which Arcus project and folder it goes to. Pushes only after you say yes, then says where it went and explains every result.
 
 ## Typical flow
 
@@ -32,7 +32,8 @@ pushes them. The plugin teaches Claude to use it well, and it sends nothing to A
 
 - A run is local and runs one web test at a time, in a browser from the Testsigma agent. Start the agent first. It cannot
   run Android or iOS tests, datasets or groups yet, and there is no suite run. A local pass is not an Arcus run.
-- `/arcus:run` needs `arcus` CLI 0.1.1 or newer. The other skills work on older ones.
+- `/arcus:run` needs `arcus` CLI 0.1.1 or newer. `/arcus:push` names the Arcus project and folder it sent to from 0.1.2.
+  The other skills work on older ones.
 - There is no `pull`. Arcus is the source of truth. If Arcus has newer edits to a test, the push says so and you bring
   the file to Arcus's text by hand.
 - Not supported yet (the CLI refuses them): `api` steps, groups, `host` lines, and sub-folders under `tests/`.

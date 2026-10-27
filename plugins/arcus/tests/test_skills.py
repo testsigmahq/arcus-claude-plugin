@@ -40,6 +40,15 @@ def test_push_asks_for_a_dry_run_before_it_pushes():
     assert "Push without a dry run" in text
 
 
+def test_push_says_where_the_tests_go_before_and_after_it_pushes():
+    text = prose(skill_path("push"))
+    assert "destination" in text and "arcus project list --json" in text
+    assert text.index("Begin with the place") < text.index("Ask for an explicit yes")
+    assert 'Pushed to the Arcus project "<project>", folder "<folder>"' in text
+    assert "Never say only \"pushed\"" in text
+    assert "Do not invent a link to a test" in text
+
+
 def test_author_lets_the_check_decide():
     text = read(skill_path("author"))
     assert "arcus check" in text and "arcus docs" in text
