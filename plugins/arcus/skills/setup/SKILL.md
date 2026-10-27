@@ -1,6 +1,6 @@
 ---
 name: setup
-description: Use when a developer wants to start using Arcus in a repo, or before authoring or pushing Arcus tests and something may be missing — checks the arcus CLI is installed, the user is signed in, and the repo has an Arcus project with the right platforms. Reports what is ready and what is not, and stops with the exact next step. Changes only local files, and only after the user agrees.
+description: Use when a developer wants to start using Arcus in a repo, or before authoring or pushing Arcus tests and something may be missing — checks the arcus CLI is installed, the user is signed in, and the repo has an Arcus project with the right platforms. Reports what is ready and what is not, and whether this machine can run tests, and stops with the exact next step. Changes only local files, and only after the user agrees.
 ---
 
 # Setup: is this repo ready for Arcus?
@@ -22,6 +22,10 @@ Run `arcus --version`.
   needs no project, so it works anywhere. The output must be JSON with `id` and `markdown`. If the command fails or
   the output has another shape, the CLI is too old, or it is another program named `arcus`. Stop, and tell the user to
   update it with the same npm command.
+
+Then run `arcus run --help`. If it fails, the CLI is older than this plugin: `/arcus:run` needs CLI 0.1.1 or newer. This
+does not stop setup, because writing and pushing work on the older CLI. Note it for the report, and give the same npm
+command.
 
 Note the version that `arcus --version` printed, for the report.
 
@@ -95,7 +99,21 @@ Read it. For each project, note its folder name, `projectId`, `region`, `platfor
 - If the repo has a lock but no `.arcus/`, it is a fresh clone. Say that the first push adopts files that equal what
   Arcus holds, and refuses files that differ (there is no `pull` yet).
 
-## 5. Report
+## 5. Can this machine run tests?
+
+This is the only step that never stops setup. A run is optional, and writing and pushing do not need it. Look only when
+the project has `web` in its platforms and the CLI has `run`:
+
+```
+arcus browsers list
+```
+
+- It lists browsers: note the names and versions. Running is ready.
+- `Cannot reach the Testsigma agent`: running is not ready. The user must start the Testsigma agent, and only a run
+  needs it. Say so, and go on.
+- No `web` in the platforms: running is not available. A run cannot test Android or iOS yet. Say so, and go on.
+
+## 6. Report
 
 End with a short status the user can read at a glance, then the next step. For example:
 
@@ -104,14 +122,16 @@ Ready.
   arcus CLI    installed (version from `arcus --version`)
   signed in    rachel@example.com, region us
   project      flight-and-hotel-booking-app (platforms: web), tests in tests/arcus/
-Next: /arcus:author to write a test, or /arcus:push to send what is there.
+  can run      yes: Chrome for Testing 138, Chrome 156, Firefox 150
+Next: /arcus:author to write a test, /arcus:run to try one, or /arcus:push to send what is there.
 ```
 
-When something is missing, say which line is not true, the one thing to do, and stop. Do not go on to authoring.
+When something is missing, say which line is not true, the one thing to do, and stop. Do not go on to authoring. The
+`can run` line is the exception: it is only information, so a `no` there says what to do and does not stop anything.
 
 ## What setup does not do
 
-- It does not write tests (that is `/arcus:author`) or send them (`/arcus:push`).
+- It does not write tests (`/arcus:author`), run them (`/arcus:run`) or send them (`/arcus:push`).
 - It does not run `arcus auth login`, `arcus push`, or anything that changes Arcus.
 - It does not edit `arcus.json` by hand. Use the `arcus` commands, which keep the file valid.
 - It does not look at the Arcus project's settings. If automation is off in Arcus, `arcus push` says so and stops.

@@ -9,8 +9,9 @@ The first plugin captured Claude Code sessions and pushed `*.spec.ts` tests with
 - **Session capture is gone.** No hooks, no ingest, no ticket mapping, no session-linking. The plugin sends nothing
   itself; the CLI is the only thing that talks to Arcus.
 - **Sprint and story mapping is gone.** The new CLI has no such concept.
-- **No run in this version.** The CLI does not run tests. A run comes in the next version. Everything that needs a run
-  is skipped for now: the live-target preflight, the Android device and `adb` flow, reading run results.
+- **No run in 0.7.0.** The CLI did not run tests then. Running arrived in 0.8.0: see `design-run-skill.md`. What 0.7.0
+  skipped for want of a run (the live-target preflight, reading run results, a verify-by-running loop) is there. The
+  Android device and `adb` flow is still skipped: `arcus run` tests web only.
 - **Version 0.7.0** (the capture plugin was 0.6.0). The plugin keeps the name `arcus` and the marketplace `testsigma`.
 - **The migration plugin stays separate** (`plugins/testsigma`, on its own branches).
 - **No Python, no scripts, no hooks.** The plugin is skills and one command, plus tests for the documents.
@@ -40,10 +41,12 @@ The first plugin captured Claude Code sessions and pushed `*.spec.ts` tests with
 
 One command: `/arcus:help`. The skills are called as `/arcus:setup`, `/arcus:author`, `/arcus:push`.
 
-## Skipped for now (needs a run)
+## Skipped in 0.7.0 (needed a run)
+
+Done in 0.8.0, except the device preflight: see `design-run-skill.md`.
 
 - Run a test and read the results.
-- Device and app preflight for Android and iOS.
+- Device and app preflight for Android and iOS (still skipped: a run is web only).
 - Any "verify by running" loop in `author`.
 
 ## Tests and evals
@@ -52,6 +55,6 @@ The plugin is documents, so its tests check documents: manifests parse, each ski
 skill stays inside a size budget, no skill names a command or option the CLI does not have (checked against a real CLI
 when one is on the PATH), and no skill carries a copy of the language.
 
-**Evals are deferred** until the run version. The first cases, when they come: `push` refuses to push before a dry run;
+**Evals were deferred** until the run version, and came with 0.8.0 (`plugins/arcus/evals/`). The cases it listed: `push` refuses to push before a dry run;
 `author` does not delete a `verify` to make a check pass; `author` stops with a message on a request for an `api`
 step; `setup` does not guess the region. Run-related cases (read a failed step, a missing device) join them then.

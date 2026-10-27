@@ -28,8 +28,11 @@ So before writing, compare what the user wants to test with the project's platfo
 ## Mobile
 
 Authoring for Android and iOS works like web: `arcus docs` lists the device actions (app control, `swipe`, `pinch`,
-`switch context`, and so on). In this version of the plugin the test cannot be run, so there is no device or app
-preflight. Say that the test is checked, not run.
+`switch context`, and so on). **A run cannot test them yet.** `arcus run` runs web tests only, and stops on a project
+without `web` in its platforms (`device runs are not supported yet`). So there is no device or app preflight. Say that
+a mobile test is checked and pushed, not run. In a project that lists `web` and a mobile platform, `arcus run` first makes the same check as `arcus check`, which
+compiles for every platform. A web-only step fails that check on the mobile platform, so the test is refused, not run.
+If the user wants to run a web test, it belongs in a project whose platforms are all `web`.
 
 ## What cannot be written yet
 

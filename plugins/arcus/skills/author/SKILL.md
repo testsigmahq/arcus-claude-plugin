@@ -1,6 +1,6 @@
 ---
 name: author
-description: Use when a developer asks to write, add or generate end-to-end tests for their app in Arcus, or to change an existing Arcus test file. Writes the test as a .sigma file in the repo's Arcus project folder, learns the language from the arcus CLI instead of from memory, and does not stop until arcus check is clean. Does not push and does not run the test.
+description: Use when a developer asks to write, add or generate end-to-end tests for their app in Arcus, or to change an existing Arcus test file. Writes the test as a .sigma file in the repo's Arcus project folder, learns the language from the arcus CLI instead of from memory, and does not stop until arcus check is clean. Does not push. Running the test in a browser is the run skill's job.
 ---
 
 # Author: write an Arcus test
@@ -12,8 +12,8 @@ file is valid: `arcus check` decides.
 If any `arcus` command below fails because the CLI is missing, the user is not signed in (exit `2`), or the repo has
 no project, stop and run the `setup` skill (`/arcus:setup`) first.
 
-This skill writes and checks files. It does not push them (`/arcus:push`) and it does not run them: this version of the
-plugin cannot run a test, so say so in the end.
+This skill writes and checks files. It does not push them (`/arcus:push`) and it does not run them (`/arcus:run`). A
+clean check means the CLI accepts a test. Only a run shows that it passes against the app.
 
 ## 1. Know where the test goes
 
@@ -135,8 +135,14 @@ Say, briefly:
 - that the tests were **checked, not run**: a clean check means the CLI accepts the test, not that it passes against
   the app. Targets that were written without seeing the app may need adjusting when the test first runs.
 
-Then offer the next step: `/arcus:push` to send them to Arcus (it shows a dry run first). If the user asks you to push
-now, hand over to the `push` skill. Do not run `arcus push` from here.
+Then hand over. The next step is a run, then a push:
+
+- The user asked to run or verify the test (`write a test and run it`, `check that it works`): hand over to the `run`
+  skill now. Do not ask again.
+- Otherwise offer `/arcus:run` first, and `/arcus:push` after it. Offer a run only for a project with `web` in its
+  platforms. A run cannot test Android or iOS yet.
+- The user asks to push now: hand over to the `push` skill. It will say that the test was not run. Do not run
+  `arcus push` or `arcus run` from here.
 
 ## Say no to what Arcus cannot hold yet
 
@@ -148,5 +154,5 @@ list and the reasons are in `${CLAUDE_PLUGIN_ROOT}/references/platforms.md`.
 
 - Write a step it did not see in `arcus docs`, or a locator it did not see in the app or get from the user.
 - Edit `arcus.json`, `arcus.lock` or anything in `.arcus/`. The CLI owns them.
-- Push, or run anything that changes Arcus.
+- Push, or run anything that changes Arcus. Running a test is the `run` skill's, and it needs the user's ask.
 - Put a real credential, token or personal data in a test.
