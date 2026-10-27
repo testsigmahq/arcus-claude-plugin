@@ -13,7 +13,7 @@ COMMANDS_DIR = PLUGIN_ROOT / "commands"
 REFERENCES_DIR = PLUGIN_ROOT / "references"
 
 #: The skills this plugin has. A new skill is added here on purpose, with its tests.
-SKILLS = ("setup", "author", "push")
+SKILLS = ("setup", "author", "run", "push")
 
 #: A skill is read in full every time it loads, so it has a size budget. Detail goes in references/.
 SKILL_MAX_LINES = 200
@@ -25,6 +25,11 @@ def load_json(path):
 
 def read(path):
     return path.read_text(encoding="utf-8")
+
+
+def prose(path):
+    """The document with line breaks and runs of spaces folded to one space, so a phrase that wraps still matches."""
+    return " ".join(read(path).split())
 
 
 def skill_path(name):
@@ -68,11 +73,13 @@ CLI_SURFACE = {
     "fmt": {"--check", "--project"},
     "docs": {"--all", "--topic", "--project"},
     "push": {"--dry-run", "--project"},
+    "browsers list": set(),
+    "run": {"--headed", "--browser", "--screenshots", "--base-url", "--timeout", "--var", "--project"},
 }
 GLOBAL_FLAGS = {"--json", "--help", "--version"}
 
 COMMAND = re.compile(
-    r"\barcus (auth (?:login|logout|status)|project (?:list|(?:platforms|sources)(?: (?:add|remove))?)|init|check|fmt|docs|push)\b([^\n`]*)"
+    r"\barcus (auth (?:login|logout|status)|project (?:list|(?:platforms|sources)(?: (?:add|remove))?)|init|check|fmt|docs|push|run|browsers list)\b([^\n`]*)"
 )
 FLAG = re.compile(r"(?<![\w-])(--[a-z][a-z-]*)")
 

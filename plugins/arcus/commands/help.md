@@ -2,30 +2,38 @@
 description: Show what the Arcus plugin does and how to use it
 ---
 
-The Arcus plugin helps you write Arcus tests in your repo and send them to an Arcus project. Tests and elements are
-`.sigma` files. The `arcus` command-line tool checks them offline and pushes them. The plugin teaches Claude to use it
-well, and it sends nothing to Arcus by itself.
+The Arcus plugin helps you write Arcus tests in your repo, try them in a browser, and send them to an Arcus project. Tests
+and elements are `.sigma` files. The `arcus` command-line tool checks them offline, runs them on your machine, and
+pushes them. The plugin teaches Claude to use it well, and it sends nothing to Arcus by itself.
 
 ## Skills
 
 - `/arcus:setup` — Check that the `arcus` CLI is installed, that you are signed in, and that this repo is bound to an
-  Arcus project with the right platforms. Stops with the one thing to do when something is missing.
+  Arcus project with the right platforms. Also says whether this machine can run tests. Stops with the one thing to do
+  when something is missing.
 - `/arcus:author [what to test]` — Write a test (and the elements it needs) as `.sigma` files. Claude learns the
   language from `arcus docs`, writes, runs `arcus check`, fixes, and formats. It does not stop until the check is clean.
+- `/arcus:run [test]` — Run one test in a browser on your machine, with `arcus run`. Claude reads the result and the
+  screenshot, and tells you whether the test, the app or the setup is wrong. It fixes a test that is wrong, up to three
+  rounds, and never weakens a test to make it pass. Nothing is sent to Arcus. No sign-in is needed.
 - `/arcus:push [files]` — Send tests and elements to Arcus. Always starts with `arcus push --dry-run` and shows you the
-  plan. Pushes only after you say yes, then explains every result.
+  plan. Says which Arcus project and folder it goes to. Pushes only after you say yes, then says where it went and explains every result.
 
 ## Typical flow
 
 1. `/arcus:setup` once per repo. Sign in yourself when it asks (`arcus auth login --region us|in|eu`).
 2. `/arcus:author login flow` — Claude writes the files and checks them.
-3. Look at the files, and at `git diff`.
-4. `/arcus:push` — read the plan, say yes, and commit `arcus.lock` with the tests.
+3. `/arcus:run` — Claude runs the test in a browser and tells you what happened. Say `write a test and run it` to do
+   steps 2 and 3 together.
+4. Look at the files, and at `git diff`.
+5. `/arcus:push` — read the plan, say yes, and commit `arcus.lock` with the tests.
 
 ## This version
 
-- It does not run tests. Tests are checked and pushed, not run. A clean check means the CLI accepts a test, not that it
-  passes against the app.
+- A run is local and runs one web test at a time, in a browser from the Testsigma agent. Start the agent first. It cannot
+  run Android or iOS tests, datasets or groups yet, and there is no suite run. A local pass is not an Arcus run.
+- `/arcus:run` needs `arcus` CLI 0.1.1 or newer. `/arcus:push` names the Arcus project and folder it sent to, and links each test, from 0.1.3.
+  The other skills work on older ones.
 - There is no `pull`. Arcus is the source of truth. If Arcus has newer edits to a test, the push says so and you bring
   the file to Arcus's text by hand.
 - Not supported yet (the CLI refuses them): `api` steps, groups, `host` lines, and sub-folders under `tests/`.
@@ -46,3 +54,5 @@ well, and it sends nothing to Arcus by itself.
 - A push is refused or in conflict — the plan says which file and why. Run `arcus docs --topic gotchas` for the common
   mistakes.
 - Automation is turned off — a project admin must turn it on in Arcus.
+- `Cannot reach the Testsigma agent` — start the Testsigma agent. Only `/arcus:run` needs it.
+- `device runs are not supported yet` — the project has no `web` platform, and a run tests web only.

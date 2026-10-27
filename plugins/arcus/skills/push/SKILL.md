@@ -35,14 +35,21 @@ Nothing is sent or written. It does read Arcus, so it needs the sign-in. It appl
 check, and the same conflict logic as a real push, so what it reports is what a push will do. The exit code is `1` when
 any file is `refused`, `conflict` or `failed`.
 
-The JSON has `files[]` and a `summary`. **Do not read `summary`:** it counts only the offline check findings. Read each
+The JSON has `destination`, `files[]` and a `summary`. `destination` says where the files go: `project` and `folder`
+(each an `id` and a `name`, the name `null` when Arcus would not give it), `region` and `arcusUrl`, the web address of
+Arcus. **Read it first.** A CLI older than 0.1.2 has no `destination` (and no `url` before 0.1.3): then run `arcus project list --json`, take the
+name of the project whose id is `projectId` in `arcus.json`, and say the folder is unknown. **Do not read `summary`:** it counts only the offline check findings. Read each
 file's `result`. Each file has `path`, `result`, a `message` when there is a reason, `diagnostics`, and for a test a
 `plan` (what happens to each step: `keep`, `edit`, `new`, `remove`, `move`). An element that changes has `locators`,
 the old list and the new. The step ids in a plan are placeholders: the real push makes its own.
 
 ## 3. Show the plan, in words
 
-One short table or list, one line per file. Say what Arcus will get:
+Begin with the place, in one line, before any file: `This goes to the Arcus project "<project>", in the folder
+"<folder>", at <arcusUrl>.` The user may have several Arcus projects, and cannot tell from a file path which one the
+repo is bound to. A name that is `null`: give the id and say Arcus did not give the name.
+
+Then one short table or list, one line per file. Say what Arcus will get:
 
 | Result | Say |
 |---|---|
@@ -64,7 +71,10 @@ Call out what the user may not expect:
 
 ## 4. Ask
 
-Ask for an explicit yes to push exactly this. A past yes does not carry over: each push gets its own.
+If a test in this push was never run here, say it once next to the plan, and offer `/arcus:run` first (a web project
+only: a run cannot test Android or iOS yet). Do not ask twice, and do not hold the push back for it. The user decides.
+
+Ask for an explicit yes to push exactly this, to that project. A past yes does not carry over: each push gets its own.
 
 If some files are `refused` or in `conflict`, do not push yet unless the user asks you to. Say which files and why, and
 offer to fix them. If the user wants the clean files sent now, push with their paths only. If a refusal comes from a
@@ -76,8 +86,17 @@ check finding in a file you can edit, fix it with `/arcus:author`, then start ag
 arcus push --json [paths] --project <name>
 ```
 
-Compare the results with the plan. They should match. Report any difference. Then report each file in the same words as
-before, in the past tense.
+Compare the results with the plan. They should match. Report any difference. Then say where it went and how to find it,
+then report each file in the same words as before, in the past tense:
+
+- The place: `Pushed to the Arcus project "<project>", folder "<folder>".` Never say only "pushed". Take the place from
+  `destination` of this push, not from memory.
+- How to find it: give the `url` of each pushed test, as a link the user can open. It opens the test in Arcus. A CLI
+  older than 0.1.3 gives no `url`, and so does a test that failed to push or whose id Arcus would not give: then say
+  to open <arcusUrl>, then the project, then the folder, and look for the test by its title. A **new** test is in the
+  folder shown. A test that was only **updated** stays where it already was in Arcus, which may be another folder. Say
+  so, and do not claim a folder for it.
+- Never build a link yourself. Use a `url` the CLI gave, or none.
 
 A push that stops half way is safe to run again. It continues and does not make duplicates.
 
@@ -91,8 +110,9 @@ A push that stops half way is safe to run again. It continues and does not make 
   merged edits from others. Tell the user to look at `git diff` before committing.
 - **`arcus.lock` changed.** New tests add a row. Tell the user to commit it with the tests: the lock is how a teammate
   works on the same Arcus tests and not on copies. Do not commit for them unless they ask.
-- **Not run.** The pushed tests are in Arcus, but this version of the plugin cannot run them. Say so, and say that a
-  clean check and a push do not prove the test passes against the app.
+- **Run status.** Say what you know. If a test was run in this session and passed, say so. If it was run and failed, say
+  that it was pushed anyway. If it was never run here, say that a clean check and a push do not prove it passes against
+  the app, and offer `/arcus:run`. A run is not a condition for a push.
 
 ## What to say for each failure
 
@@ -125,4 +145,4 @@ Errors that stop the whole run:
 - Read the `summary` as the outcome. Read each file's `result`.
 - Work around a refusal or a conflict by editing `arcus.lock` or `.arcus/`, or by renaming files to get past a check.
 - Sign in, change Arcus project settings, or delete anything in Arcus.
-- Run the tests.
+- Run the tests. It offers `/arcus:run`, and the user decides.
