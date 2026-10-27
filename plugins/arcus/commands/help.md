@@ -32,7 +32,7 @@ pushes them. The plugin teaches Claude to use it well, and it sends nothing to A
 
 - A run is local and runs one web test at a time, in a browser from the Testsigma agent. Start the agent first. It cannot
   run Android or iOS tests, datasets or groups yet, and there is no suite run. A local pass is not an Arcus run.
-- `/arcus:run` needs `arcus` CLI 0.1.1 or newer. `/arcus:push` names the Arcus project and folder it sent to from 0.1.2.
+- `/arcus:run` needs `arcus` CLI 0.1.1 or newer. `/arcus:push` names the Arcus project and folder it sent to, and links each test, from 0.1.3.
   The other skills work on older ones.
 - There is no `pull`. Arcus is the source of truth. If Arcus has newer edits to a test, the push says so and you bring
   the file to Arcus's text by hand.

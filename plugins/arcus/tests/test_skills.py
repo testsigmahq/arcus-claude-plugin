@@ -46,7 +46,8 @@ def test_push_says_where_the_tests_go_before_and_after_it_pushes():
     assert text.index("Begin with the place") < text.index("Ask for an explicit yes")
     assert 'Pushed to the Arcus project "<project>", folder "<folder>"' in text
     assert "Never say only \"pushed\"" in text
-    assert "Do not invent a link to a test" in text
+    assert "give the `url` of each pushed test" in text
+    assert "Never build a link yourself" in text
 
 
 def test_author_lets_the_check_decide():

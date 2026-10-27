@@ -37,7 +37,7 @@ any file is `refused`, `conflict` or `failed`.
 
 The JSON has `destination`, `files[]` and a `summary`. `destination` says where the files go: `project` and `folder`
 (each an `id` and a `name`, the name `null` when Arcus would not give it), `region` and `arcusUrl`, the web address of
-Arcus. **Read it first.** A CLI older than 0.1.2 has no `destination`: then run `arcus project list --json`, take the
+Arcus. **Read it first.** A CLI older than 0.1.2 has no `destination` (and no `url` before 0.1.3): then run `arcus project list --json`, take the
 name of the project whose id is `projectId` in `arcus.json`, and say the folder is unknown. **Do not read `summary`:** it counts only the offline check findings. Read each
 file's `result`. Each file has `path`, `result`, a `message` when there is a reason, `diagnostics`, and for a test a
 `plan` (what happens to each step: `keep`, `edit`, `new`, `remove`, `move`). An element that changes has `locators`,
@@ -91,10 +91,12 @@ then report each file in the same words as before, in the past tense:
 
 - The place: `Pushed to the Arcus project "<project>", folder "<folder>".` Never say only "pushed". Take the place from
   `destination` of this push, not from memory.
-- How to find it: open <arcusUrl>, open that project, then that folder, and look for the test by its title. A **new**
-  test is in the folder shown. A test that was only **updated** stays where it already was in Arcus, which may be
-  another folder. Say so, and do not claim a folder for it.
-- Do not invent a link to a test. The CLI gives the address of Arcus, not of a test.
+- How to find it: give the `url` of each pushed test, as a link the user can open. It opens the test in Arcus. A CLI
+  older than 0.1.3 gives no `url`, and so does a test that failed to push or whose id Arcus would not give: then say
+  to open <arcusUrl>, then the project, then the folder, and look for the test by its title. A **new** test is in the
+  folder shown. A test that was only **updated** stays where it already was in Arcus, which may be another folder. Say
+  so, and do not claim a folder for it.
+- Never build a link yourself. Use a `url` the CLI gave, or none.
 
 A push that stops half way is safe to run again. It continues and does not make duplicates.
 
