@@ -5,7 +5,8 @@
 ## The shape
 
 ```
-{ sigmaLang, converter, runner, browser: {name, version} | null, platforms: [...],
+{ sigmaLang, converter, runner, browser: {name, version} | null, platforms: [...], platform: "web"|"android",
+  device: {serial, model, kind} | null,
   run: { path, title, status, durationMs, totalSteps, passedSteps, failedSteps, skippedSteps,
          failedStep?: {description, message, screenshot?}, problem?, interruptedAt?,
          diagnostics: [...], artifactsDir: <folder> | null } }
@@ -29,7 +30,7 @@
 |---|---|
 | `0` | passed |
 | `1` | the test failed, was refused, or was interrupted: read `run.status` |
-| `3` | this machine cannot run it, or an option is wrong. stdout is empty; stderr is JSON with `message`, `code`, `remediation` |
+| `3` | this machine cannot run it, or an option is wrong (no device, no Android tools, a wrong flag). stdout is empty; stderr is JSON with `message`, `code`, `remediation` |
 
 It is never `2`: a run does not talk to Arcus.
 
@@ -38,7 +39,11 @@ It is never `2`: a run does not talk to Arcus.
 | Message starts with | Owner | Say |
 |---|---|---|
 | `Cannot reach the Testsigma agent` | the user | Start the Testsigma agent. If it runs somewhere else, `arcus config set execution.localUrl <url>` |
-| `Project "…" has platforms …; device runs are not supported yet` | the user | A run needs `web` in the project's platforms. Do not change them for the user |
+| `… has no web platform` or `… has no android platform` | the user | Pick a platform the project lists with `--platform`, or ask before `arcus project platforms add <platform>` |
+| `ios runs are not supported yet` | the user | Say it as it is |
+| `The Android tools (adb) were not found` | the user | Setup: `ARCUS_ANDROID_TOOLS_DIR` or `arcus config set android.toolsDir <folder>` |
+| `No Android device is connected`, `More than one device is ready`, `… is not authorized`, `… is offline` | the user | `arcus devices list`. Pass `--device <serial>`. Unlock the device and accept the USB prompt |
+| `The app file … does not exist` | the user | Fix `--app` or the `app` of the `android` block |
 | `Browser '…' is not available` | the user | Pick one from `arcus browsers list` |
 | `The browser could not start` | the user | The binary the agent named cannot start. Name it. The log path is in the message |
 | `--timeout …`, `--var …`, `--screenshots …`, `base_url is given twice` | you | You passed a wrong option. Fix it and run again |
@@ -79,9 +84,20 @@ under a different label, a spinner that has not finished. Say what you see in a 
 | `--base-url <url>` | Sets `{env.base_url}`. A test must use it as `nav "{env.base_url}/path"`: there is no relative `nav` |
 | `--var <name>=<value>` | Sets `{env.<name>}`. Repeat for more. A secret is passed as `"$VARIABLE"`, never typed |
 | `--timeout <seconds>` | Default 300. Counts from the start of the browser |
+| `--platform <web\|android>` | Default: the project's only platform, or `web` when it has several and one is web |
+| `--device <serial>` | Android: a serial from `arcus devices list` |
+| `--app <apk path or URL>` | Android: install and test this app. No secret in the URL |
+| `--note "<why>"` | Why the run ended as it did. Kept with the run and sent with the next push to QI. Facts only, no secrets |
 | `--project <name>` | The project's folder name, or its id. Needed at a repo root with several projects |
 
 ## What the run leaves behind
 
 `.arcus/runs/<id>/`, in the repo. It is local state, and git ignores it. A run never changes the test files,
 `arcus.lock` or `.arcus/base/`.
+
+## A run is evidence for a push
+
+A run that ends `passed` or `failed` is saved in `.arcus/` with the hash of the file, the platform and the note. In qi
+mode, when the policy says `run: required`, `arcus push` accepts a file only if its latest run is of the file as it is
+now. Any edit makes the run old. A failed run counts as a run: QI shows it as failed, not executed. `interrupted` and
+`refused` runs are not saved. `arcus verify` saves nothing.

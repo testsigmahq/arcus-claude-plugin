@@ -1,6 +1,6 @@
 # Changing a test or element that is already pushed
 
-A file that has a row in `arcus.lock` is *tracked*: it is a test or element that already exists in Arcus. The lock is at
+A file that has a row in `arcus.lock` is *tracked*. In direct mode it exists in Arcus. In qi mode a test is bound to a QI case and an element exists in Arcus. The lock is at
 the repo root, with repo-relative paths. To find out if a file is tracked, search `arcus.lock` for its path. Read the
 lock. Never edit it.
 
@@ -48,7 +48,6 @@ you edit it.** Do not edit from a copy you read earlier.
 
 ## What you cannot see from here
 
-The CLI has no command that tells you what Arcus holds now, and there is no `pull`. You cannot know if someone changed
-a step in Arcus. The dry run in `/arcus:push` finds out: it reports `conflict` when the same step changed on both sides,
-and `refused` when your edit adds or moves a step while Arcus has newer edits. Do not try to guess or to work around
-either: tell the user what the dry run says.
+In direct mode there is no `pull`, and no command tells you what Arcus holds. The dry run of `/arcus:push` finds out: it
+reports `conflict` when the same step changed on both sides, and `refused` when your edit adds or moves a step while
+Arcus has newer edits. Tell the user what it says. In qi mode `arcus status` and `arcus pull` (`/arcus:sync`) do this.
