@@ -13,7 +13,7 @@ COMMANDS_DIR = PLUGIN_ROOT / "commands"
 REFERENCES_DIR = PLUGIN_ROOT / "references"
 
 #: The skills this plugin has. A new skill is added here on purpose, with its tests.
-SKILLS = ("setup", "author", "run", "push")
+SKILLS = ("setup", "context", "author", "run", "verify", "push", "accept", "sync", "mode")
 
 #: A skill is read in full every time it loads, so it has a size budget. Detail goes in references/.
 SKILL_MAX_LINES = 200
@@ -68,18 +68,38 @@ CLI_SURFACE = {
     "project sources": {"--project"},
     "project sources add": {"--project", "--url"},
     "project sources remove": {"--project"},
-    "init": {"--project", "--dir", "--platforms"},
+    "project mode": {"--project"},
+    "project mode set": {"--project", "--dry-run"},
+    "init": {"--project", "--dir", "--mode", "--platforms"},
     "check": {"--path", "--platform", "--project"},
     "fmt": {"--check", "--project"},
     "docs": {"--all", "--topic", "--project"},
-    "push": {"--dry-run", "--project"},
+    "context": {"--issue", "--case", "--project"},
+    "push": {
+        "--dry-run", "--case", "--rebind", "--new", "--unmapped", "--issue", "--accept", "--session-id", "--project",
+    },
+    "pull": {"--theirs", "--ours", "--rebuild", "--project"},
+    "accept": {"--issue", "--project"},
+    "status": {"--ci", "--project"},
+    "detach": {"--project"},
+    "attach": {"--project"},
     "browsers list": set(),
-    "run": {"--headed", "--browser", "--screenshots", "--base-url", "--timeout", "--var", "--project"},
+    "devices list": set(),
+    "config show": set(),
+    "config set": set(),
+    "config unset": set(),
+    "run": {
+        "--platform", "--headed", "--browser", "--device", "--app", "--screenshots", "--base-url", "--timeout", "--var",
+        "--note", "--project",
+    },
+    "verify": {
+        "--issue", "--platform", "--headed", "--browser", "--device", "--app", "--base-url", "--timeout", "--var", "--project",
+    },
 }
 GLOBAL_FLAGS = {"--json", "--help", "--version"}
 
 COMMAND = re.compile(
-    r"\barcus (auth (?:login|logout|status)|project (?:list|(?:platforms|sources)(?: (?:add|remove))?)|init|check|fmt|docs|push|run|browsers list)\b([^\n`]*)"
+    r"\barcus (auth (?:login|logout|status)|project (?:list|mode(?: set)?|(?:platforms|sources)(?: (?:add|remove))?)|init|check|fmt|docs|context|push|pull|accept|status|detach|attach|browsers list|devices list|config (?:show|set|unset)|run|verify)\b([^\n`]*)"
 )
 FLAG = re.compile(r"(?<![\w-])(--[a-z][a-z-]*)")
 
