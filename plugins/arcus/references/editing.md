@@ -27,7 +27,7 @@ The lock knows a test by the path of its file.
 - **Do not rename the title** unless the user asks. The title is what the team sees in Arcus, and a rename changes it
   for everyone. The new title must be free in the project, ignoring case. A rename is allowed and is pushed as
   `renamed`.
-- Run the same loop as for a new test: `arcus check`, fix, `arcus fmt`, `arcus check` again.
+- Run the same loop as for a new test: `arcus test check`, fix, `arcus test fmt`, `arcus test check` again.
 
 ## Editing an element
 
@@ -48,6 +48,6 @@ you edit it.** Do not edit from a copy you read earlier.
 
 ## What you cannot see from here
 
-In direct mode there is no `pull`, and no command tells you what Arcus holds. The dry run of `/arcus:push` finds out: it
+In direct mode there is no `arcus test pull`, and no command tells you what Arcus holds. The dry run of `/arcus:push` finds out: it
 reports `conflict` when the same step changed on both sides, and `refused` when your edit adds or moves a step while
-Arcus has newer edits. Tell the user what it says. In qi mode `arcus status` and `arcus pull` (`/arcus:sync`) do this.
+Arcus has newer edits. Tell the user what it says. In qi mode `arcus test status` and `arcus test pull` (`/arcus:sync`) do this.

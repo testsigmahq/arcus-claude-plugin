@@ -46,7 +46,7 @@ def test_push_offers_a_run_but_does_not_hold_the_push_back_for_it():
 
 def test_setup_proves_the_cli_has_run_and_looks_for_the_agent_without_stopping():
     text = prose(skill_path("setup"))
-    assert "arcus run --help" in text and "arcus browsers list" in text
+    assert "arcus test run --help" in text and "arcus browser list" in text
     assert "never stops setup" in text
 
 

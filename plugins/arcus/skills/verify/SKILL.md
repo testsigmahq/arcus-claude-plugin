@@ -5,7 +5,7 @@ description: Use when a developer wants to know if every case of a QI issue pass
 
 # Verify: run every case of an issue
 
-`arcus verify` reads the issue from QI, then runs each case on this machine's build. It runs the local file when QI
+`arcus issue verify` reads the issue from QI, then runs each case on this machine's build. It runs the local file when QI
 holds the same text. Otherwise it runs QI's script. It writes nothing to QI, to Arcus or to the repo. In a direct
 project it stops with exit `3`: say verify is a QI command (`/arcus:mode`). It needs the sign-in (exit `2`:
 `/arcus:setup`).
@@ -24,11 +24,11 @@ project it stops with exit `3`: say verify is a QI command (`/arcus:mode`). It n
 ## 2. Run
 
 ```
-arcus verify --issue <KEY> --json --project <name> [--platform <web|android>] [--base-url <url>] [--var <name>=<value>]
+arcus issue verify <KEY> --json --project <name> [--platform <web|android>] [--base-url <url>] [--var <name>=<value>]
     [--headed] [--browser <name>] [--device <serial>] [--app <path-or-url>] [--timeout <seconds>]
 ```
 
-Give the Bash tool a time limit longer than cases times the timeout. On Android, `verify` starts Appium once for the
+Give the Bash tool a time limit longer than cases times the timeout. On Android, `arcus issue verify` starts Appium once for the
 whole command (10 to 25 seconds), and the output has the lines `platform:`, `device:` and `tools:`. Say them. A `failing`
 case on Android may only say `Step failed`: look at `results.ndjson` and the screenshot of that case's run folder
 (`.arcus/runs/`) before you judge it, as `/arcus:run` says.
@@ -41,7 +41,7 @@ Read `cases[]` and each `verdict`, not only the exit code. Exit `1` means some c
 |---|---|
 | `covered` | Passed. Say whether the file or QI's script ran (`ran`) |
 | `failing` | Failed, or could not run (`reason`). Go to `/arcus:run` for that file: look, name the owner, fix the test only if it is the test's fault |
-| `missing` | No script in QI and no file. `/arcus:author` writes it. `/arcus:context --case` has the steps |
+| `missing` | No script in QI and no file. `/arcus:author` writes it. `/arcus:context` (`arcus case show <id>`) has the steps |
 | `local_only` | The file ran, but QI holds no script. Push it (`/arcus:push`) |
 | `rejected` | A reviewer rejected it. Listed, not run. Not counted against the build |
 
@@ -57,4 +57,4 @@ next step. A verify that shows `covered` for all is not an accept and not a push
 
 - Say a case passes when it was `local_only` or `missing`.
 - Weaken a test to turn a `failing` into `covered`.
-- Treat verify as the run that a push needs: only `arcus run` saves that.
+- Treat verify as the run that a push needs: only `arcus test run` saves that.

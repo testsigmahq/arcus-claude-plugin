@@ -15,7 +15,10 @@ def test_documents_name_only_commands_and_options_the_cli_has(doc):
 
 def test_the_documents_use_the_commands_the_flow_needs():
     used = {command for doc in markdown_files() for command, _ in cli_uses(read(doc))}
-    assert {"auth status", "init", "docs", "check", "fmt", "push", "run", "browsers list"} <= used
+    assert {
+        "auth status", "project init", "docs list", "docs show", "test check", "test fmt", "test push", "test run",
+        "browser list",
+    } <= used
 
 
 @pytest.mark.skipif(shutil.which("arcus") is None, reason="no arcus CLI on PATH")

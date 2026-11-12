@@ -1,7 +1,7 @@
 # Elements: when to make one, and how to choose its locators
 
 An element is a named target with locators, kept in its own file and used in tests as `@<path>`. The format is in
-`arcus docs --topic elements`; read it before writing the first element. This page is about judgement, not format.
+`arcus docs show --topic elements`; read it before writing the first element. This page is about judgement, not format.
 
 ## When to make an element
 
@@ -17,7 +17,7 @@ keep all of them.
 ## Where it goes, and what it is called
 
 - The file is `<project folder>/elements/<path>.sigma`. The declared name equals the path under `elements/`, without
-  `.sigma`. `check` refuses a file that says otherwise.
+  `.sigma`. `arcus test check` refuses a file that says otherwise.
 - A path uses lower-case letters, digits and hyphens, with `/` between parts. Group by screen or feature:
   `login/submit`, `checkout/pay-now`. A name that says what the thing is, not how it looks (`login/submit`, not
   `login/blue-button`).
@@ -33,12 +33,12 @@ then a short css selector, then text-based locators, then xpath. Do not copy a l
 guesses.
 
 Per platform, use `only <platform>` on a locator so that one element works everywhere. Device locator types and
-which platform has them are in `arcus docs --topic locators`.
+which platform has them are in `arcus docs show --topic locators`.
 
 On Android, an element file works when its locators are `only android`, used through `@path`. These locators work:
 `text` (the whole text), `label`, `name`, `xpath`, `nth`, `accessibility-id`, `class`, `android-id` and
 `android-uiautomator`. `css`, `tag` and `link-text` work only inside a web view. An element `locator chain` passes
-`arcus check` but the runner rejects it on Android: do not use it. An element `image` locator does not work. Apps built
+`arcus test check` but the runner rejects it on Android: do not use it. An element `image` locator does not work. Apps built
 with Jetpack Compose often have no ids: use the visible text for buttons, and xpath by position for text fields
 (`(//android.widget.EditText)[1]`). More in `${CLAUDE_PLUGIN_ROOT}/references/platforms.md`.
 
@@ -46,7 +46,7 @@ with Jetpack Compose often have no ids: use the visible text for buttons, and xp
 
 ## Elements that exist only in Arcus
 
-The CLI can see an element only if its file is in this repo. An `@path` with no local file fails `check` with
+The CLI can see an element only if its file is in this repo. An `@path` with no local file fails `arcus test check` with
 `CMP2104`. An element path that is already in Arcus, but not tracked from this folder, is refused at push:
 `exists in Arcus and this folder does not track it`. Both mean the same thing for you: use another path, and write the
 element file for it. Do not try to get around it.
@@ -59,6 +59,6 @@ draft, but say in the report which locators are unconfirmed.
 
 ## Order of work
 
-Write the element files first, then the tests that use them. `arcus check` looks for an `@path` among all the element
+Write the element files first, then the tests that use them. `arcus test check` looks for an `@path` among all the element
 files of the project, whichever files you pass it, so a test is fine as soon as its element file exists. Check the
-element files too: pass them to `arcus check` with the tests. `arcus push` sends elements before tests by itself.
+element files too: pass them to `arcus test check` with the tests. `arcus test push` sends elements before tests by itself.

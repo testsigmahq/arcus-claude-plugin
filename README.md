@@ -20,13 +20,13 @@ versions, and a reviewer accepts them. Elements go to Arcus in both modes. Detai
 - The `arcus` CLI, on your `PATH`: `npm i -g @testsigma/arcus-cli`. It needs Node 22 or newer. The skills check that the
   CLI has the commands they need, and say when it is too old.
 - An Arcus account. You sign in yourself, in a terminal: `arcus auth login --region us|in|eu`. Writing, checking and
-  running do not need it. Pushing, QI commands and `init` do.
+  running do not need it. Pushing, QI commands and `arcus project init` do.
 - To run web tests: the local test agent, running on your machine. To run Android tests: adb and Appium (from the Testsigma
   agent install folder, or an Android SDK with `appium` on PATH), a device or emulator, and the tools folder
   (`/arcus:setup` explains it). The CLI starts and stops Appium itself.
 
-The plugin holds no list of steps, forms or locators. Claude asks the installed CLI (`arcus docs`), and `arcus check`
-decides what is valid. The one exception is a short note of known Android limits, where `arcus docs` is wrong or silent
+The plugin holds no list of steps, forms or locators. Claude asks the installed CLI (`arcus docs list`, `arcus docs show`), and `arcus test check`
+decides what is valid. The one exception is a short note of known Android limits, where the CLI docs are wrong or silent
 (`references/platforms.md`).
 
 ## Install
@@ -70,7 +70,7 @@ claude plugin install arcus@testsigma
 |---|---|
 | `/arcus:setup` | Checks the CLI, the sign-in, the project, its mode and platforms, and whether this machine can run web and Android tests |
 | `/arcus:context <issue>` | Qi mode. Reads the issue, its cases and the policy from QI, and plans which tests to write or change |
-| `/arcus:author [what to test]` | Writes tests and elements as `.sigma` files and loops `arcus check` and `arcus fmt` until clean |
+| `/arcus:author [what to test]` | Writes tests and elements as `.sigma` files and loops `arcus test check` and `arcus test fmt` until clean |
 | `/arcus:run [test]` | Runs one test on web or Android, reads the result, and says whether the test, the app or the setup is wrong |
 | `/arcus:verify <issue>` | Qi mode. Runs every case of an issue and reports covered, failing, missing, local only or rejected |
 | `/arcus:push [files]` | Dry run, a plan in words, a push after your yes, and every result and refusal explained. Both modes |
@@ -92,7 +92,7 @@ setup ──► context ──► author ──► run ──► push ──► 
 ## How it behaves
 
 - **Nothing is pushed without a plan you have seen.** `/arcus:push` always starts with a dry run and asks.
-- **The CLI decides.** Claude never decides a file is valid, and never writes a step it did not see in `arcus docs`.
+- **The CLI decides.** Claude never decides a file is valid, and never writes a step it did not see in `arcus docs list` or `arcus docs show`.
 - **You sign in, not Claude.** The plugin never handles credentials.
 - **Claude does not weaken a test to make it pass the check, or to make it pass a run.** If the only fix loses what a
   test verifies, it stops and tells you. A test that fails because the app is wrong is reported to you, not changed.
@@ -106,13 +106,14 @@ setup ──► context ──► author ──► run ──► push ──► 
 
 ## This version
 
-- Android runs (`arcus run --platform android`, `--device`, `--app`), `arcus devices list` and
-  `arcus verify --platform android` follow the CLI's current work. The skills tell Claude to read `arcus run --help` to
+- Android runs (`arcus test run --platform android`, `--device`, `--app`), `arcus device list` and
+  `arcus issue verify <KEY> --platform android` follow the CLI's current work. The skills tell Claude to read `arcus test run --help` to
   see what your CLI has. What works on Android comes from runs on an emulator. Device actions, alerts, web views, app
   install and uninstall, image actions, a physical phone and Windows are not tested yet.
 - iOS runs are not supported. Not supported yet because the CLI refuses them: `api` steps, groups, `host` lines, header
   lines such as `tags`, and sub-folders under `tests/`.
-- The QI command names may change later. They are kept in few places (`references/commands.md`).
+- Every command is `arcus <entity> <command> [args]`, for example `arcus test push` and `arcus issue show`. The CLI can print
+  its own command tree: `arcus help --json`. `references/commands.md` lists the commands the skills use.
 
 ## Privacy
 

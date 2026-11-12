@@ -11,7 +11,7 @@ reviewer accepts. Element files go to Arcus in both. See `${CLAUDE_PLUGIN_ROOT}/
 ## 1. Show it
 
 ```
-arcus project mode --json
+arcus project mode show --json
 ```
 
 It gives `mode`, `stored` (false means `arcus.json` names no mode, so it is `direct`), and a `problem` when the lock and
@@ -33,7 +33,7 @@ the QI case it links to.
 - A file can come back `not_in_qi` (QI has no case for its Arcus test case: a reviewer imports it first) or
   `no_working_line` (QI has the case but no version yet: a reviewer opens it in QI). Any such file stops the whole
   switch with exit `1`. Say which files and why. Do not work around it.
-- After a clear yes: `arcus project mode set qi`. Then run `arcus status`. Element lines do not change. Tell the user
+- After a clear yes: `arcus project mode set qi`. Then run `arcus test status`. Element lines do not change. Tell the user
   to commit `arcus.json` and `arcus.lock`.
 
 ## 3. Switch to direct

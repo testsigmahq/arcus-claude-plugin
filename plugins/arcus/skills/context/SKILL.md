@@ -9,7 +9,7 @@ In qi mode, QI holds the issue, the cases it made from the acceptance criteria, 
 policy. You ask QI first and automate its cases. You do not invent what to test. See
 `${CLAUDE_PLUGIN_ROOT}/references/workflow.md`.
 
-If the project is in direct mode, `arcus context` stops with exit `3`. Say that context is a QI command, offer
+If the project is in direct mode, `arcus issue show` and `arcus case show` stop with exit `3`. Say that context is a QI command, offer
 `/arcus:mode`, or go on with `/arcus:author`. If the CLI is missing or you are not signed in (exit `2`), run
 `/arcus:setup`.
 
@@ -21,7 +21,7 @@ puts every push in the wrong place, so never guess it.
 ## 2. Read the issue
 
 ```
-arcus context --issue <KEY> --json
+arcus issue show <KEY> --json
 ```
 
 Read: `issue`, `sprint` and `sprintClosed`, `acceptanceCriteria`, `policy` (`acceptBy`, `run`, `contextMaxAgeHours`,
@@ -41,12 +41,12 @@ Say in plain words, per case:
 Also tell the user: the sprint is closed (QI takes no new versions: see below), the policy needs a run before a push
 (`run: required`), and the context goes stale after `contextMaxAgeHours` (a push refuses then: read it again).
 `related[]` are cases of linked issues. A fix that extends one goes on its line with `--case`.
-No cases at all: the user decides if a new case is wanted (`arcus push <path> --new`).
+No cases at all: the user decides if a new case is wanted (`arcus test push <path> --new`).
 
 ## 3. Read the steps of one case
 
 ```
-arcus context --case <id> --json
+arcus case show <id> --json
 ```
 
 It gives `steps` (plain text), and `suggestion` with `steps` and `changes` when the story changed. The test must cover

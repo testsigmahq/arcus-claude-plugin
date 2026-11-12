@@ -33,7 +33,7 @@ change, a short css selector, xpath. Prefer what a person would call the thing o
 
 - Use test data. Never copy a real email, password, token or key from the repo, an env file or a fixture of real data
   into a test.
-- A value that changes by environment or is secret is read as `{env.name}` (see `arcus docs --topic data`). Tell the user
+- A value that changes by environment or is secret is read as `{env.name}` (see `arcus docs show --topic data`). Tell the user
   which names the test reads. The values do not belong in the file.
   A run gives those names their values: `--base-url` for `base_url`, `--var name=value` for the rest. List the names
   to the user so a run does not stop on `Unresolved reference`. A secret goes in as `--var name="$VARIABLE"` from the user's

@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.11.0
+
+The skills use the new command names. Every command is now `arcus <entity> <command> [args]`. The old names are gone and
+have no aliases. This version needs a CLI that has the new names.
+
+- `arcus init` is `arcus project init`.
+- `check`, `fmt`, `run`, `push`, `pull`, `status`, `accept`, `attach` and `detach` are now under `arcus test`, for
+  example `arcus test push --dry-run`.
+- `arcus context --issue <KEY>` is `arcus issue show <KEY>`. `arcus context --case <id>` is `arcus case show <id>`.
+  `arcus verify --issue <KEY>` is `arcus issue verify <KEY>`. The other flags did not change.
+- `arcus docs` is `arcus docs list`. `arcus docs <action>` is `arcus docs show <action>`, and the guides are
+  `arcus docs show --topic <id>`.
+- `arcus browsers list` is `arcus browser list`. `arcus devices list` is `arcus device list`.
+- `arcus project platforms`, `arcus project sources` and `arcus project mode` now say `list`, `list` and `show`.
+- `references/commands.md` says that `arcus help --json` prints the full command tree and is the source of truth.
+- The skill names did not change. The document tests and the eval cases use the new names.
+
 ## 0.10.0
 
 The Android guidance now matches the current CLI and real runs on an Android emulator.

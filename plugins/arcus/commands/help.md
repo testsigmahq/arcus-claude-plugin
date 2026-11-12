@@ -41,5 +41,6 @@ versions, and a reviewer accepts them. Elements go to Arcus in both modes.
 - `Cannot reach the …agent` — start the local test agent. Only web runs need it.
 - `The Android tools (adb) were not found` — tell the CLI where the tools are: the `ARCUS_ANDROID_TOOLS_DIR` variable
   in your shell, or `arcus config set android.toolsDir <folder>`. `/arcus:setup` explains it.
-- Several Android devices are ready — pass `--device <serial>`. `arcus devices list` shows them.
+- Several Android devices are ready — pass `--device <serial>`. `arcus device list` shows them.
 - An Android step fails with only `Step failed` — Claude reads `results.ndjson` and the screenshot of the run. Ask it to.
+- Not sure which commands the CLI has — `arcus help --json` prints all of them.

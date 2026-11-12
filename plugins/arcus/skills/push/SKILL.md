@@ -1,6 +1,6 @@
 ---
 name: push
-description: Use when a developer wants to send Arcus tests and elements from the repo, or asks what a push would do. Works in both modes (direct pushes tests to Arcus, qi pushes tests to QI as case versions and elements to Arcus). Always runs arcus push --dry-run first, shows the plan in plain words, and pushes only after the user says yes. Then explains every result and refusal and gives the next step. Does not write tests, run them, or accept.
+description: Use when a developer wants to send Arcus tests and elements from the repo, or asks what a push would do. Works in both modes (direct pushes tests to Arcus, qi pushes tests to QI as case versions and elements to Arcus). Always runs arcus test push --dry-run first, shows the plan in plain words, and pushes only after the user says yes. Then explains every result and refusal and gives the next step. Does not write tests, run them, or accept.
 ---
 
 # Push: send tests and elements
@@ -13,7 +13,7 @@ Exit `2` (not signed in, expired, or a region mismatch) or no project: run `/arc
 
 ## 1. Mode and files
 
-Run `arcus project mode`. With several projects ask which one and pass `--project <folder name>` everywhere.
+Run `arcus project mode show`. With several projects ask which one and pass `--project <folder name>` everywhere.
 
 - `direct`: a test and an element go to Arcus.
 - `qi`: an element goes to Arcus first. A test goes to QI as a new head on the working line of its case. The push also
@@ -21,13 +21,13 @@ Run `arcus project mode`. With several projects ask which one and pass `--projec
   is open; and, when the policy says `run: required`, a run of the file as it is now (`/arcus:run`).
 
 Paths: the files the user named, or the files you just changed, else no path (the whole project; files that did
-not change come back `unchanged`). In qi mode, `arcus status` first shows where each file stands.
+not change come back `unchanged`). In qi mode, `arcus test status` first shows where each file stands.
 
 A test file needs a case in qi mode:
 
 | The file | Flag, for the first push only |
 |---|---|
-| Automates a case from `arcus context` | `--case <id>` (one file per command) |
+| Automates a case from `arcus issue show` | `--case <id>` (one file per command) |
 | Is a new test with no case | `--new` |
 | Is new, and the issue is not in a sprint or QI does not know it | `--new --unmapped`, and `--issue <KEY>` as a hint for the reviewer |
 | Must move to another case (a duplicate warning names it) | `--rebind <id>` (one file) |
@@ -38,7 +38,7 @@ is something the reviewer did not ask for.
 ## 2. Dry run, always
 
 ```
-arcus push --dry-run --json [flags] [paths] --project <name>
+arcus test push --dry-run --json [flags] [paths] --project <name>
 ```
 
 Nothing is sent or written. It does read QI and Arcus, so it needs the sign-in. The exit code is `1` when any file is
@@ -73,7 +73,7 @@ reason and `next`. Call out: how many new cases or tests, any rename, and a chan
 - If a file in a qi push was never run here and the policy is `run: required`, the dry run says `run_required`: offer
   `/arcus:run`. If the policy is `optional` or the project is direct, say once that the file was not run, and offer a
   run. Do not hold a direct push back for it. A qi push with an `optional` policy and no run is allowed: the dry run,
-  the result and `arcus status` show `no local run`. It is not a pass.
+  the result and `arcus test status` show `no local run`. It is not a pass.
 - The plan shows, for each file, the run it uses: its platform (and, on Android, the device) and its result. The gate
   takes the newest matching run of any platform, so an Android run can be the evidence for a test that also runs on
   web. Say the platform to the user.
@@ -86,7 +86,7 @@ reason and `next`. Call out: how many new cases or tests, any rename, and a chan
 ## 5. Push
 
 ```
-arcus push --json [flags] [paths] --project <name>
+arcus test push --json [flags] [paths] --project <name>
 ```
 
 Compare the result with the plan and report any difference. Say where it went, in the past tense, with the same words
@@ -106,7 +106,7 @@ A push that stops half way is safe to run again. Do not add `--accept` unless th
 
 - direct: the CLI rewrites each pushed file to Arcus's text. Tell the user to read `git diff`. Server lines
   (`serverProblems`, `serverWarning`) never undo a push: read them out and offer `/arcus:author`.
-- qi: next is review. The user can check with `/arcus:sync` (`arcus status`). Then `rework` means change and push again.
+- qi: next is review. The user can check with `/arcus:sync` (`arcus test status`). Then `rework` means change and push again.
 
 ## Failures to explain
 
@@ -116,7 +116,7 @@ A push that stops half way is safe to run again. Do not add `--accept` unless th
 | `head_moved` | The case moved in QI. Pull (`/arcus:sync`), run, push |
 | `check_failed`, direct `refused` with diagnostics | The offline check failed. `/arcus:author` fixes it |
 | `unbound` | No case yet. Say which flag fits (`--case`, `--new`) and ask |
-| `ambiguous_case` | That case is not under this issue. Pick from `arcus context` |
+| `ambiguous_case` | That case is not under this issue. Pick from `arcus issue show <KEY>` |
 | `element_not_pushed` | Push the element first, or fix why it failed |
 | direct `refused: A test named "…" already exists` | Another test has that title. Pick another |
 | direct `conflict` | The same step changed in Arcus and in the file. Undo the local edit to it, or make the file equal Arcus's text. Delete the base in `.arcus/base/` only if the user says to |

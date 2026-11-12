@@ -1,6 +1,6 @@
 # Running a test: the result, the messages, and who owns a failure
 
-`arcus run <file> --json` prints one JSON object on stdout. Read it. Do not guess from the exit code.
+`arcus test run <file> --json` prints one JSON object on stdout. Read it. Do not guess from the exit code.
 
 ## The shape
 
@@ -18,7 +18,7 @@
 - `problem` is set when there is no failed step to show: the run was stopped, the browser went away, the test has no
   steps, or the run failed with no step error. `interruptedAt` is the step the run was on when it stopped.
 - A run that hit the time limit is `failed`, with the step it was on and the message `timed out after N s`.
-- `diagnostics` holds what `arcus check` found: the errors of a refused run, or the warnings of a run that went on.
+- `diagnostics` holds what `arcus test check` found: the errors of a refused run, or the warnings of a run that went on.
 - `artifactsDir` is the run's own folder, under `.arcus/runs/`. It holds `runner-output.log`, with the engine's own
   output, and on Android `results.ndjson`, with one line for each step. Read the log only for a `problem` that nothing
   else explains. `browser` and `artifactsDir` are `null` when the test was refused before a browser was chosen. On an
@@ -47,7 +47,7 @@ It is never `2`: a run does not talk to Arcus.
 | `Appium was not found` | the user | The tools folder has no Appium. Update the agent folder, or install Appium and put `appium` on PATH |
 | `Appium stopped while starting`, `Appium was not ready after N s`, `Appium could not bind a port` | the user | Read the Appium log. The message gives its path (`.arcus/runs/appium-<time>-<pid>.log`) |
 | `The Appium server at … is not ready` | the user | `ARCUS_ANDROID_APPIUM_URL` is set in the shell and that server does not answer. Start it, or unset the variable so arcus starts its own |
-| `No Android device is connected` | the user | Connect a device with USB debugging on, or start an emulator. Check `arcus devices list` |
+| `No Android device is connected` | the user | Connect a device with USB debugging on, or start an emulator. Check `arcus device list` |
 | `More than one device is ready` | the user | Ask which one. Pass `--device <serial>`, or set `device` in the `android` block |
 | `Device <serial> … is not authorized` | the user | Unlock the device and accept the USB debugging prompt |
 | `Device <serial> … is offline` | the user | Plug the cable in again, or restart the emulator |
@@ -57,7 +57,7 @@ It is never `2`: a run does not talk to Arcus.
 | `The capability "…" in the android block of arcus.json is not allowed` | the user | The message lists the allowed capabilities. Remove the name, or use a field of the block (`app`, `appPackage`, `appActivity`, `device`) |
 | `--browser is a web option, and this run is on android` (or `--device is an android option, and this run is on web`) | you | A flag of the other platform. Remove it, or pass the right `--platform` |
 | `ARCUS_ANDROID_APPIUM_URL … has a user name or password` (or `is not a valid URL`) | the user | Give the address without credentials, or unset it |
-| `Browser '…' is not available` | the user | Pick one from `arcus browsers list` |
+| `Browser '…' is not available` | the user | Pick one from `arcus browser list` |
 | `The browser could not start` | the user | The binary the agent named cannot start. Name it. The log path is in the message |
 | `--timeout …`, `--var …`, `--screenshots …`, `base_url is given twice` | you | You passed a wrong option. Fix it and run again |
 | `no path was given`, `N paths were given`, `… is a folder`, `… is a pattern`, `… is not a test of project …`, `No such file or directory` | you | A run takes exactly one test file of the project. Name one |
@@ -65,8 +65,8 @@ It is never `2`: a run does not talk to Arcus.
 
 ## Android: tools, device, app
 
-Android runs need three things: the tools (adb and Appium), a ready device, and an app. `arcus devices list` shows the
-devices. `arcus devices list --json` gives the same as data. The state `device` is ready. `unauthorized` and `offline`
+Android runs need three things: the tools (adb and Appium), a ready device, and an app. `arcus device list` shows the
+devices. `arcus device list --json` gives the same as data. The state `device` is ready. `unauthorized` and `offline`
 need the user. The CLI starts Appium by itself, uses it for the run, and stops it. You never start Appium. A cold start
 takes about 10 to 25 seconds, so give the Bash tool a long time limit. Appium writes a log to
 `.arcus/runs/appium-<time>-<pid>.log`. A start error names that path. Each run prints a `device:` line and a `tools:`
@@ -88,7 +88,7 @@ The CLI reads only keys that start with `ARCUS_ANDROID_` from it. Do not write o
 unless they say yes. Prefer the shell variable or `arcus config set`. Never read `.env` files to find a value.
 
 **An Appium that already runs.** `ARCUS_ANDROID_APPIUM_URL` makes the run use that server and start none. The CLI reads
-it from the shell environment only, never from `.env`, and `arcus devices list` ignores it. A URL with a user name or
+it from the shell environment only, never from `.env`, and `arcus device list` ignores it. A URL with a user name or
 password is refused. Only the user sets it.
 
 **The device.** `--device <serial>`, else `android.device` in `arcus.json`, else the only ready device. With several
@@ -135,7 +135,7 @@ Read these before you judge the test.
 | `launch app` fails and no app was given | The session started on the device as it is | Use `--app`, `android.appPackage`, or `launch app "<package>"` |
 | Element not found on a Jetpack Compose app | Compose often has no ids and no content descriptions | Find buttons by their visible text. Find text fields by position, for example `locate xpath "(//android.widget.EditText)[1]"` |
 | Element not found with `locate text "<part>"` | `locate text` matches the whole text only | Write the full text, or use xpath `contains(@text,'…')` or uiautomator `textContains` |
-| `arcus check` or `arcus run` refuses a step | The step is web only on Android (see `${CLAUDE_PLUGIN_ROOT}/references/platforms.md`) | Change the step to a form that Android has |
+| `arcus test check` or `arcus test run` refuses a step | The step is web only on Android (see `${CLAUDE_PLUGIN_ROOT}/references/platforms.md`) | Change the step to a form that Android has |
 | Exit `3`, no tools, no device, `unauthorized`, `offline`, several devices | Setup | The table above, then `/arcus:setup` |
 | Appium does not start | The Appium log has the reason | Read the log named in the message. Tell the user. Do not loop |
 | A step on a device action, an alert, a web view, an install or an image fails | These were not tested on a device yet | Say so. Do not promise it works. Show the screenshot and the step |
@@ -156,13 +156,13 @@ under a different label, a spinner that has not finished. Say what you see in a 
 | Option | Use |
 |---|---|
 | `--headed` | Show the browser. Only when asked, or to debug. Default is hidden |
-| `--browser <name>` | A browser from `arcus browsers list`. Default: Chrome for Testing, then Chrome |
+| `--browser <name>` | A browser from `arcus browser list`. Default: Chrome for Testing, then Chrome |
 | `--screenshots all\|failed\|none` | Default `failed` |
 | `--base-url <url>` | Sets `{env.base_url}`. A test must use it as `nav "{env.base_url}/path"`: there is no relative `nav` |
 | `--var <name>=<value>` | Sets `{env.<name>}`. Repeat for more. A secret is passed as `"$VARIABLE"`, never typed |
 | `--timeout <seconds>` | Default 300. Counts from the start of the browser |
 | `--platform <web\|android>` | Default: the project's only platform; `web` when it has several and one is web; with several and no web, the flag is needed. `ios` is refused. A web flag (`--browser`, `--headed`) on an Android run, or an Android flag (`--device`, `--app`) on a web run, exits `3` |
-| `--device <serial>` | Android: a serial from `arcus devices list`. Default: `android.device` in `arcus.json`, else the only ready device |
+| `--device <serial>` | Android: a serial from `arcus device list`. Default: `android.device` in `arcus.json`, else the only ready device |
 | `--app <path or URL>` | Android: an `.apk` (a relative path from the current folder, an absolute path, or a URL) to install and test. No secret in the URL |
 | `--note "<why>"` | Why the run ended as it did. Kept with the run and sent with the next push to QI. Facts only, no secrets |
 | `--project <name>` | The project's folder name, or its id. Needed at a repo root with several projects |
@@ -177,10 +177,10 @@ under a different label, a spinner that has not finished. Say what you see in a 
 A run that ends `passed` or `failed` is saved in `.arcus/` with the hash of the file, the platform, the device and the
 note. There is one local record for each test path and platform (`.arcus/evidence/<path>.android.json`,
 `<path>.web.json`), so an Android run does not replace the web run of the same test. In qi mode, when the policy says
-`run: required`, `arcus push` accepts a file only if it has a run of the file as it is now. The gate takes the newest
+`run: required`, `arcus test push` accepts a file only if it has a run of the file as it is now. The gate takes the newest
 matching record of any platform, and the push plan shows the platform and device of the run it uses. Any edit makes the
 run old. A failed run counts as a run: QI shows it as failed, not executed. `interrupted` and `refused` runs are not
-saved. `arcus verify` saves nothing.
+saved. `arcus issue verify` saves nothing.
 
-When the policy says `run: optional`, a push with no run is allowed. The dry run, the result and `arcus status` then
+When the policy says `run: optional`, a push with no run is allowed. The dry run, the result and `arcus test status` then
 show `no local run`. Say it as it is: it is not a pass.

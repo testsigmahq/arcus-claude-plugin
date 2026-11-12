@@ -1,16 +1,16 @@
 ---
 name: run
-description: Use when a developer asks to run, try or execute one Arcus test on their machine (web in a browser, or on an Android device), to watch it, to get the run a QI push needs, or to find out why a test fails. Runs one .sigma test with arcus run, reads the result and the screenshot, and says whether the test, the app or the setup is wrong. Sends nothing to Arcus or QI and needs no sign-in. Not for running every case of an issue (use verify). Does not push.
+description: Use when a developer asks to run, try or execute one Arcus test on their machine (web in a browser, or on an Android device), to watch it, to get the run a QI push needs, or to find out why a test fails. Runs one .sigma test with arcus test run, reads the result and the screenshot, and says whether the test, the app or the setup is wrong. Sends nothing to Arcus or QI and needs no sign-in. Not for running every case of an issue (use verify). Does not push.
 ---
 
 # Run: try a test on this machine
 
-`arcus run` runs **one** test on this machine: in a browser (web) or on an Android device. Nothing is sent to Arcus or QI,
+`arcus test run` runs **one** test on this machine: in a browser (web) or on an Android device. Nothing is sent to Arcus or QI,
 and no sign-in is needed. The result is kept locally as evidence. In qi mode a push can require it (the push skill
 says when). The CLI gives you the result. Your job is to read it, look at the evidence,
 and tell the user what happened and who owns it: the test, the app, or the setup.
 
-If the CLI is missing, too old for `run` (`arcus run --help` fails), or the repo has no project, stop and run the `setup`
+If the CLI is missing, too old for `arcus test run` (`arcus test run --help` fails), or the repo has no project, stop and run the `setup`
 skill (`/arcus:setup`). Do not send the user to sign in: a run does not need it.
 
 Details, the result fields, the failure messages, the Android setup and the Android troubleshooting are in
@@ -27,12 +27,12 @@ Details, the result fields, the failure messages, the Android setup and the Andr
 
 ## 2. Which platform, and can this machine run it
 
-Read the project's platforms: `arcus project platforms`. The default platform is the project's only one, or `web` when
+Read the project's platforms: `arcus project platforms list`. The default platform is the project's only one, or `web` when
 it has several and one is web. Pick with `--platform web` or `--platform android`. `ios` is not supported: say so.
 
-- **Web:** `arcus browsers list`. It lists browsers: good. A message that starts `Cannot reach` (exit `3`) means the local
+- **Web:** `arcus browser list`. It lists browsers: good. A message that starts `Cannot reach` (exit `3`) means the local
   agent is not running. The user must start it. Do not install a browser, and never run `playwright install`.
-- **Android:** `arcus devices list`. A device in state `device` is ready. With several ready, ask which one and pass
+- **Android:** `arcus device list`. A device in state `device` is ready. With several ready, ask which one and pass
   `--device <serial>` (else the CLI uses `android.device` of `arcus.json`, else the only ready device). The app comes
   from `--app <relative path | absolute path | URL>`, or from the `android` block of `arcus.json` (`app`,
   `appPackage`, `appActivity`). With no app information the session starts on the device as it is, and `launch app`
@@ -40,7 +40,7 @@ it has several and one is web. Pick with `--platform web` or `--platform android
   send the user to `/arcus:setup`. The CLI starts and stops Appium itself: never start it, never run `adb`, and never
   install an app by another route.
 - A platform the project does not list is refused. Adding one (`arcus project platforms add <platform>`) makes
-  `arcus check` stricter for every test: it is the user's decision.
+  `arcus test check` stricter for every test: it is the user's decision.
 
 ## 3. What the test needs
 
@@ -64,7 +64,7 @@ address the user has not seen, or one that you only guessed.
 ## 4. Run
 
 ```
-arcus run <file> --json --project <name> [--platform <web|android>] [--base-url <url>] [--var <name>=<value>]
+arcus test run <file> --json --project <name> [--platform <web|android>] [--base-url <url>] [--var <name>=<value>]
     [--headed] [--browser <name>] [--device <serial>] [--app <path-or-url>] [--note "<why>"]
 ```
 
@@ -87,7 +87,7 @@ Read `run.status` first, then the exit code. Exit `1` covers three different thi
 |---|---|---|
 | `passed` | `0` | Passed: the browser (or the device), the duration, the step count. A local pass is not an Arcus run. It is saved as evidence for a push (one record for each test and platform). Offer `/arcus:push` |
 | `failed` | `1` | The step that failed (`failedStep.description`), the message in plain words, the screenshot. Go to step 6. On Android, the message is often only `Step failed`: read `results.ndjson` first A failed run is also saved as evidence: a push would send it as failed |
-| `refused` | `1` | The test did not compile, so no browser started. `run.diagnostics` is what `arcus check` says. Fix it with the rules of `/arcus:author` |
+| `refused` | `1` | The test did not compile, so no browser started. `run.diagnostics` is what `arcus test check` says. Fix it with the rules of `/arcus:author` |
 | `interrupted` | `1` | The run was stopped, or the browser went away (`run.problem`). It is not a verdict on the test. Offer to run again |
 | none (setup error) | `3` | The message on stderr, with its `remediation`. See the table in `references/running.md` |
 
@@ -109,7 +109,7 @@ Look before you edit anything.
 Then say who owns the failure, with the evidence:
 
 - **The test is wrong.** A locator that is not in the app, an expected text that differs, a missing wait for something that
-  loads late. Fix the test: follow `/arcus:author` for the edit (`check`, then `fmt`, then `check`), and
+  loads late. Fix the test: follow `/arcus:author` for the edit (`arcus test check`, then `arcus test fmt`, then `arcus test check`), and
   `${CLAUDE_PLUGIN_ROOT}/references/editing.md` if the file is already pushed. Say what you changed and why. Run again.
 - **The app is wrong.** The test states what the app should do, and the app does not. Report it as a finding. Do not
   change the test to match a bug.

@@ -1,13 +1,13 @@
 ---
 name: author
-description: Use when a developer asks to write, add or generate end-to-end tests for their app in Arcus, to automate a QI case, or to change an existing Arcus test or element file. Writes .sigma files in the repo's Arcus project folder, learns the language from the arcus CLI instead of from memory, and does not stop until arcus check is clean. Does not push or run. Running is the run skill's job, pushing is the push skill's.
+description: Use when a developer asks to write, add or generate end-to-end tests for their app in Arcus, to automate a QI case, or to change an existing Arcus test or element file. Writes .sigma files in the repo's Arcus project folder, learns the language from the arcus CLI instead of from memory, and does not stop until arcus test check is clean. Does not push or run. Running is the run skill's job, pushing is the push skill's.
 ---
 
 # Author: write an Arcus test
 
 You write tests as `.sigma` files and let the `arcus` CLI judge them. The CLI knows what the language can express and
 what compiles on the project's platforms. You do not. So you never write a step from memory, and you never decide a
-file is valid: `arcus check` decides.
+file is valid: `arcus test check` decides.
 
 If any `arcus` command below fails because the CLI is missing, the user is not signed in (exit `2`), or the repo has
 no project, stop and run the `setup` skill (`/arcus:setup`) first.
@@ -15,7 +15,7 @@ no project, stop and run the `setup` skill (`/arcus:setup`) first.
 This skill writes and checks files. It does not push them (`/arcus:push`) and it does not run them (`/arcus:run`). A
 clean check means the CLI accepts a test. Only a run shows that it passes against the app.
 
-**The mode.** Run `arcus project mode`. In `qi` mode a test automates one QI case: read the issue and the case steps with
+**The mode.** Run `arcus project mode show`. In `qi` mode a test automates one QI case: read the issue and the case steps with
 `/arcus:context` first, and write one file per case that covers every manual step. The file is bound to its case on its
 first push (`/arcus:push`). In `direct` mode the file becomes an Arcus test on its first push. Elements are the same in
 both modes.
@@ -36,7 +36,7 @@ The project's folder is `<arcusDir>/<folder name>/`. Tests go in its `tests/` fo
 Look at the tests and elements that are already there. Match their naming and style. Note their titles: a test title
 must be unique in the project, ignoring case.
 
-Then compare the project's `platforms` with what the user wants to test. Platforms belong to the project, and `check`
+Then compare the project's `platforms` with what the user wants to test. Platforms belong to the project, and `arcus test check`
 compiles every test for all of them, so a web-only test cannot live in a project that also lists a mobile platform.
 `${CLAUDE_PLUGIN_ROOT}/references/platforms.md` says what to do when they do not match. Settle this before writing.
 
@@ -58,19 +58,19 @@ say so.
 Do this before the first line. The CLI lists only what compiles on the project's platforms.
 
 ```
-arcus docs --project <name>                 # every action and form, with an example of each
-arcus docs <action> --project <name>        # one action, e.g. click
-arcus docs --topic gotchas                  # always read this one: it is short, and it lists the easy mistakes
-arcus docs --topic <id>                     # locators, elements, conditions, data, control-flow, word-order
+arcus docs list --project <name>                 # every action and form, with an example of each
+arcus docs show <action> --project <name>        # one action, e.g. click
+arcus docs show --topic gotchas                  # always read this one: it is short, and it lists the easy mistakes
+arcus docs show --topic <id>                     # locators, elements, conditions, data, control-flow, word-order
 ```
 
 Read the actions you will use, and the topic for anything you are unsure of (`locators` before you write a target,
 `data` before you store or reuse a value, `conditions` before a `verify`). Copy the shape of the examples. Do not invent
-a verb, a form or an option. If the user asks for something `docs` does not show, it does not compile: say that, and
+a verb, a form or an option. If the user asks for something `arcus docs` does not show, it does not compile: say that, and
 offer the closest form that does.
 
-**Android.** `arcus docs` can be wrong or silent for Android, and `arcus check` is the judge. Real runs on an emulator
-gave a list of what works, what `check` refuses, and a few traps (a locator form that passes `check` but fails in the
+**Android.** The CLI docs can be wrong or silent for Android, and `arcus test check` is the judge. Real runs on an emulator
+gave a list of what works, what `arcus test check` refuses, and a few traps (a locator form that passes it but fails in the
 runner). Read the part "Writing for Android" in `${CLAUDE_PLUGIN_ROOT}/references/platforms.md` before you write for an
 Android project.
 
@@ -85,7 +85,7 @@ Android project.
 - **Android targets.** Look for the visible text, `android:id` and `contentDescription` in the app source. A Jetpack
   Compose app often has no ids: buttons by their visible text (the whole text), text fields by position, for example
   `locate xpath "(//android.widget.EditText)[1]"`. The target of a gesture comes after the direction:
-  `swipe up locate …`. Never write the forms that `check` refuses on Android (`nav`, `text ~`, `role`, `for … in
+  `swipe up locate …`. Never write the forms that `arcus test check` refuses on Android (`nav`, `text ~`, `role`, `for … in
   locate`, and more: the list is in `platforms.md`). Do not use an element `locator chain` on Android.
 - **Targets.** A target that appears more than once, or that is hard to find, or that needs a locator per platform, is
   an element: its own file in `elements/`, used as `@<path>`. A one-off target stays inline (`locate …`). Write the
@@ -95,14 +95,14 @@ Android project.
 - Keep the title short and specific. It is what people see in Arcus.
 - If a file for this test already exists, edit it. Do not make a second file with the same title.
 - **Is the file already pushed?** Search `arcus.lock` for its path. If it is there, the file is tracked (bound to an Arcus
-  document or to a QI case). In qi mode run `arcus status <path>` and pull first when it says `behind` or `diverged`
+  document or to a QI case). In qi mode run `arcus test status <path>` and pull first when it says `behind` or `diverged`
   (`/arcus:sync`). Read `${CLAUDE_PLUGIN_ROOT}/references/editing.md` before changing it. Never rename, move or delete a tracked
   file, and do not rename its title unless the user asks.
 
 ## 5. Check, fix, repeat
 
 ```
-arcus check <files> --project <name> --json
+arcus test check <files> --project <name> --json
 ```
 
 Pass the test files and the element files you wrote or changed.
@@ -116,30 +116,30 @@ For each **error**, in this order of preference:
    inclusive) with `text`. Give every line of `text` the indent of the first line it replaces. When there are several
    fixes in one file, apply them from the bottom of the file up, so the line numbers stay right.
 2. **A fix with `certainty: "suggested"`.** Show it to the user and ask before applying.
-3. **No fix.** Read the message. Then run `arcus docs <action>` for the action on that line and rewrite the step into a
+3. **No fix.** Read the message. Then run `arcus docs show <action>` for the action on that line and rewrite the step into a
    form that is listed there.
 
 For each **warning**, read it. Fix it when it points at a real problem. A step with an empty value (`nav ""`) is a
-warning plus a blocked step, and `check` refuses it: fill the value.
+warning plus a blocked step, and `arcus test check` refuses it: fill the value.
 
-After each round of fixes, run `check` again. Stop when `summary` is `{errors: 0}` for the file.
+After each round of fixes, run `arcus test check` again. Stop when `summary` is `{errors: 0}` for the file.
 
 **Do not make the check pass by making the test weaker.** Never delete a `verify`, remove a step, or lower what is
 checked just to clear a diagnostic. If the only way to make a step compile is to lose what it checks, stop and tell the
 user. If you are still failing after five rounds, stop and show the user what is left. Do not loop.
 
 **A step that does not run on a platform** is `ARC2001 … [platform]`. The compile would skip it, and a skipped step
-silently does not run. Do not leave it. Rewrite it into a form that `arcus docs --all` marks for that platform, or tell
+silently does not run. Do not leave it. Rewrite it into a form that `arcus docs list --all` marks for that platform, or tell
 the user and ask whether to drop that platform for this project or to split the test.
 
 ## 6. Format
 
 ```
-arcus fmt <files> --project <name>
+arcus test fmt <files> --project <name>
 ```
 
 This rewrites layout only. If it refuses a file, the message says why (usually a comment at the end of a step line:
-move it to its own line). Fix it, and run `check` once more, because the last run was before `fmt`.
+move it to its own line). Fix it, and run `arcus test check` once more, because the last run was before `arcus test fmt`.
 
 ## 7. Report
 
@@ -147,7 +147,7 @@ Say, briefly:
 
 - the files written or changed, and what each test covers in a sentence,
 - the platforms they were checked for,
-- that `arcus check` is clean,
+- that `arcus test check` is clean,
 - that the tests were **checked, not run**: a clean check means the CLI accepts the test, not that it passes against
   the app. Targets that were written without seeing the app may need adjusting when the test first runs.
 
@@ -158,17 +158,17 @@ Then hand over. The next step is a run, then a push. In qi mode a push usually n
 - Otherwise offer `/arcus:run` first, and `/arcus:push` after it. Offer a run for a project with `web` or
   `android` in its platforms. A run cannot test iOS.
 - The user asks to push now: hand over to the `push` skill. It will say that the test was not run. Do not run
-  `arcus push` or `arcus run` from here.
+  `arcus test push` or `arcus test run` from here.
 
 ## Say no to what Arcus cannot hold yet
 
-`api` steps, groups, `host` lines, header lines, sub-folders under `tests/`, and any action or form that `arcus docs --all`
+`api` steps, groups, `host` lines, header lines, sub-folders under `tests/`, and any action or form that `arcus docs list --all`
 does not list. Tell the user it is not supported yet, offer the nearest thing that is, and do not work around it. The
 list and the reasons are in `${CLAUDE_PLUGIN_ROOT}/references/platforms.md`.
 
 ## What this skill never does
 
-- Write a step it did not see in `arcus docs`, or a locator it did not see in the app or get from the user.
+- Write a step it did not see in `arcus docs list` or `arcus docs show`, or a locator it did not see in the app or get from the user.
 - Edit `arcus.json`, `arcus.lock` or anything in `.arcus/`. The CLI owns them.
 - Push, or run anything that changes Arcus. Running a test is the `run` skill's, and it needs the user's ask.
 - Put a real credential, token or personal data in a test.

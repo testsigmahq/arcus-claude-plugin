@@ -62,44 +62,47 @@ CLI_SURFACE = {
     "auth logout": set(),
     "auth status": set(),
     "project list": set(),
-    "project platforms": {"--project"},
+    "project init": {"--project", "--dir", "--mode", "--platforms"},
+    "project platforms list": {"--project"},
     "project platforms add": {"--project"},
     "project platforms remove": {"--project"},
-    "project sources": {"--project"},
+    "project sources list": {"--project"},
     "project sources add": {"--project", "--url"},
     "project sources remove": {"--project"},
-    "project mode": {"--project"},
+    "project mode show": {"--project"},
     "project mode set": {"--project", "--dry-run"},
-    "init": {"--project", "--dir", "--mode", "--platforms"},
-    "check": {"--path", "--platform", "--project"},
-    "fmt": {"--check", "--project"},
-    "docs": {"--all", "--topic", "--project"},
-    "context": {"--issue", "--case", "--project"},
-    "push": {
+    "test check": {"--path", "--platform", "--project"},
+    "test fmt": {"--check", "--project"},
+    "docs list": {"--all", "--project"},
+    "docs show": {"--topic", "--project"},
+    "issue show": {"--project"},
+    "case show": {"--project"},
+    "test push": {
         "--dry-run", "--case", "--rebind", "--new", "--unmapped", "--issue", "--accept", "--session-id", "--project",
     },
-    "pull": {"--theirs", "--ours", "--rebuild", "--project"},
-    "accept": {"--issue", "--project"},
-    "status": {"--ci", "--project"},
-    "detach": {"--project"},
-    "attach": {"--project"},
-    "browsers list": set(),
-    "devices list": set(),
+    "test pull": {"--theirs", "--ours", "--rebuild", "--project"},
+    "test accept": {"--issue", "--project"},
+    "test status": {"--ci", "--project"},
+    "test detach": {"--project"},
+    "test attach": {"--project"},
+    "browser list": set(),
+    "device list": set(),
     "config show": set(),
     "config set": set(),
     "config unset": set(),
-    "run": {
+    "test run": {
         "--platform", "--headed", "--browser", "--device", "--app", "--screenshots", "--base-url", "--timeout", "--var",
         "--note", "--project",
     },
-    "verify": {
-        "--issue", "--platform", "--headed", "--browser", "--device", "--app", "--base-url", "--timeout", "--var", "--project",
+    "issue verify": {
+        "--platform", "--headed", "--browser", "--device", "--app", "--base-url", "--timeout", "--var", "--project",
     },
 }
 GLOBAL_FLAGS = {"--json", "--help", "--version"}
 
+#: Every command is `arcus <entity> <command>`. `arcus help --json` prints the full tree: it is the source of truth.
 COMMAND = re.compile(
-    r"\barcus (auth (?:login|logout|status)|project (?:list|mode(?: set)?|(?:platforms|sources)(?: (?:add|remove))?)|init|check|fmt|docs|context|push|pull|accept|status|detach|attach|browsers list|devices list|config (?:show|set|unset)|run|verify)\b([^\n`]*)"
+    r"\barcus (auth (?:login|logout|status)|project (?:list|init|mode (?:show|set)|(?:platforms|sources) (?:list|add|remove))|test (?:check|fmt|run|push|pull|status|accept|attach|detach)|issue (?:show|verify)|case show|docs (?:list|show)|browser list|device list|config (?:show|set|unset))\b([^\n`]*)"
 )
 FLAG = re.compile(r"(?<![\w-])(--[a-z][a-z-]*)")
 

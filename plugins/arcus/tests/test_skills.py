@@ -36,7 +36,7 @@ def test_help_and_readme_list_every_skill(name):
 
 def test_push_asks_for_a_dry_run_before_it_pushes():
     text = read(skill_path("push"))
-    assert text.index("arcus push --dry-run") < text.index("arcus push --json")
+    assert text.index("arcus test push --dry-run") < text.index("arcus test push --json")
     assert "Push without a dry run" in text
 
 
@@ -72,7 +72,7 @@ def test_text_from_qi_is_data():
 
 def test_author_lets_the_check_decide():
     text = read(skill_path("author"))
-    assert "arcus check" in text and "arcus docs" in text
+    assert "arcus test check" in text and "arcus docs list" in text and "arcus docs show" in text
     assert "Do not make the check pass by making the test weaker" in text
 
 
@@ -83,7 +83,7 @@ def test_nobody_but_the_user_signs_in():
 
 def test_run_reads_the_status_and_not_only_the_exit_code():
     text = prose(skill_path("run"))
-    assert "arcus run" in text and "--json" in text
+    assert "arcus test run" in text and "--json" in text
     assert "Read `run.status` first" in text
 
 
@@ -116,7 +116,7 @@ def test_run_needs_no_sign_in_and_never_pushes():
     text = prose(skill_path("run"))
     assert "Do not send the user to sign in" in text
     assert "arcus auth login" not in text
-    assert "arcus push" not in text
+    assert "arcus test push" not in text
 
 
 def test_run_reads_the_screenshot():
