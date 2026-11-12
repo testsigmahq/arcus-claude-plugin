@@ -8,9 +8,12 @@ it in plain words. If the CLI says something else, trust the CLI.
 | Exit | Means |
 |---|---|
 | `0` | Done |
-| `1` | A file was refused, failed, conflicted or did not pass. Or QI or Arcus refused. Or the network failed. Read the JSON |
-| `2` | Not signed in, the sign-in expired, or the project region differs from the signed-in region |
-| `3` | Wrong use or wrong setup: a QI command in a direct project, no context, a stale context, a closed sprint, a lock that does not fit the mode, a bad flag, a missing tool. stdout is empty. stderr has `message` and `remediation` |
+| `1` | A file was refused, failed, conflicted or did not pass. Or QI or Arcus refused. Or the network failed. Read the JSON. A report has `ok: false` |
+| `2` | Not signed in, the sign-in expired, or the project region differs from the signed-in region. Failure code `AUTH` |
+| `3` | Wrong use or wrong setup: a QI command in a direct project, no context, a stale context, a closed sprint, a lock that does not fit the mode, a bad flag, a missing tool. A wrong command line (bare entity, unknown command, missing argument, unknown option) has the failure code `USAGE`. Other setup problems have `VALIDATION`. stdout is empty. stderr is one JSON object with `ok: false`, `code`, `exitCode`, `message` and `remediation` |
+| `4` | The command needs approval and says the command to run again with `--yes`. Failure code `CONFIRMATION`. The CLI does not use it today |
+
+The same object and the codes are in `${CLAUDE_PLUGIN_ROOT}/references/commands.md`.
 
 ## `arcus test status`, qi mode: one state per file
 

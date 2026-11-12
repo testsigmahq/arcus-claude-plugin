@@ -9,8 +9,26 @@ skills say what each command does and what to do with the answer. The CLI says t
 prints the full command tree as JSON: every entity, command, argument and option. When this table and that output
 differ, the output is right. Say so to the user, and use the CLI's name.
 
-Add `--json` to any command to get one JSON object on stdout. Add `--project <folder name or id>` when a repo holds
-several projects.
+Add `--json` to any command to get one JSON object. Add `--project <folder name or id>` when a repo holds several
+projects.
+
+## The output contract
+
+With `--json`, every result has an `ok` field. A result with exit `0` has `ok: true` and the fields of the command, on
+stdout. A report of a command that ran and found a problem (a failed check, a refused push, a failed test) has
+`ok: false`, also on stdout, and the exit code is `1`. So `ok` is `true` exactly when the exit code is `0`. A list is
+always inside an object, for example `arcus project list --json` gives `{ok, projects: [...]}`. Never read a result as a
+plain array.
+
+A command that could not do its work writes one failure object on stderr: `ok: false`, `code`, `exitCode`, `message`
+and, when the CLI knows a next step, `remediation`. Tell the user the `message`, then do the `remediation`. The `code` is
+`GENERIC` (exit `1`), `AUTH` (exit `2`), `VALIDATION` (exit `3`), `CONFIRMATION` (exit `4`) or `USAGE` (exit `3`). A
+wrong command line gives exit `3` and the code `USAGE`: a bare entity, an unknown command, a missing argument or an
+unknown option. A bare entity also lists its commands in `commands`. Exit `3` is never a failed check, which is exit
+`1`. `arcus test push` can write its report with `ok: false` on stdout and then the failure object on stderr.
+
+`arcus --version --json` prints `{"ok":true,"version":"..."}`. `arcus help --json` prints the full command tree, the
+flags and the exit code table. When this file and that output differ, the output is right.
 
 | Step | Command | Mode | Needs sign-in | Owner skill |
 |---|---|---|---|---|

@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.11.1
+
+The skills match the final JSON output and exit codes of the renamed CLI. Only text changed.
+
+- `references/commands.md` has a new part, "The output contract". With `--json`, every result has `ok`. A failure is one
+  object on stderr with `ok: false`, `code`, `exitCode`, `message` and `remediation`. A wrong command line exits `3`
+  with the code `USAGE`. `arcus help --json` is the source of truth.
+- `arcus project list --json` is an object, `{ok, projects: [...]}`, not a plain array. The `setup` skill says so.
+- `references/states.md` and `references/running.md` name the failure fields and codes, and the `ok` field of a run.
+- `arcus --version --json` prints `{"ok":true,"version":"..."}`. The `setup` skill says so.
+
 ## 0.11.0
 
 The skills use the new command names. Every command is now `arcus <entity> <command> [args]`. The old names are gone and

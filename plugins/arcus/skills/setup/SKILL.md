@@ -13,7 +13,7 @@ and to the CLI settings, and only after the user says yes.
 
 ## 1. The CLI
 
-Run `arcus --version`.
+Run `arcus --version`. (`arcus --version --json` prints `{"ok":true,"version":"..."}`.)
 
 - Not found: stop. Say the CLI is not installed. Give one command: `npm i -g @testsigma/arcus-cli` (Node 22 or newer).
   Do not install it for the user.
@@ -39,7 +39,8 @@ Find `arcus.json` here or above.
 
 ### No `arcus.json`
 
-1. Run `arcus project list`. Show the projects. The user picks one. Do not pick for them.
+1. Run `arcus project list`. Show the projects. The user picks one. Do not pick for them. With `--json` the answer is
+   an object, `{ok, projects: [...]}`, not a plain array.
 2. Ask where tests go, only for the first project: the default `tests/arcus`, or `.` for a repo that holds only Arcus
    tests.
 3. Ask the platforms: `web`, `android`, `ios`, or a mix. Default `web`. More platforms make `arcus test check` stricter.

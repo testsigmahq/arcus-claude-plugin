@@ -84,3 +84,9 @@ def test_the_readme_installs_from_a_branch_and_says_how_to_update():
     text = prose(REPO_ROOT / "README.md")
     assert "claude plugin marketplace add testsigmahq/arcus-claude-plugin#<branch>" in text
     assert "claude plugin marketplace update testsigma" in text
+
+
+def test_the_commands_reference_states_the_output_contract():
+    text = prose(REFERENCES_DIR / "commands.md")
+    for phrase in ("ok: true", "ok: false", "USAGE", "exit `3`", "arcus help --json", "{ok, projects: [...]}"):
+        assert phrase in text, phrase

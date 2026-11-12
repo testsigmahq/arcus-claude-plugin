@@ -77,7 +77,8 @@ arcus test run <file> --json --project <name> [--platform <web|android>] [--base
   Android run also waits for Appium to start (10 to 25 seconds).
 - Web flags (`--browser`, `--headed`) on an Android run, and Android flags (`--device`, `--app`) on a web run, exit `3`.
 - Say the `device:` and `tools:` lines of an Android run to the user.
-- stdout is one JSON object. A setup error is JSON on stderr and stdout is empty.
+- stdout is one JSON object with `ok`. A setup error is one JSON failure object on stderr (`ok: false`, `code`,
+  `exitCode`, `message`, `remediation`) and stdout is empty.
 
 ## 5. Read the result
 

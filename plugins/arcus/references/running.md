@@ -5,13 +5,14 @@
 ## The shape
 
 ```
-{ sigmaLang, converter, runner, browser: {name, version} | null, platforms: [...], platform: "web"|"android",
+{ ok, sigmaLang, converter, runner, browser: {name, version} | null, platforms: [...], platform: "web"|"android",
   device: {serial, model, kind} | null, tools: {layout, source, path} | null,
   run: { path, title, status, durationMs, totalSteps, passedSteps, failedSteps, skippedSteps,
          failedStep?: {description, message, screenshot?}, problem?, interruptedAt?,
          diagnostics: [...], artifactsDir: <folder> | null } }
 ```
 
+- `ok` is `true` only when `status` is `passed`. It is the same as exit `0`.
 - `status` is `passed`, `failed`, `refused` or `interrupted`.
 - `failedStep.description` is the step as written in the file. `message` is plain text. `screenshot` is the absolute path
   of a `.jpg` of the page at that step. Open it with the Read tool.
@@ -31,7 +32,7 @@
 |---|---|
 | `0` | passed |
 | `1` | the test failed, was refused, or was interrupted: read `run.status` |
-| `3` | this machine cannot run it, or an option is wrong (no Android tools, no device, a device that is not authorized or is offline, several ready devices, Appium did not start, a wrong flag). stdout is empty; stderr is JSON with `message`, `code`, `remediation` |
+| `3` | this machine cannot run it, or an option is wrong (no Android tools, no device, a device that is not authorized or is offline, several ready devices, Appium did not start, a wrong flag). stdout is empty; stderr is one JSON object with `ok: false`, `code` (`VALIDATION`, or `USAGE` for a wrong command line), `exitCode`, `message`, `remediation` |
 
 It is never `2`: a run does not talk to Arcus.
 
