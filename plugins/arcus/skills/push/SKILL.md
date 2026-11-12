@@ -1,148 +1,130 @@
 ---
 name: push
-description: Use when a developer wants to send Arcus tests and elements from the repo to their Arcus project, or asks what a push would do. Always runs arcus push --dry-run first, shows the plan in plain words, and pushes only after the user says yes. Then explains every result (created, updated, refused, conflict, missing, failed) and what to do next. Does not write tests and does not run them.
+description: Use when a developer wants to send Arcus tests and elements from the repo, or asks what a push would do. Works in both modes (direct pushes tests to Arcus, qi pushes tests to QI as case versions and elements to Arcus). Always runs arcus push --dry-run first, shows the plan in plain words, and pushes only after the user says yes. Then explains every result and refusal and gives the next step. Does not write tests, run them, or accept.
 ---
 
-# Push: send tests and elements to Arcus
+# Push: send tests and elements
 
-A push changes the project in Arcus, where the team sees it. So this skill never pushes first. It shows what a push would
-do, waits for a yes, pushes, and then explains what happened. The `arcus` CLI does the work and makes every decision
-about what can be sent. You read its answers and put them in words.
+A push changes what the team sees. Never push first. Show the plan, wait for a yes, push, then explain. The CLI decides
+what can be sent. You put its answers in words. See `${CLAUDE_PLUGIN_ROOT}/references/workflow.md` for the modes, and
+`${CLAUDE_PLUGIN_ROOT}/references/states.md` for every result and reason.
 
-If an `arcus` command fails with exit `2` (not signed in, or the sign-in expired) or because the repo has no project,
-stop and run the `setup` skill (`/arcus:setup`). Never sign the user in yourself.
+Exit `2` (not signed in, expired, or a region mismatch) or no project: run `/arcus:setup`. Never sign the user in.
 
-## 1. What to send
+## 1. Mode and files
 
-Read `arcus.json` for the project. With several projects, ask which one, unless the user's files make it plain, and pass
-`--project <folder name>` to every command below.
+Run `arcus project mode`. With several projects ask which one and pass `--project <folder name>` everywhere.
 
-Decide the paths:
+- `direct`: a test and an element go to Arcus.
+- `qi`: an element goes to Arcus first. A test goes to QI as a new head on the working line of its case. The push also
+  needs: an issue context on this machine (`/arcus:context`), younger than the policy allows, for an issue whose sprint
+  is open; and, when the policy says `run: required`, a run of the file as it is now (`/arcus:run`).
 
-- The user named files or a folder: use those.
-- The user just authored or changed files in this session: use those.
-- Otherwise the whole project (no path). Files that did not change come back `unchanged`, which is harmless.
+Paths: the files the user named, or the files you just changed, else no path (the whole project; files that did
+not change come back `unchanged`). In qi mode, `arcus status` first shows where each file stands.
 
-Pass element files and test files together if both changed. The CLI sends elements first by itself.
+A test file needs a case in qi mode:
+
+| The file | Flag, for the first push only |
+|---|---|
+| Automates a case from `arcus context` | `--case <id>` (one file per command) |
+| Is a new test with no case | `--new` |
+| Is new, and the issue is not in a sprint or QI does not know it | `--new --unmapped`, and `--issue <KEY>` as a hint for the reviewer |
+| Must move to another case (a duplicate warning names it) | `--rebind <id>` (one file) |
+
+After the first push, `arcus.lock` binds the file. Push it again with no flag. Ask the user before `--new`: a new case
+is something the reviewer did not ask for.
 
 ## 2. Dry run, always
 
 ```
-arcus push --dry-run --json [paths] --project <name>
+arcus push --dry-run --json [flags] [paths] --project <name>
 ```
 
-Nothing is sent or written. It does read Arcus, so it needs the sign-in. It applies the same checks, the same title
-check, and the same conflict logic as a real push, so what it reports is what a push will do. The exit code is `1` when
-any file is `refused`, `conflict` or `failed`.
+Nothing is sent or written. It does read QI and Arcus, so it needs the sign-in. The exit code is `1` when any file is
+refused, conflicts or fails. All checks that stop a real push run here too, so a refusal here is a refusal there.
 
-The JSON has `destination`, `files[]` and a `summary`. `destination` says where the files go: `project` and `folder`
-(each an `id` and a `name`, the name `null` when Arcus would not give it), `region` and `arcusUrl`, the web address of
-Arcus. **Read it first.** A CLI older than 0.1.2 has no `destination` (and no `url` before 0.1.3): then run `arcus project list --json`, take the
-name of the project whose id is `projectId` in `arcus.json`, and say the folder is unknown. **Do not read `summary`:** it counts only the offline check findings. Read each
-file's `result`. Each file has `path`, `result`, a `message` when there is a reason, `diagnostics`, and for a test a
-`plan` (what happens to each step: `keep`, `edit`, `new`, `remove`, `move`). An element that changes has `locators`,
-the old list and the new. The step ids in a plan are placeholders: the real push makes its own.
+- direct: JSON has `destination` (`project` and `folder`, each an `id` and a `name`, the name `null` when Arcus would
+  not give it; `region`; `arcusUrl`) and `files[]`. Each file has `result`, `message`, `diagnostics` and for a test a
+  `plan` (`keep`, `edit`, `new`, `remove`, `move`). Read each file's `result`. Do not read `summary`: it counts only the
+  offline findings.
+- qi: the JSON has the Arcus part (`files[]`, for elements) and `cases` with `issue`, `build` and `files[]`. Each
+  case file is `would_push` (with its base), `would_create`, `unchanged`, `skipped` or `refused` (with `reason`, `message`
+  and `next`).
 
 ## 3. Show the plan, in words
 
-Begin with the place, in one line, before any file: `This goes to the Arcus project "<project>", in the folder
-"<folder>", at <arcusUrl>.` The user may have several Arcus projects, and cannot tell from a file path which one the
-repo is bound to. A name that is `null`: give the id and say Arcus did not give the name.
+Begin with the place:
 
-Then one short table or list, one line per file. Say what Arcus will get:
+- direct: `This goes to the Arcus project "<project>", in the folder "<folder>", at <arcusUrl>.` A name that is `null`:
+  give the id and say Arcus did not give the name.
+- qi: `Tests go to QI, as new versions of these cases, under issue <KEY>. Elements go to the Arcus project "<project>".`
+  Say the policy: a reviewer accepts, so nothing joins the accepted suite yet.
 
-| Result | Say |
-|---|---|
-| `created` | A new test "<title>" (or a new element `@<path>`) will be made in Arcus, with N steps |
-| `updated` | "<title>" changes: N steps edited, N added, N removed, N moved. Steps that someone changed in Arcus (`fromArcus`) will be merged into the file |
-| `renamed` | The test "<old>" will be called "<new>" in Arcus. Everyone sees that |
-| `unchanged` | Nothing to send. If it says `remote is ahead`, Arcus has newer edits that the file does not have |
-| `refused` | Not sent, and why (the `message` and `diagnostics`) |
-| `conflict` | Not sent: the same step was changed in Arcus and in the file. Show Arcus's text of that step |
-| `missing` | The file is gone and is skipped. Arcus keeps its copy |
-
-Call out what the user may not expect:
-
-- how many **new** tests will be created;
-- any **rename**;
-- a changed **element**, with how many tests use it (search the project's `tests/` for `@<path>`): its whole locator
-  list is replaced in Arcus, for all of them;
-- **`fromArcus`** merges: the file will change on disk to include other people's edits.
+Then one line per file. Direct: `created` is a new Arcus test with N steps; `updated` changes N steps (steps changed in
+Arcus are merged into the file: `fromArcus`); `renamed` changes the title for everyone; `conflict` and `refused` are not
+sent (give the reason); `missing` is skipped. Qi: `would_push` adds a head to case <label>; `would_create` makes a new
+case (say `unmapped` when it has no issue: a reviewer must link it before it can be accepted); `refused` gives the
+reason and `next`. Call out: how many new cases or tests, any rename, and a changed element with how many tests use it
+(its whole locator list is replaced for all of them).
 
 ## 4. Ask
 
-If a test in this push was never run here, say it once next to the plan, and offer `/arcus:run` first (a web project
-only: a run cannot test Android or iOS yet). Do not ask twice, and do not hold the push back for it. The user decides.
-
-Ask for an explicit yes to push exactly this, to that project. A past yes does not carry over: each push gets its own.
-
-If some files are `refused` or in `conflict`, do not push yet unless the user asks you to. Say which files and why, and
-offer to fix them. If the user wants the clean files sent now, push with their paths only. If a refusal comes from a
-check finding in a file you can edit, fix it with `/arcus:author`, then start again from the dry run.
+- If a file in a qi push was never run here and the policy is `run: required`, the dry run says `run_required`: offer
+  `/arcus:run`. If the policy is `optional` or the project is direct, say once that the file was not run, and offer a
+  run. Do not hold a direct push back for it.
+- A failed run counts as a run. If the last run failed, say so: the push would send the file with a failed result.
+  Ask if the user still wants it. A failure caused by the app is a finding, not a reason to change the test.
+- Ask for a clear yes to push exactly this, to that place. A past yes does not carry over.
+- Refused or conflicting files: do not push them. Say which and why, and offer the fix. To send the clean files now,
+  push with their paths only.
 
 ## 5. Push
 
 ```
-arcus push --json [paths] --project <name>
+arcus push --json [flags] [paths] --project <name>
 ```
 
-Compare the results with the plan. They should match. Report any difference. Then say where it went and how to find it,
-then report each file in the same words as before, in the past tense:
+Compare the result with the plan and report any difference. Say where it went, in the past tense, with the same words
+as the plan.
 
-- The place: `Pushed to the Arcus project "<project>", folder "<folder>".` Never say only "pushed". Take the place from
-  `destination` of this push, not from memory.
-- How to find it: give the `url` of each pushed test, as a link the user can open. It opens the test in Arcus. A CLI
-  older than 0.1.3 gives no `url`, and so does a test that failed to push or whose id Arcus would not give: then say
-  to open <arcusUrl>, then the project, then the folder, and look for the test by its title. A **new** test is in the
-  folder shown. A test that was only **updated** stays where it already was in Arcus, which may be another folder. Say
-  so, and do not claim a folder for it.
-- Never build a link yourself. Use a `url` the CLI gave, or none.
+- direct: `Pushed to the Arcus project "<project>", folder "<folder>".` Never say only "pushed". Always give the `url` of each
+  pushed test as a link. A CLI with no `url` gives none: then say to open `arcusUrl`, the project, the folder, and look
+  for the title. Never build a link yourself. A new test is in the folder shown. An updated test stays where it was.
+- qi: for each file `pushed` (`base -> revision`), `created` (the new case id; a `warning` may name a likely duplicate:
+  show it and the `--rebind` it offers), `unchanged`. Say the head is **pending review**. Show `took the suggested steps`
+  when it appears. The files do not change, but `arcus.lock` does: tell the user to commit it with the tests.
 
-A push that stops half way is safe to run again. It continues and does not make duplicates.
+A push that stops half way is safe to run again. Do not add `--accept` unless the user asks to accept too: see
+`/arcus:accept`.
 
 ## 6. After the push
 
-- **Server lines.** After a test is written, Arcus's own compiler looks at it. Problems come in `serverProblems`
-  (`code`, `severity`, `line`, `message`, `platform`). They never undo the push: the test is saved. Read them to the
-  user. Offer to fix them (`/arcus:author`) and push again. `serverWarning` means the check could not run, or Arcus
-  changed the test after the push. A missing `serverProblems` means Arcus found nothing.
-- **The files changed.** The CLI rewrote each pushed file to the text Arcus holds: canonical layout, no step keys, and
-  merged edits from others. Tell the user to look at `git diff` before committing.
-- **`arcus.lock` changed.** New tests add a row. Tell the user to commit it with the tests: the lock is how a teammate
-  works on the same Arcus tests and not on copies. Do not commit for them unless they ask.
-- **Run status.** Say what you know. If a test was run in this session and passed, say so. If it was run and failed, say
-  that it was pushed anyway. If it was never run here, say that a clean check and a push do not prove it passes against
-  the app, and offer `/arcus:run`. A run is not a condition for a push.
+- direct: the CLI rewrites each pushed file to Arcus's text. Tell the user to read `git diff`. Server lines
+  (`serverProblems`, `serverWarning`) never undo a push: read them out and offer `/arcus:author`.
+- qi: next is review. The user can check with `/arcus:sync` (`arcus status`). Then `rework` means change and push again.
 
-## What to say for each failure
+## Failures to explain
 
-| What you see | What to tell the user |
+| You see | Tell the user |
 |---|---|
-| `refused` with a `diagnostics` list | The offline check failed. Fix the findings. `/arcus:author` can do it |
-| `refused: A test named "…" already exists` | Another test in Arcus has that title. Pick another title |
-| `refused: "<path>" exists in Arcus and this folder does not track it` | That element path is taken in Arcus. Use another path |
-| `refused: it uses @<path>, which is not pushed` or `which failed to push in this run` | Push the element first, or fix why it failed |
-| `refused: … Arcus has newer edits … adds or moves entries` | Someone changed this test in Arcus. There is no `pull`: make the file match Arcus, then push again |
-| `refused: This clone has no base …` | A fresh clone with a file that differs from Arcus. The CLI cannot tell which side changed. There is no `pull`: make the file match Arcus, then push |
-| `refused: probably moved from …` | The file was moved or renamed. Move it back. Moving is not supported yet |
-| `conflict` | The same step changed on both sides. Two ways out: undo the local edit to that step; or make the file equal Arcus's text, delete the file's base in `.arcus/base/` (same path as the file, `.json` added, at the repo root), and push. Do nothing until the user chooses, and delete the base only if they say to |
-| `failed` | An unexpected error; the message is Arcus's. Report it as it is. A network failure also appears here. Running the push again is safe |
-| `missing` | A tracked file is not in the folder. Put it back, or leave it: nothing is sent and Arcus keeps the test |
+| `run_required` | The policy needs a run of the file as it is. Run it (`/arcus:run`), then push |
+| `head_moved` | The case moved in QI. Pull (`/arcus:sync`), run, push |
+| `check_failed`, direct `refused` with diagnostics | The offline check failed. `/arcus:author` fixes it |
+| `unbound` | No case yet. Say which flag fits (`--case`, `--new`) and ask |
+| `ambiguous_case` | That case is not under this issue. Pick from `arcus context` |
+| `element_not_pushed` | Push the element first, or fix why it failed |
+| direct `refused: A test named "…" already exists` | Another test has that title. Pick another |
+| direct `conflict` | The same step changed in Arcus and in the file. Undo the local edit to it, or make the file equal Arcus's text. Delete the base in `.arcus/base/` only if the user says to |
+| `failed` | An unexpected error. Report it as it is. A rerun is safe |
+| Whole-run error, exit `3` | Closed sprint, stale or missing context, a QI flag in a direct project, or a lock that does not fit the mode. Give the message and its `remediation` |
+| `QI refused: …` | Use the table in `states.md` |
 
-Errors that stop the whole run:
+Automation turned off in Arcus is for a project admin. Never change project settings.
 
-- exit `2`: sign-in expired or Arcus did not accept it, or the project's region differs from the signed-in region. Run
-  `/arcus:setup`.
-- exit `3`, **automation is turned off** for the Arcus project: a project admin must turn it on. Never try to change
-  project settings.
-- exit `3`, **Arcus runs another toolchain version**: the message says which side is behind. Tell the user to update the
-  CLI (`npm i -g @testsigma/arcus-cli`) or to install the release that matches Arcus.
-- exit `3`, **an `arcus.lock` from an older layout**: the message names the fix.
+## Never
 
-## What this skill never does
-
-- Push without a dry run and a yes from the user for this push.
-- Read the `summary` as the outcome. Read each file's `result`.
-- Work around a refusal or a conflict by editing `arcus.lock` or `.arcus/`, or by renaming files to get past a check.
-- Sign in, change Arcus project settings, or delete anything in Arcus.
-- Run the tests. It offers `/arcus:run`, and the user decides.
+- Push without a dry run and a yes for this push, or read `summary` as the outcome.
+- Get past a refusal by editing `arcus.lock` or `.arcus/`, or by renaming files.
+- Add `--new`, `--unmapped` or `--accept` on your own.
+- Sign in, delete anything, or change project settings.

@@ -1,42 +1,42 @@
 ---
 name: run
-description: Use when a developer asks to run, try, execute or verify an Arcus test on their machine, to watch a test in a browser, or to find out why a test fails. Runs one .sigma test locally with arcus run, reads the result and the screenshot, and says whether the test, the app or the setup is wrong. Sends nothing to Arcus and needs no sign-in. Does not push.
+description: Use when a developer asks to run, try or execute one Arcus test on their machine (web in a browser, or on an Android device), to watch it, to get the run a QI push needs, or to find out why a test fails. Runs one .sigma test with arcus run, reads the result and the screenshot, and says whether the test, the app or the setup is wrong. Sends nothing to Arcus or QI and needs no sign-in. Not for running every case of an issue (use verify). Does not push.
 ---
 
-# Run: try a test in a browser on this machine
+# Run: try a test on this machine
 
-`arcus run` runs **one** web test in a browser on this machine. The browser comes from the local Testsigma agent. Nothing
-is sent to Arcus, and no sign-in is needed. The CLI gives you the result. Your job is to read it, look at the evidence,
+`arcus run` runs **one** test on this machine: in a browser (web) or on an Android device. Nothing is sent to Arcus or QI,
+and no sign-in is needed. The result is kept locally as evidence. In qi mode a push can require it (the push skill
+says when). The CLI gives you the result. Your job is to read it, look at the evidence,
 and tell the user what happened and who owns it: the test, the app, or the setup.
 
 If the CLI is missing, too old for `run` (`arcus run --help` fails), or the repo has no project, stop and run the `setup`
 skill (`/arcus:setup`). Do not send the user to sign in: a run does not need it.
 
-Details, the result fields and the failure messages are in `${CLAUDE_PLUGIN_ROOT}/references/running.md`.
+Details, the result fields and the failure messages are in `${CLAUDE_PLUGIN_ROOT}/references/running.md`. For Android the CLI prints its own message and `remediation`: relay them.
 
 ## 1. Which test
 
-- The user named a file or a title: use it. They just wrote or changed files in this session: use those.
+- The user named a file or a title: use it. They just wrote or changed files: use those.
 - Otherwise ask which test. Do not run every test in the project unasked.
 - Several tests: run them one after another, and report one line each. The CLI runs one test at a time and has no
   suite result, so never claim one.
 - Read `arcus.json`. With several projects, ask which one unless the file makes it plain, and pass
   `--project <folder name>`. The test file must be in that project's `tests/` folder.
 
-## 2. Can this machine run it
+## 2. Which platform, and can this machine run it
 
-```
-arcus browsers list
-```
+Read the project's platforms: `arcus project platforms`. The default platform is the project's only one, or `web` when
+it has several and one is web. Pick with `--platform web` or `--platform android`. `ios` is not supported: say so.
 
-- It lists browsers (name, version, engine): good. The default is Chrome for Testing, then Chrome. The user can ask for
-  another one in the list.
-- `Cannot reach the Testsigma agent` (exit `3`): stop. Say the Testsigma agent is not running and the user must start
-  it. You cannot start it. Do not install a browser, and never run `playwright install`.
-- Read the project's platforms (`arcus project platforms`). A run needs `web` in them. Without it, `arcus run` stops with
-  `device runs are not supported yet`. Say that Android and iOS tests cannot be run yet. Do not edit `arcus.json`. Adding
-  `web` (`arcus project platforms add web`) makes `arcus check` stricter for every test in the project, so it is the user's
-  decision.
+- **Web:** `arcus browsers list`. It lists browsers: good. A message that starts `Cannot reach` (exit `3`) means the local
+  agent is not running. The user must start it. Do not install a browser, and never run `playwright install`.
+- **Android:** `arcus devices list`. A device in state `device` is ready. With several ready, pass `--device <serial>`.
+  The app comes from `--app <apk path or URL>` or from the `android` block of `arcus.json`. With neither, the session
+  starts on the device as it is. No tools (adb) or no device: send the user to `/arcus:setup`. Never run `adb`
+  yourself, and never install an app by another route.
+- A platform the project does not list is refused. Adding one (`arcus project platforms add <platform>`) makes
+  `arcus check` stricter for every test: it is the user's decision.
 
 ## 3. What the test needs
 
@@ -59,11 +59,14 @@ address the user has not seen, or one that you only guessed.
 ## 4. Run
 
 ```
-arcus run <file> --json --project <name> [--base-url <url>] [--var <name>=<value>] [--headed] [--browser <name>]
+arcus run <file> --json --project <name> [--platform <web|android>] [--base-url <url>] [--var <name>=<value>]
+    [--headed] [--browser <name>] [--device <serial>] [--app <apk>] [--note "<why>"]
 ```
 
 - Headless is the default. Add `--headed` only when the user asks to watch, or when you need to see a failure that the
   screenshot does not explain. Say that a window opens.
+- `--note` keeps a reason with the run, and the next push sends it to QI. Use it only when reviewers need it (for
+  example, the staging site was down). Write facts. No secret. Show the note to the user.
 - A failed step keeps a screenshot. Ask for `--screenshots all` only if the user wants proof of a pass.
 - The default time limit is 300 seconds (`--timeout <seconds>`). Give the Bash tool a longer timeout than that.
 - stdout is one JSON object. A setup error is JSON on stderr and stdout is empty.
@@ -74,8 +77,8 @@ Read `run.status` first, then the exit code. Exit `1` covers three different thi
 
 | `run.status` | Exit | Say, and do |
 |---|---|---|
-| `passed` | `0` | Passed: the browser and version, the duration, the step count. A local pass is not an Arcus run. Offer `/arcus:push` |
-| `failed` | `1` | The step that failed (`failedStep.description`), the message in plain words, the screenshot. Go to step 6 |
+| `passed` | `0` | Passed: the browser (or the device), the duration, the step count. A local pass is not an Arcus run. It is saved as evidence for a push. Offer `/arcus:push` |
+| `failed` | `1` | The step that failed (`failedStep.description`), the message in plain words, the screenshot. Go to step 6. A failed run is also saved as evidence: a push would send it as failed |
 | `refused` | `1` | The test did not compile, so no browser started. `run.diagnostics` is what `arcus check` says. Fix it with the rules of `/arcus:author` |
 | `interrupted` | `1` | The run was stopped, or the browser went away (`run.problem`). It is not a verdict on the test. Offer to run again |
 | none (setup error) | `3` | The message on stderr, with its `remediation`. See the table in `references/running.md` |
@@ -120,8 +123,8 @@ Say, briefly:
 
 ## Say no to what a local run cannot do yet
 
-Datasets (`for row in dataset …`, refused as `ARC1201`), groups, Android and iOS, running many tests as one suite, and
-running on Arcus's own machines. Say it is not supported yet, and offer what is.
+Datasets (`for row in dataset …`, refused as `ARC1201`), groups, iOS, a suite result, and running on Arcus's own machines.
+For every case of an issue, use `/arcus:verify`.
 
 ## What this skill never does
 

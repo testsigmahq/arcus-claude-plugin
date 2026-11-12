@@ -1,6 +1,6 @@
 ---
 name: author
-description: Use when a developer asks to write, add or generate end-to-end tests for their app in Arcus, or to change an existing Arcus test file. Writes the test as a .sigma file in the repo's Arcus project folder, learns the language from the arcus CLI instead of from memory, and does not stop until arcus check is clean. Does not push. Running the test in a browser is the run skill's job.
+description: Use when a developer asks to write, add or generate end-to-end tests for their app in Arcus, to automate a QI case, or to change an existing Arcus test or element file. Writes .sigma files in the repo's Arcus project folder, learns the language from the arcus CLI instead of from memory, and does not stop until arcus check is clean. Does not push or run. Running is the run skill's job, pushing is the push skill's.
 ---
 
 # Author: write an Arcus test
@@ -14,6 +14,11 @@ no project, stop and run the `setup` skill (`/arcus:setup`) first.
 
 This skill writes and checks files. It does not push them (`/arcus:push`) and it does not run them (`/arcus:run`). A
 clean check means the CLI accepts a test. Only a run shows that it passes against the app.
+
+**The mode.** Run `arcus project mode`. In `qi` mode a test automates one QI case: read the issue and the case steps with
+`/arcus:context` first, and write one file per case that covers every manual step. The file is bound to its case on its
+first push (`/arcus:push`). In `direct` mode the file becomes an Arcus test on its first push. Elements are the same in
+both modes.
 
 ## 1. Know where the test goes
 
@@ -79,8 +84,9 @@ offer the closest form that does.
   it. Do not invent one.
 - Keep the title short and specific. It is what people see in Arcus.
 - If a file for this test already exists, edit it. Do not make a second file with the same title.
-- **Is the file already pushed?** Search `arcus.lock` for its path. If it is there, the file is tracked: it exists in
-  Arcus. Read `${CLAUDE_PLUGIN_ROOT}/references/editing.md` before changing it. Never rename, move or delete a tracked
+- **Is the file already pushed?** Search `arcus.lock` for its path. If it is there, the file is tracked (bound to an Arcus
+  document or to a QI case). In qi mode run `arcus status <path>` and pull first when it says `behind` or `diverged`
+  (`/arcus:sync`). Read `${CLAUDE_PLUGIN_ROOT}/references/editing.md` before changing it. Never rename, move or delete a tracked
   file, and do not rename its title unless the user asks.
 
 ## 5. Check, fix, repeat
@@ -135,12 +141,12 @@ Say, briefly:
 - that the tests were **checked, not run**: a clean check means the CLI accepts the test, not that it passes against
   the app. Targets that were written without seeing the app may need adjusting when the test first runs.
 
-Then hand over. The next step is a run, then a push:
+Then hand over. The next step is a run, then a push. In qi mode a push usually needs a run of the file as it is now:
 
 - The user asked to run or verify the test (`write a test and run it`, `check that it works`): hand over to the `run`
   skill now. Do not ask again.
-- Otherwise offer `/arcus:run` first, and `/arcus:push` after it. Offer a run only for a project with `web` in its
-  platforms. A run cannot test Android or iOS yet.
+- Otherwise offer `/arcus:run` first, and `/arcus:push` after it. Offer a run for a project with `web` or
+  `android` in its platforms. A run cannot test iOS.
 - The user asks to push now: hand over to the `push` skill. It will say that the test was not run. Do not run
   `arcus push` or `arcus run` from here.
 
