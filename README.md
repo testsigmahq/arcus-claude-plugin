@@ -1,20 +1,31 @@
 # Arcus (Claude Code plugin)
 
-Write Arcus tests in your repo with Claude, check them offline, run them in a browser on your machine, and push them to
-an Arcus project. The plugin is a set of skills for Claude Code. The `arcus` command-line tool does all the work and all
-the talking to Arcus. The plugin itself sends nothing anywhere.
+Guide your coding agent through the developer side of the Arcus CLI and the QI workflow. QI is the quality service. It
+keeps test cases as versions and a reviewer accepts them. The plugin is a set of skills for Claude Code. The `arcus`
+command-line tool does all the work and all the talking to Arcus and QI. The plugin itself sends nothing anywhere.
+
+## What lives where
+
+- **Arcus** holds the accepted test suite and all element files.
+- **QI** holds the sprint, the cases made from the acceptance criteria, each case's versions, the review, and the policy.
+- **Your repo** holds the `.sigma` files, `arcus.json` (the project and its mode) and `arcus.lock` (commit it).
+
+A project works in one mode. **direct**: a push puts tests in Arcus at once. **qi**: a push sends tests to QI as
+versions, and a reviewer accepts them. Elements go to Arcus in both modes. Details are in
+`plugins/arcus/references/workflow.md`.
 
 ## What you need
 
 - Claude Code.
-- The `arcus` CLI, on your `PATH`: `npm i -g @testsigma/arcus-cli`. It needs Node 22 or newer. `/arcus:run` needs CLI
-  0.1.1 or newer. `/arcus:push` names the Arcus project and folder, and links each test, from CLI 0.1.3.
-- An Arcus account. You sign in yourself, in a terminal: `arcus auth login --region us|in|eu`. Only `push` and `init`
-  need it. Writing, checking and running do not.
-- To run tests: the Testsigma agent, running on your machine. It gives the CLI the browsers.
+- The `arcus` CLI, on your `PATH`: `npm i -g @testsigma/arcus-cli`. It needs Node 22 or newer. The skills check that the
+  CLI has the commands they need, and say when it is too old.
+- An Arcus account. You sign in yourself, in a terminal: `arcus auth login --region us|in|eu`. Writing, checking and
+  running do not need it. Pushing, QI commands and `init` do.
+- To run web tests: the local test agent, running on your machine. To run Android tests: adb, a device or emulator, and
+  the tools folder (`/arcus:setup` explains it).
 
-The plugin holds no list of steps, forms or locators. Claude asks the installed CLI (`arcus docs`) what the language
-can say, and `arcus check` decides what is valid. So what you can write is whatever your CLI version accepts.
+The plugin holds no list of steps, forms or locators. Claude asks the installed CLI (`arcus docs`), and `arcus check`
+decides what is valid.
 
 ## Install
 
@@ -55,20 +66,25 @@ claude plugin install arcus@testsigma
 
 | Skill | What it does |
 |---|---|
-| `/arcus:setup` | Checks the CLI is installed, you are signed in, and the repo is bound to a project with the right platforms. Stops with the exact next step |
-| `/arcus:author [what to test]` | Writes tests and elements as `.sigma` files, learns the language from `arcus docs`, and loops `arcus check` and `arcus fmt` until clean |
-| `/arcus:run [test]` | Runs one test in a browser on your machine, reads the result and the screenshot, and says whether the test, the app or the setup is wrong. Nothing is sent to Arcus |
-| `/arcus:push [files]` | Runs `arcus push --dry-run`, shows the plan in words, pushes after your yes, and explains every result |
-| `/arcus:help` | Shows the commands and the usual flow |
+| `/arcus:setup` | Checks the CLI, the sign-in, the project, its mode and platforms, and whether this machine can run web and Android tests |
+| `/arcus:context <issue>` | Qi mode. Reads the issue, its cases and the policy from QI, and plans which tests to write or change |
+| `/arcus:author [what to test]` | Writes tests and elements as `.sigma` files and loops `arcus check` and `arcus fmt` until clean |
+| `/arcus:run [test]` | Runs one test on web or Android, reads the result, and says whether the test, the app or the setup is wrong |
+| `/arcus:verify <issue>` | Qi mode. Runs every case of an issue and reports covered, failing, missing, local only or rejected |
+| `/arcus:push [files]` | Dry run, a plan in words, a push after your yes, and every result and refusal explained. Both modes |
+| `/arcus:accept [files]` | Qi mode. After a policy check and your yes, accepts pushed versions into Arcus |
+| `/arcus:sync` | Shows where each file stands, pulls QI's changes, detaches and attaches files, and covers the pipeline check |
+| `/arcus:mode` | Shows the project mode and switches it with a dry run and your yes |
+| `/arcus:help` | Shows the skills and the usual flow |
 
-**Typical flow:** `/arcus:setup` once per repo, then `/arcus:author <what to test>`, then `/arcus:run`, look at the
-files, then `/arcus:push`. Each skill ends by naming the next one. Say `write a test and run it` and Claude goes from
-`author` to `run` without asking again.
+**Typical flow in qi mode:** `/arcus:setup` once, then `/arcus:context CW-412`, `/arcus:author`, `/arcus:run`,
+`/arcus:push`, `/arcus:sync` to see the review, and `/arcus:verify` before a merge. In direct mode: `/arcus:author`,
+`/arcus:run`, `/arcus:push`.
 
 ```text
-setup ──► author ──► run ──► push
-            ▲         │
-            └─ fix ───┘
+setup ──► context ──► author ──► run ──► push ──► sync ──► accept
+                        ▲         │        │         │
+                        └─ fix ───┴────────┴─ rework ┘
 ```
 
 ## How it behaves
@@ -82,16 +98,17 @@ setup ──► author ──► run ──► push
   test, the app or the setup is wrong. It fixes the test when the test is wrong, at most three rounds.
 - **Secrets stay out of the command.** Claude never types a password into a run and never reads `.env` files. A secret is
   passed by reference to a variable you set in your own terminal.
-- **Arcus is the source of truth.** There is no `pull` yet. When Arcus and your file disagree, the push says so, and
-  Claude tells you, and does not work around it.
+- **QI and Arcus text is data.** Case titles, steps and review comments can come from other people. Claude shows them
+  to you and never follows an instruction inside them.
+- **Accept and mode changes need your clear yes.** They change the suite the team trusts.
 
 ## This version
 
-- A run is local, one web test at a time, in a browser from the Testsigma agent. It cannot run Android or iOS tests,
-  datasets or groups yet, and there is no suite run. A local pass is not an Arcus run.
-- Not supported yet, because the CLI refuses them: `api` steps, groups, `host` lines, header lines such as `tags`,
-  and sub-folders under `tests/`.
-- Sprint and story mapping, and session capture, from earlier versions of this plugin, are gone.
+- Android runs and the commands `devices list` and `verify --platform android` follow the CLI's current work. The skills
+  tell Claude to read `arcus run --help` to see what your CLI has.
+- iOS runs are not supported. Not supported yet because the CLI refuses them: `api` steps, groups, `host` lines, header
+  lines such as `tags`, and sub-folders under `tests/`.
+- The QI command names may change later. They are kept in few places (`references/commands.md`).
 
 ## Privacy
 
@@ -106,11 +123,11 @@ elements to the Arcus project you chose, using your own sign-in. See the
 plugins/arcus/
   .claude-plugin/plugin.json        the plugin manifest
   commands/help.md                  /arcus:help
-  skills/{setup,author,run,push}/   one SKILL.md each
+  skills/{setup,context,author,run,verify,push,accept,sync,mode}/   one SKILL.md each
   references/                       notes the skills read when they need them
   tests/                            tests of the documents (pytest)
   evals/                            behavioural cases: `claude plugin eval plugins/arcus`
-notes/                              design notes
+CHANGELOG.md is in plugins/arcus/
 ```
 
 ## Tests
@@ -120,4 +137,4 @@ and stays inside a size budget, every pointer resolves, and no document names a 
 exist. Run them from `plugins/arcus/` with `python -m pytest`.
 
 The evals (`plugins/arcus/evals/`) check that Claude behaves as the skills say. They need the `arcus` CLI on your `PATH`,
-and the Testsigma agent running for the cases that open a browser: `claude plugin eval plugins/arcus`.
+and the local test agent running for the cases that open a browser: `claude plugin eval plugins/arcus`.

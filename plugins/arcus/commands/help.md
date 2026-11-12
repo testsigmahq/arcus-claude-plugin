@@ -2,57 +2,40 @@
 description: Show what the Arcus plugin does and how to use it
 ---
 
-The Arcus plugin helps you write Arcus tests in your repo, try them in a browser, and send them to an Arcus project. Tests
-and elements are `.sigma` files. The `arcus` command-line tool checks them offline, runs them on your machine, and
-pushes them. The plugin teaches Claude to use it well, and it sends nothing to Arcus by itself.
+The Arcus plugin guides you through the developer side of the Arcus CLI and the QI workflow. QI is the quality service:
+it keeps test cases as versions and a reviewer accepts them. Tests and elements are `.sigma` files. The `arcus`
+command-line tool checks them offline, runs them on your machine, and sends them. The plugin sends nothing by itself.
+
+A project works in one mode. **direct**: a push puts tests in Arcus at once. **qi**: a push sends tests to QI as
+versions, and a reviewer accepts them. Elements go to Arcus in both modes.
 
 ## Skills
 
-- `/arcus:setup` — Check that the `arcus` CLI is installed, that you are signed in, and that this repo is bound to an
-  Arcus project with the right platforms. Also says whether this machine can run tests. Stops with the one thing to do
-  when something is missing.
-- `/arcus:author [what to test]` — Write a test (and the elements it needs) as `.sigma` files. Claude learns the
-  language from `arcus docs`, writes, runs `arcus check`, fixes, and formats. It does not stop until the check is clean.
-- `/arcus:run [test]` — Run one test in a browser on your machine, with `arcus run`. Claude reads the result and the
-  screenshot, and tells you whether the test, the app or the setup is wrong. It fixes a test that is wrong, up to three
-  rounds, and never weakens a test to make it pass. Nothing is sent to Arcus. No sign-in is needed.
-- `/arcus:push [files]` — Send tests and elements to Arcus. Always starts with `arcus push --dry-run` and shows you the
-  plan. Says which Arcus project and folder it goes to. Pushes only after you say yes, then says where it went and explains every result.
+- `/arcus:setup` — Check the CLI, the sign-in, the project, its mode and platforms, and whether this machine can run
+  web and Android tests. Stops with the one thing to do.
+- `/arcus:context <issue>` — Qi mode. Read the issue, its cases and the policy from QI. Plan which tests to write.
+- `/arcus:author [what to test]` — Write tests and elements as `.sigma` files. Loops check and format until clean.
+- `/arcus:run [test]` — Run one test on web or Android. Says whether the test, the app or the setup is wrong. Nothing
+  is sent.
+- `/arcus:verify <issue>` — Qi mode. Run every case of an issue and report each one.
+- `/arcus:push [files]` — Dry run first, a plan in words, a push after your yes. Explains every result and refusal.
+- `/arcus:accept [files]` — Qi mode. Accept pushed versions into Arcus, after a policy check and your yes.
+- `/arcus:sync` — Show where each file stands. Pull QI's changes. Detach or attach a file. Pipeline check.
+- `/arcus:mode` — Show the project mode. Switch it with a dry run and your yes.
 
 ## Typical flow
 
-1. `/arcus:setup` once per repo. Sign in yourself when it asks (`arcus auth login --region us|in|eu`).
-2. `/arcus:author login flow` — Claude writes the files and checks them.
-3. `/arcus:run` — Claude runs the test in a browser and tells you what happened. Say `write a test and run it` to do
-   steps 2 and 3 together.
-4. Look at the files, and at `git diff`.
+1. `/arcus:setup` once per repo. Sign in yourself when it asks.
+2. Qi mode: `/arcus:context CW-412` to see what QI expects. Direct mode: go to step 3.
+3. `/arcus:author` — Claude writes the files and checks them.
+4. `/arcus:run` — Claude runs the test and tells you what happened.
 5. `/arcus:push` — read the plan, say yes, and commit `arcus.lock` with the tests.
-
-## This version
-
-- A run is local and runs one web test at a time, in a browser from the Testsigma agent. Start the agent first. It cannot
-  run Android or iOS tests, datasets or groups yet, and there is no suite run. A local pass is not an Arcus run.
-- `/arcus:run` needs `arcus` CLI 0.1.1 or newer. `/arcus:push` names the Arcus project and folder it sent to, and links each test, from 0.1.3.
-  The other skills work on older ones.
-- There is no `pull`. Arcus is the source of truth. If Arcus has newer edits to a test, the push says so and you bring
-  the file to Arcus's text by hand.
-- Not supported yet (the CLI refuses them): `api` steps, groups, `host` lines, and sub-folders under `tests/`.
-
-## Files
-
-- `arcus.json` — which Arcus projects this repo holds, their platforms, and where their folders are. Written by
-  `arcus init`.
-- `arcus.lock` — which file is which Arcus test or element. Commit it.
-- `.arcus/` — local state. Not committed.
-- `<folder>/<project>/tests/` and `elements/` — the documents.
+6. Qi mode: `/arcus:sync` to see the review, `/arcus:verify` before a merge, `/arcus:accept` when the policy allows.
 
 ## Troubleshooting
 
-- `arcus: command not found` — `npm i -g @testsigma/arcus-cli` (needs Node 22 or newer), then `/arcus:setup`.
-- `Not signed in` or exit code `2` — run `arcus auth login` yourself, then try again.
-- `Which project?` — the repo holds several projects. Say which one, or run from inside its folder.
-- A push is refused or in conflict — the plan says which file and why. Run `arcus docs --topic gotchas` for the common
-  mistakes.
-- Automation is turned off — a project admin must turn it on in Arcus.
-- `Cannot reach the Testsigma agent` — start the Testsigma agent. Only `/arcus:run` needs it.
-- `device runs are not supported yet` — the project has no `web` platform, and a run tests web only.
+- `arcus: command not found` — install the CLI (`/arcus:setup` gives the command).
+- Exit code `2` — not signed in, or the region differs. Sign in yourself, then try again.
+- Exit code `3` — wrong setup. Read the message and its `remediation`. A mode and lock mismatch: `/arcus:mode`.
+- A push is refused — the plan says which file and why. `/arcus:push` explains each reason.
+- `Cannot reach the …agent` — start the local test agent. Only web runs need it.

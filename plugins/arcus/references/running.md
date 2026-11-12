@@ -38,7 +38,7 @@ It is never `2`: a run does not talk to Arcus.
 
 | Message starts with | Owner | Say |
 |---|---|---|
-| `Cannot reach the Testsigma agent` | the user | Start the Testsigma agent. If it runs somewhere else, `arcus config set execution.localUrl <url>` |
+| `Cannot reach the …agent` (the CLI's own text) | the user | Start the local agent. If it runs somewhere else, `arcus config set execution.localUrl <url>` |
 | `… has no web platform` or `… has no android platform` | the user | Pick a platform the project lists with `--platform`, or ask before `arcus project platforms add <platform>` |
 | `ios runs are not supported yet` | the user | Say it as it is |
 | `The Android tools (adb) were not found` | the user | Setup: `ARCUS_ANDROID_TOOLS_DIR` or `arcus config set android.toolsDir <folder>` |
