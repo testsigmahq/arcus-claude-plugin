@@ -15,17 +15,23 @@ project it stops with exit `3`: say verify is a QI command (`/arcus:mode`). It n
 - Ask for the issue key if the user gave none.
 - Same checks as `/arcus:run`: the platform, a ready browser or device, the address (`--base-url`), the `{env.<name>}`
   values (`--var`). Secrets go as `--var name="$VARIABLE"` set by the user. Never type one, never read `.env` files.
-- Tell the user the address and the platform. They run many cases one after another and may take long. Run only when
+- On Android, the options are the same as for a run: `--platform android`, `--device <serial>` (needed when several
+  devices are ready), and `--app`. The setup, the app rules and the troubleshooting are in
+  `${CLAUDE_PLUGIN_ROOT}/references/running.md`.
+- Tell the user the address and the platform (on Android, the device too). They run many cases one after another and may take long. Run only when
   the user asked, or said yes to your offer.
 
 ## 2. Run
 
 ```
 arcus verify --issue <KEY> --json --project <name> [--platform <web|android>] [--base-url <url>] [--var <name>=<value>]
-    [--headed] [--browser <name>] [--device <serial>] [--app <apk>] [--timeout <seconds>]
+    [--headed] [--browser <name>] [--device <serial>] [--app <path-or-url>] [--timeout <seconds>]
 ```
 
-Give the Bash tool a time limit longer than cases times the timeout.
+Give the Bash tool a time limit longer than cases times the timeout. On Android, `verify` starts Appium once for the
+whole command (10 to 25 seconds), and the output has the lines `platform:`, `device:` and `tools:`. Say them. A `failing`
+case on Android may only say `Step failed`: look at `results.ndjson` and the screenshot of that case's run folder
+(`.arcus/runs/`) before you judge it, as `/arcus:run` says.
 
 ## 3. Read the answer
 

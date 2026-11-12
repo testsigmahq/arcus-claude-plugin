@@ -72,7 +72,11 @@ reason and `next`. Call out: how many new cases or tests, any rename, and a chan
 
 - If a file in a qi push was never run here and the policy is `run: required`, the dry run says `run_required`: offer
   `/arcus:run`. If the policy is `optional` or the project is direct, say once that the file was not run, and offer a
-  run. Do not hold a direct push back for it.
+  run. Do not hold a direct push back for it. A qi push with an `optional` policy and no run is allowed: the dry run,
+  the result and `arcus status` show `no local run`. It is not a pass.
+- The plan shows, for each file, the run it uses: its platform (and, on Android, the device) and its result. The gate
+  takes the newest matching run of any platform, so an Android run can be the evidence for a test that also runs on
+  web. Say the platform to the user.
 - A failed run counts as a run. If the last run failed, say so: the push would send the file with a failed result.
   Ask if the user still wants it. A failure caused by the app is a finding, not a reason to change the test.
 - Ask for a clear yes to push exactly this, to that place. A past yes does not carry over.

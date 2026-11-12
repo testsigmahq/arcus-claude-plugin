@@ -18,8 +18,10 @@ several projects.
 | Run one test here | `arcus run <file>` | both | no | `run` |
 | Run one test, with a note for reviewers | `arcus run <file> --note "<why>"` | both | no | `run` |
 | Run on a platform | `arcus run <file> --platform <web\|android>` | both | no | `run` |
-| List the devices | `arcus devices list` | both | no | `setup`, `run` |
+| Run on a device, with an app | `arcus run <file> --platform android --device <serial> --app <apk>` | both | no | `run` |
+| List the devices (state `device` is ready) | `arcus devices list` or `arcus devices list --json` | both | no | `setup`, `run` |
 | Run every case of an issue | `arcus verify --issue <KEY>` | qi | yes | `verify` |
+| Run every case on Android | `arcus verify --issue <KEY> --platform android [--device <serial>] [--app <apk>]` | qi | yes | `verify` |
 | Plan a push | `arcus push --dry-run [paths]` | both | yes | `push` |
 | Push | `arcus push [paths]` | both | yes | `push` |
 | Bind a file to a case on its first push | `arcus push <path> --case <id>` | qi | yes | `push` |
@@ -36,7 +38,8 @@ several projects.
 | Rebuild local records on a fresh clone | `arcus pull --rebuild` | qi | yes | `sync` |
 | Keep a file as a local test | `arcus detach <paths>` | qi | no | `sync` |
 | Sync a local test with its case again | `arcus attach <paths>` | qi | no | `sync` |
-| Android tools folder | `arcus config set android.toolsDir <folder>` | both | no | `setup` |
+| Android tools folder | `arcus config set android.toolsDir <folder>` (stores an absolute path) | both | no | `setup` |
+| Show the CLI settings | `arcus config show` | both | no | `setup` |
 
 ## A rename
 
@@ -44,3 +47,10 @@ The names `context`, `pull`, `accept`, `status`, `attach`, `detach` and `verify`
 later. When that happens: change the table above, the command strings in the owner skill of each row, and the
 `CLI_SURFACE` table in `tests/support.py`. Run the tests. They fail on every string that the CLI no longer has.
 The README and the help command name no flags, so they need no change.
+
+## Android settings that are not commands
+
+`ARCUS_ANDROID_TOOLS_DIR` (the tools folder) is read from the shell environment, then from a `.env` file. A `.env` value
+must be an absolute path outside the repository. `ARCUS_ANDROID_APPIUM_URL` (use an Appium that already runs) is read
+from the shell environment only. The order, the limits and the `android` block of `arcus.json` are in
+`${CLAUDE_PLUGIN_ROOT}/references/running.md`.

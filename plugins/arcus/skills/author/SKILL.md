@@ -69,6 +69,11 @@ Read the actions you will use, and the topic for anything you are unsure of (`lo
 a verb, a form or an option. If the user asks for something `docs` does not show, it does not compile: say that, and
 offer the closest form that does.
 
+**Android.** `arcus docs` can be wrong or silent for Android, and `arcus check` is the judge. Real runs on an emulator
+gave a list of what works, what `check` refuses, and a few traps (a locator form that passes `check` but fails in the
+runner). Read the part "Writing for Android" in `${CLAUDE_PLUGIN_ROOT}/references/platforms.md` before you write for an
+Android project.
+
 ## 4. Write the file
 
 - **One test per file**, at `<project folder>/tests/<name>.sigma`. `<name>` is the title in lower-case words joined by
@@ -76,7 +81,12 @@ offer the closest form that does.
 - The file holds one `test "<title>" { … }` and nothing else above it. No header lines (`sigmascript`, `platform`,
   `tags`, …): Arcus cannot store them.
 - No step keys (`#· s_…`). Arcus makes them, and the CLI finds steps again by their text.
-- Open with the first step the person would do, usually `nav`. End with a `verify`.
+- Open with the first step the person would do: `nav` on web, `launch app` on Android. End with a `verify`.
+- **Android targets.** Look for the visible text, `android:id` and `contentDescription` in the app source. A Jetpack
+  Compose app often has no ids: buttons by their visible text (the whole text), text fields by position, for example
+  `locate xpath "(//android.widget.EditText)[1]"`. The target of a gesture comes after the direction:
+  `swipe up locate …`. Never write the forms that `check` refuses on Android (`nav`, `text ~`, `role`, `for … in
+  locate`, and more: the list is in `platforms.md`). Do not use an element `locator chain` on Android.
 - **Targets.** A target that appears more than once, or that is hard to find, or that needs a locator per platform, is
   an element: its own file in `elements/`, used as `@<path>`. A one-off target stays inline (`locate …`). Write the
   element files first. When to make one, how to name it and how to order its locators is in

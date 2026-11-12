@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.10.0
+
+The Android guidance now matches the current CLI and real runs on an Android emulator.
+
+- `setup`: the tools folder and the order the CLI reads it in (shell variable, `.env`, `arcus config set`, then the usual
+  SDK places), the rule that a `.env` value must be an absolute path outside the repository, and that the CLI starts and
+  stops Appium itself. The agent never writes a `.env` file without a yes.
+- `run` and `verify`: `--platform` rules, `--device`, `--app` (and what `android.app` in `arcus.json` may hold), the
+  `android` block, the `device:` and `tools:` lines, and the exit codes. A failed Android step often says only
+  `Step failed`: read `results.ndjson` and the screenshot first.
+- `references/running.md`: new parts "Android: tools, device, app" and "Android troubleshooting" (symptom, cause, next
+  step), more setup errors, and the run evidence per test path and platform. A push with an `optional` run policy and no
+  run shows `no local run`.
+- `references/platforms.md`: "Writing for Android": what works, the locators that work, what `arcus check` refuses, the
+  web-view-only locators, and the forms to avoid. What is not tested on a device yet is said as it is.
+- `author`, `elements.md`, `reading-the-app.md`, `commands.md`, `push`, `help` and the README follow.
+
 ## 0.9.0
 
 A near full rewrite for the QI workflow. Written against the `arcus` CLI that has `context`, `pull`, `accept`, `status`,

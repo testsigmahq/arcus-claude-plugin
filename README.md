@@ -21,11 +21,13 @@ versions, and a reviewer accepts them. Elements go to Arcus in both modes. Detai
   CLI has the commands they need, and say when it is too old.
 - An Arcus account. You sign in yourself, in a terminal: `arcus auth login --region us|in|eu`. Writing, checking and
   running do not need it. Pushing, QI commands and `init` do.
-- To run web tests: the local test agent, running on your machine. To run Android tests: adb, a device or emulator, and
-  the tools folder (`/arcus:setup` explains it).
+- To run web tests: the local test agent, running on your machine. To run Android tests: adb and Appium (from the Testsigma
+  agent install folder, or an Android SDK with `appium` on PATH), a device or emulator, and the tools folder
+  (`/arcus:setup` explains it). The CLI starts and stops Appium itself.
 
 The plugin holds no list of steps, forms or locators. Claude asks the installed CLI (`arcus docs`), and `arcus check`
-decides what is valid.
+decides what is valid. The one exception is a short note of known Android limits, where `arcus docs` is wrong or silent
+(`references/platforms.md`).
 
 ## Install
 
@@ -104,8 +106,10 @@ setup ──► context ──► author ──► run ──► push ──► 
 
 ## This version
 
-- Android runs and the commands `devices list` and `verify --platform android` follow the CLI's current work. The skills
-  tell Claude to read `arcus run --help` to see what your CLI has.
+- Android runs (`arcus run --platform android`, `--device`, `--app`), `arcus devices list` and
+  `arcus verify --platform android` follow the CLI's current work. The skills tell Claude to read `arcus run --help` to
+  see what your CLI has. What works on Android comes from runs on an emulator. Device actions, alerts, web views, app
+  install and uninstall, image actions, a physical phone and Windows are not tested yet.
 - iOS runs are not supported. Not supported yet because the CLI refuses them: `api` steps, groups, `host` lines, header
   lines such as `tags`, and sub-folders under `tests/`.
 - The QI command names may change later. They are kept in few places (`references/commands.md`).

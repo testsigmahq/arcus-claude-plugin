@@ -74,17 +74,26 @@ This step never stops setup. It matters only for `/arcus:run` and `/arcus:verify
 
 - Web (the project lists `web`): `arcus browsers list`. It lists browsers: ready. A message that starts `Cannot reach`
   means the local agent is not running. The user must start it. You cannot.
-- Android (the project lists `android`): run `arcus devices list`. Ready means state `device`. States `unauthorized`
-  and `offline` need the user: unlock the phone and accept the USB prompt, or reconnect it. No device: connect one or
-  start an emulator. If it says the Android tools (adb) were not found, the folder is not set. It is the local
-  agent install folder or an Android SDK folder. With a yes, run `arcus config set android.toolsDir <folder>`. The
-  other ways are the `ARCUS_ANDROID_TOOLS_DIR` variable and a `.env` file at the repo root: the user adds those. Never
-  read `.env` files. Check with `arcus config show`.
-- The app under test: the `android` block of `arcus.json` takes `app` (an `.apk` path or URL), `appPackage`,
-  `appActivity`, `device` and `capabilities`. All are optional. No secret goes in it. With a yes you may edit that
-  block only, then run `arcus project platforms` to see that the file still parses.
+- Android (the project lists `android`): run `arcus devices list`. Ready means state `device`. `unauthorized` and
+  `offline` need the user: unlock the phone and accept the USB prompt, or reconnect it or restart the emulator. No
+  device: connect one or start an emulator. Several ready devices are fine: a run then needs `--device <serial>`.
+  - If it says the Android tools (adb) were not found, the tools folder is not set. It is the Testsigma agent install
+    folder (it has adb and Appium), or a plain Android SDK folder (then `appium` must be on PATH). Ways to set it, in
+    the order the CLI reads them: the `ARCUS_ANDROID_TOOLS_DIR` variable in the shell, a `.env` file, then
+    `arcus config set android.toolsDir <folder>`. Prefer the variable or `arcus config set`. With a yes, run the
+    `config set` command. A `.env` value must be an absolute path (or start with `~`) outside the repository, or the CLI
+    refuses it (exit `3`). Do not write a `.env` file for the user without a yes, and never read one. Check with
+    `arcus config show`. With none of them set, the CLI tries `ANDROID_HOME`, `ANDROID_SDK_ROOT`, the usual SDK folder
+    and `adb` on PATH, so a normal SDK install needs no setting.
+  - The CLI starts and stops Appium itself. Do not start it. A start takes 10 to 25 seconds. Only a user who already
+    runs an Appium sets `ARCUS_ANDROID_APPIUM_URL`, in the shell.
+  - The app under test: `--app` on a run, or the `android` block of `arcus.json`: `app` (only a relative path to an
+    `.apk` inside the project folder), `appPackage`, `appActivity`, `device`, `capabilities`. All are optional. No
+    secret goes in it. With a yes you may edit that block only, then run `arcus project platforms` to see that the
+    file still parses. The details are in `${CLAUDE_PLUGIN_ROOT}/references/running.md`.
 - `ios` runs are not supported.
 - If `arcus run --help` has no `--platform`, the CLI has no Android runs yet. Say so.
+- A physical phone and Windows have not been tested yet. Say so if the user asks.
 
 ## 6. Report
 

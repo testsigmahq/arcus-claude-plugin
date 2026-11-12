@@ -15,8 +15,8 @@ versions, and a reviewer accepts them. Elements go to Arcus in both modes.
   web and Android tests. Stops with the one thing to do.
 - `/arcus:context <issue>` — Qi mode. Read the issue, its cases and the policy from QI. Plan which tests to write.
 - `/arcus:author [what to test]` — Write tests and elements as `.sigma` files. Loops check and format until clean.
-- `/arcus:run [test]` — Run one test on web or Android. Says whether the test, the app or the setup is wrong. Nothing
-  is sent.
+- `/arcus:run [test]` — Run one test on web or Android (`--platform`, `--device`, `--app`). Says whether the test, the
+  app or the setup is wrong. Nothing is sent.
 - `/arcus:verify <issue>` — Qi mode. Run every case of an issue and report each one.
 - `/arcus:push [files]` — Dry run first, a plan in words, a push after your yes. Explains every result and refusal.
 - `/arcus:accept [files]` — Qi mode. Accept pushed versions into Arcus, after a policy check and your yes.
@@ -39,3 +39,7 @@ versions, and a reviewer accepts them. Elements go to Arcus in both modes.
 - Exit code `3` — wrong setup. Read the message and its `remediation`. A mode and lock mismatch: `/arcus:mode`.
 - A push is refused — the plan says which file and why. `/arcus:push` explains each reason.
 - `Cannot reach the …agent` — start the local test agent. Only web runs need it.
+- `The Android tools (adb) were not found` — tell the CLI where the tools are: the `ARCUS_ANDROID_TOOLS_DIR` variable
+  in your shell, or `arcus config set android.toolsDir <folder>`. `/arcus:setup` explains it.
+- Several Android devices are ready — pass `--device <serial>`. `arcus devices list` shows them.
+- An Android step fails with only `Step failed` — Claude reads `results.ndjson` and the screenshot of the run. Ask it to.

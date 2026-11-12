@@ -20,7 +20,8 @@ right (see `${CLAUDE_PLUGIN_ROOT}/references/platforms.md`).
 | The pages and the steps between them | The router (`routes`, `pages/`, `app/`), the page or screen components |
 | Fields, buttons, links | The components: `data-testid`, `id`, `name`, `aria-label`, labels, placeholder text, visible button text |
 | Messages that prove success or failure | The strings in the components and the translation files |
-| Mobile controls | `accessibilityIdentifier` and `accessibilityLabel` on iOS; `android:id` and `contentDescription` on Android; Flutter or React Native test keys |
+| Mobile controls | `accessibilityIdentifier` and `accessibilityLabel` on iOS; `android:id` and `contentDescription` on Android; Flutter or React Native test keys. A Jetpack Compose app often has none: its visible text is the locator, and a text field is found by position |
+| The Android package and the first screen | `applicationId` in `build.gradle`, the launcher activity in `AndroidManifest.xml`. They go in `--app`, `android.appPackage` or `launch app "<package>"`. Never guess them |
 | Test data | Fixtures, seed files, the tests the repo already has |
 
 ## Choosing what a target says

@@ -28,10 +28,48 @@ So before writing, compare what the user wants to test with the project's platfo
 ## Mobile
 
 Authoring for Android and iOS works like web: `arcus docs` lists the device actions. `arcus run` and `arcus verify` run
-**web and Android**. They do not run iOS. On Android a run needs the tools (adb), a ready device (`arcus devices list`),
-and optionally an app (`--app`, or the `android` block of `arcus.json`). With several platforms, `arcus run --platform
-android` picks one. `arcus run` first makes the same check as `arcus check`, which compiles for every platform of the
-project. A web-only step fails that check on the mobile platform, so the test is refused, not run.
+**web and Android**. They do not run iOS. How a run finds its tools, device and app is in
+`${CLAUDE_PLUGIN_ROOT}/references/running.md`. `arcus run` and `arcus verify` first make the same check as
+`arcus check`, but for the platform of the run only. A web-only step on an Android run is refused (`ARC2001`), not run.
+
+### Writing for Android
+
+`arcus docs` is the source for the language, and `arcus check` is the judge. The notes below are what real runs on an
+Android emulator showed. Use them where `arcus docs` is wrong or says nothing. If `arcus check` and a note disagree,
+`arcus check` wins.
+
+**Steps that work:** `launch app`, `click` (also `double`, `hold <duration>`, and `at x%,y%`), `type`, `clear`,
+`hide keyboard`, `press back`, `swipe`, `scroll by`, `scroll to`, `screenshot`, `wait until`, `verify … visible` and
+`verify … absent`, and `{env.name}` values given with `--var`. Element files work when their locators are
+`only android`, used through `@path`.
+
+**The target of a gesture comes after the direction:** `swipe up locate …`, `scroll by 0,400 locate …`,
+`pinch out locate …`.
+
+**Locators that work:** `locate text "<full text>"` (the whole text only), `locate label`, `locate name`,
+`locate xpath`, `locate nth`, `locate accessibility-id`, `locate class`, `locate android-id` and
+`locate android-uiautomator`. For part of a text, use xpath `contains(@text,'…')` or uiautomator `textContains`.
+
+Apps built with Jetpack Compose often have no ids and no content descriptions. Find buttons by their visible text. Find
+text fields by position, for example `locate xpath "(//android.widget.EditText)[1]"`.
+
+**`arcus check` refuses these on Android, so do not write them:**
+
+- the locators `text ~`, `label ~`, `role`, `placeholder`, `title`, `alt`, `attribute` and `where`;
+- `nav`, and `scroll top` and `scroll bottom`;
+- `for x in locate …`;
+- the text comparisons `^=`, `$=`, `<`, `<=`, `>` and `>=`;
+- page and tab conditions.
+
+**Web view only.** `locate css`, and the element locators `css`, `tag` and `link-text`, work only inside a web view,
+after `switch context webview`.
+
+**Do not use on Android:** an element file `locator chain` passes `arcus check` but the runner rejects it. An element
+`image` locator does not work.
+
+**Not tested on a device yet.** Device actions (rotate, lock, wifi, bluetooth, mobile data), alerts, web views, install
+and uninstall of an app, and image actions. They may work. Do not promise it. If the user needs one, write it, run it,
+and say what happened. A physical phone and Windows have not been tested either.
 
 ## What cannot be written yet
 

@@ -35,6 +35,13 @@ guesses.
 Per platform, use `only <platform>` on a locator so that one element works everywhere. Device locator types and
 which platform has them are in `arcus docs --topic locators`.
 
+On Android, an element file works when its locators are `only android`, used through `@path`. These locators work:
+`text` (the whole text), `label`, `name`, `xpath`, `nth`, `accessibility-id`, `class`, `android-id` and
+`android-uiautomator`. `css`, `tag` and `link-text` work only inside a web view. An element `locator chain` passes
+`arcus check` but the runner rejects it on Android: do not use it. An element `image` locator does not work. Apps built
+with Jetpack Compose often have no ids: use the visible text for buttons, and xpath by position for text fields
+(`(//android.widget.EditText)[1]`). More in `${CLAUDE_PLUGIN_ROOT}/references/platforms.md`.
+
 `autoheal off` only when the user asks for it. The default is on.
 
 ## Elements that exist only in Arcus
