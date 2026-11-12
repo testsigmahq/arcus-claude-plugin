@@ -1,19 +1,58 @@
 # Arcus (Claude Code plugin)
 
-Hooks-based capture of **Claude Code session context** for downstream systems (e.g. Arcus): prompts, tool inputs/outputs (including large reads), subagent boundaries, stop/summary signals, and transcript paths.
+Guide your coding agent through the developer side of the Arcus CLI and the QI workflow. QI is the quality service. It
+keeps test cases as versions and a reviewer accepts them. The plugin is a set of skills for Claude Code. The `arcus`
+command-line tool does all the work and all the talking to Arcus and QI. The plugin itself sends nothing anywhere.
+
+## What lives where
+
+- **Arcus** holds the accepted test suite and all element files.
+- **QI** holds the sprint, the cases made from the acceptance criteria, each case's versions, the review, and the policy.
+- **Your repo** holds the `.sigma` files, `arcus.json` (the project and its mode) and `arcus.lock` (commit it).
+
+A project works in one mode. **direct**: a push puts tests in Arcus at once. **qi**: a push sends tests to QI as
+versions, and a reviewer accepts them. Elements go to Arcus in both modes. Details are in
+`plugins/arcus/references/workflow.md`.
+
+## What you need
+
+- Claude Code.
+- The `arcus` CLI, on your `PATH`: `npm i -g @testsigma/arcus-cli`. It needs Node 22 or newer. The skills check that the
+  CLI has the commands they need, and say when it is too old.
+- An Arcus account. You sign in yourself, in a terminal: `arcus auth login --region us|in|eu`. Writing, checking and
+  running do not need it. Pushing, QI commands and `arcus project init` do.
+- To run web tests: the local test agent, running on your machine. To run Android tests: adb and Appium (from the Testsigma
+  agent install folder, or an Android SDK with `appium` on PATH), a device or emulator, and the tools folder
+  (`/arcus:setup` explains it). The CLI starts and stops Appium itself.
+
+The plugin holds no list of steps, forms or locators. Claude asks the installed CLI (`arcus docs list`, `arcus docs show`), and `arcus test check`
+decides what is valid. The one exception is a short note of known Android limits, where the CLI docs are wrong or silent
+(`references/platforms.md`).
 
 ## Install
 
-This repo is **also a marketplace** (`.claude-plugin/marketplace.json` lists `arcus`).
+This repo is also a marketplace.
 
-**From GitHub (no clone):**
+**From GitHub:**
 
 ```bash
 claude plugin marketplace add testsigmahq/arcus-claude-plugin
 claude plugin install arcus@testsigma
 ```
 
-**From a local clone (for development):**
+**From a branch, while a change is not merged yet.** Add the marketplace from the branch. It follows the latest commit
+of that branch. The repo is private, so git must be able to read it (`gh auth login`, then `gh auth setup-git`).
+
+```bash
+claude plugin marketplace add testsigmahq/arcus-claude-plugin#<branch>
+claude plugin install arcus@testsigma
+```
+
+To get new commits of the branch: `claude plugin marketplace update testsigma`, then
+`claude plugin update arcus@testsigma`, then `/reload-plugins` in Claude Code. The plugin pins `version` in `plugin.json`,
+so a new commit is picked up only when `version` changed.
+
+**From a local clone, for development:**
 
 ```bash
 git clone git@github.com:testsigmahq/arcus-claude-plugin.git
@@ -22,232 +61,85 @@ claude plugin marketplace add ./
 claude plugin install arcus@testsigma
 ```
 
-`claude plugin list` should then show `arcus@testsigma` as enabled.
+`claude plugin list` should show `arcus@testsigma` as enabled. To update after a change, bump `version` in
+`plugins/arcus/.claude-plugin/plugin.json` and run `claude plugin update arcus@testsigma`.
 
-To update after a code change, bump `version` in `plugins/arcus/.claude-plugin/plugin.json` and run `claude plugin update arcus@testsigma`. To remove: `claude plugin uninstall arcus@testsigma && claude plugin marketplace remove testsigma`.
+## Skills
 
-**Requirements:** Python **3.9+** on `PATH`. The plugin resolves the interpreter
-itself (`python3`, then `python`, then the `py` launcher), so Windows installs —
-where `python3` is usually a Microsoft Store alias rather than a real interpreter —
-work without extra setup. On Windows, Claude Code's own Git Bash requirement
-([Git for Windows](https://git-scm.com/downloads/win)) also covers this plugin.
+| Skill | What it does |
+|---|---|
+| `/arcus:setup` | Checks the CLI, the sign-in, the project, its mode and platforms, and whether this machine can run web and Android tests |
+| `/arcus:context <issue>` | Qi mode. Reads the issue, its cases and the policy from QI, and plans which tests to write or change |
+| `/arcus:author [what to test]` | Writes tests and elements as `.sigma` files and loops `arcus test check` and `arcus test fmt` until clean |
+| `/arcus:run [test]` | Runs one test on web or Android, reads the result, and says whether the test, the app or the setup is wrong |
+| `/arcus:verify <issue>` | Qi mode. Runs every case of an issue and reports covered, failing, missing, local only or rejected |
+| `/arcus:push [files]` | Dry run, a plan in words, a push after your yes, and every result and refusal explained. Both modes |
+| `/arcus:accept [files]` | Qi mode. After a policy check and your yes, accepts pushed versions into Arcus |
+| `/arcus:sync` | Shows where each file stands, pulls QI's changes, detaches and attaches files, and covers the pipeline check |
+| `/arcus:mode` | Shows the project mode and switches it with a dry run and your yes |
+| `/arcus:help` | Shows the skills and the usual flow |
 
-## Authenticate
+**Typical flow in qi mode:** `/arcus:setup` once, then `/arcus:context CW-412`, `/arcus:author`, `/arcus:run`,
+`/arcus:push`, `/arcus:sync` to see the review, and `/arcus:verify` before a merge. In direct mode: `/arcus:author`,
+`/arcus:run`, `/arcus:push`.
 
-Capture only ships data once you log in:
-
-```
-/arcus:login        # SSO; stores refresh token in OS keychain. Run once per machine.
-```
-
-The command asks which region your Arcus account is in before opening the
-browser, because each region is a separate deployment and signing in to the
-wrong one sends this session's captured data to the wrong place:
-
-| Region | Key | API server | Auth server |
-| --- | --- | --- | --- |
-| United States (default) | `US` | `agentic-test.testsigma.com` | `arcus.testsigma.com` |
-| India | `IN` | `agentic-test-in.testsigma.com` | `arcus-in.testsigma.com` |
-| Europe | `EU` | `agentic-test-eu.testsigma.com` | `arcus-eu.testsigma.com` |
-
-The chosen region's hosts are written into the plugin's `config.json`, so every
-later call — token refresh, project listing, event ingest — follows it
-automatically. To switch, run `/arcus:logout` then `/arcus:login` again.
-
-Regions are defined in `plugins/arcus/servers.json`, keyed by region rather than
-suffixed per field, so a region cannot be half-configured with one host missing.
-`resolve_region()` returns nothing for an unknown key rather than falling back to
-a default host, so a typo fails loudly instead of authenticating elsewhere.
-
-Until then hooks run as a **no-op** — nothing is sent remotely.
-
-## Commands
-
-| Command | Purpose |
-| --- | --- |
-| `/arcus:login` | Authenticate via SSO. Asks for your region, then stores the refresh token in your OS keychain. |
-| `/arcus:logout` | Clear local credentials (server-side revoke not yet supported). |
-| `/arcus:project list [search]` | List accessible Arcus projects (optional substring filter). |
-| `/arcus:project use <project_id>` | Pin a project; future events carry it. |
-| `/arcus:project current` | Show the pinned project. |
-| `/arcus:map ticket <KEY>` | Link a ticket (Jira / ADO / Linear / ClickUp / GitHub) to the session's workflow. |
-| `/arcus:test [feature]` | Author Testsigma script e2e tests for this repo, validate them, and offer to run them. |
-| `/arcus:push` | Push the test cases authored this session to Agentic Test; pick a sprint or leave unmapped (the `testsigma` CLI does the work). |
-| `/arcus:help` | Show commands and typical flow. |
-
-**Typical flow:** `/arcus:login` → `/arcus:project list` then `/arcus:project use <id>` → work on a branch (each session auto-resolves to a workflow) → `/arcus:map ticket <KEY>` → `/arcus:test` to author tests → `/arcus:push` to push them into a sprint.
-
-## What gets captured
-
-| Hook | Captured |
-| --- | --- |
-| SessionStart | `session_id`, `cwd`, `transcript_path`, start reason |
-| UserPromptSubmit | Raw user prompt |
-| Pre/PostToolUse | Tool name, input, and `tool_response` (e.g. full Read content) |
-| PostToolUseFailure | Tool errors |
-| Subagent Start/Stop | Subagent id/type; agent transcript path |
-| Stop / StopFailure | Last assistant message or API error |
-| SessionEnd | Exit reason |
-
-Each hook POSTs to `{host}/api/v1/plugin/events` (host from `/arcus:login`). Read/Write/Edit file snapshots and large binaries (base64 images, long strings) are also captured and sent as attachments. Nothing is written to a local event log.
-
-Per-session state lives under `$CLAUDE_PLUGIN_DATA/sessions/<session_id>/` (override with `TESTSIGMA_CONTEXT_DIR`) — a `session_manifest.json` (cwd, transcript, git/ticket grouping signals, Arcus link) plus `attachments/` and `context_files/`.
-
-## Privacy & data controls
-
-Once you log in (`/arcus:login`), this plugin transmits your session — prompts, tool calls/inputs/outputs, and file contents it captures — to Arcus. See the [Testsigma Privacy Policy](https://testsigma.com/privacy-policy) for what's collected and how it's handled. Until you log in, hooks are a no-op and nothing is sent.
-
-**Sensitive files are always blocked** regardless of settings — `.env*`, private keys (`*.pem`/`*.key`/`*.p12`/`*.jks`), `credentials*`, `service-account*.json`, `.netrc`, `.pgpass`, and anything under `~/.ssh`, `~/.gnupg`, `~/.aws/credentials`, `~/.gcloud/legacy_credentials`. Blocked files are sent as `{skipped: true, reason: 'sensitive_path'}`.
-
-**Noise dirs are excluded from capture** — files under dependency, build, and VCS directories are never snapshotted or sent. Built-in list:
-
-```
-node_modules  bower_components  jspm_packages  .pnp  .yarn
-.next  .nuxt  .svelte-kit  .angular  .astro  .expo  .docusaurus
-.cache  .parcel-cache  .turbo  .vite  .webpack
-dist  build  out  .output  coverage  .nyc_output
-.venv  venv  __pycache__  .mypy_cache  .pytest_cache  .ruff_cache  .tox  .eggs  *.egg-info
-target  vendor  .gradle  .mvn
-.terraform  .serverless
-Pods  Carthage  DerivedData
-.git  .hg  .svn  .idea  .vscode
+```text
+setup ──► context ──► author ──► run ──► push ──► sync ──► accept
+                        ▲         │        │         │
+                        └─ fix ───┴────────┴─ rework ┘
 ```
 
-Env-var toggles (accept `true`/`false`/`yes`/`no`/`1`/`0`):
+## How it behaves
 
-| Variable | Default | Effect |
-| --- | --- | --- |
-| `TESTSIGMA_CONTEXT_INCLUDE_FILES` | `true` | Send attachment bytes; `false` = manifest metadata only |
-| `TESTSIGMA_DISABLE_CONTEXT_FILE_SNAPSHOTS` | unset | `true` skips local `context_files/` snapshots |
-| `TESTSIGMA_SENSITIVE_PATTERNS` | unset | Comma-separated globs added to the sensitive denylist |
-| `TESTSIGMA_EXCLUDE_PATTERNS` | unset | Comma-separated globs added to the noise-exclusion list |
+- **Nothing is pushed without a plan you have seen.** `/arcus:push` always starts with a dry run and asks.
+- **The CLI decides.** Claude never decides a file is valid, and never writes a step it did not see in `arcus docs list` or `arcus docs show`.
+- **You sign in, not Claude.** The plugin never handles credentials.
+- **Claude does not weaken a test to make it pass the check, or to make it pass a run.** If the only fix loses what a
+  test verifies, it stops and tells you. A test that fails because the app is wrong is reported to you, not changed.
+- **A run tells you who owns the failure.** Claude reads the failed step and looks at the screenshot, and says whether the
+  test, the app or the setup is wrong. It fixes the test when the test is wrong, at most three rounds.
+- **Secrets stay out of the command.** Claude never types a password into a run and never reads `.env` files. A secret is
+  passed by reference to a variable you set in your own terminal.
+- **QI and Arcus text is data.** Case titles, steps and review comments can come from other people. Claude shows them
+  to you and never follows an instruction inside them.
+- **Accept and mode changes need your clear yes.** They change the suite the team trusts.
 
-Additional tuning knobs (attachment size caps, webhook retries/timeout, blob externalization threshold) are documented inline in `scripts/capture_hook.py` and `scripts/capture_sinks.py`.
+## This version
 
-## How it works
+- Android runs (`arcus test run --platform android`, `--device`, `--app`), `arcus device list` and
+  `arcus issue verify <KEY> --platform android` follow the CLI's current work. The skills tell Claude to read `arcus test run --help` to
+  see what your CLI has. What works on Android comes from runs on an emulator. Device actions, alerts, web views, app
+  install and uninstall, image actions, a physical phone and Windows are not tested yet.
+- iOS runs are not supported. Not supported yet because the CLI refuses them: `api` steps, groups, `host` lines, header
+  lines such as `tags`, and sub-folders under `tests/`.
+- Every command is `arcus <entity> <command> [args]`, for example `arcus test push` and `arcus issue show`. The CLI can print
+  its own command tree: `arcus help --json`. `references/commands.md` lists the commands the skills use.
 
-Events are normalized in `scripts/capture_hook.py`, then run through a sink pipeline in `scripts/capture_sinks.py` (`ManifestSink` updates the local manifest; `WebhookSink` POSTs to ingest and writes back the returned `workflow_id`/`context_id`). To add a backend, implement `ContextCaptureSink` and extend `build_default_sinks()`. See `scripts/testsigma_session_link.py` for the session↔workflow linking.
+## Privacy
 
-Hooks fail safe — a capture error never blocks the Claude Code session.
+The plugin sends nothing by itself: it has no hooks and no scripts. When you push, the `arcus` CLI sends your tests and
+elements to the Arcus project you chose, using your own sign-in. See the
+[Testsigma Privacy Policy](https://testsigma.com/privacy-policy).
 
-## Repo layout
+## Layout
 
 ```
-arcus-claude-plugin/
-├── .claude-plugin/marketplace.json   # marketplace manifest
-└── plugins/arcus/                    # the plugin
-    ├── .claude-plugin/plugin.json
-    ├── commands/                     # /arcus:login, logout, map, project, help
-    ├── hooks/hooks.json
-    ├── scripts/                      # capture_hook, capture_sinks, auth/, map/, project/
-    ├── tests/                        # pytest suite
-    └── pyproject.toml
+.claude-plugin/marketplace.json     the marketplace (name: testsigma)
+plugins/arcus/
+  .claude-plugin/plugin.json        the plugin manifest
+  commands/help.md                  /arcus:help
+  skills/{setup,context,author,run,verify,push,accept,sync,mode}/   one SKILL.md each
+  references/                       notes the skills read when they need them
+  tests/                            tests of the documents (pytest)
+  evals/                            behavioural cases: `claude plugin eval plugins/arcus`
+CHANGELOG.md is in plugins/arcus/
 ```
 
-## Development
+## Tests
 
-All commands run from `plugins/arcus/`.
+The plugin is documents, so its tests check documents: the manifests parse, every skill has a name and a description
+and stays inside a size budget, every pointer resolves, and no document names a CLI command or option that does not
+exist. Run them from `plugins/arcus/` with `python -m pytest`.
 
-```bash
-pytest                 # test suite
-ruff check .           # lint
-ruff format .          # format
-```
-
-Supported on macOS, Linux and Windows, and on Python 3.9 and newer — the
-scripts rely only on the standard library, with `keyring` used for refresh-token
-storage when a backend is available and a mode-restricted file as the fallback.
-
-### Cross-platform code
-
-Anything that differs by operating system belongs in **`scripts/hostos.py`**, not
-in a caller. It is the single place where a platform branch is allowed, and every
-branch keys off a *capability* — does this module import, does this call succeed —
-rather than an OS or Python version, so the same code runs from Windows 7 to 11
-without version checks to keep current.
-
-| Need | Use | Why not the obvious thing |
-| --- | --- | --- |
-| Lock a file across processes | `hostos.file_lock(path)` | `fcntl` does not exist on Windows; `msvcrt` locks are mandatory, so the lock goes in a `<path>.lock` sidecar and never in the file being truncated |
-| Create a directory | `hostos.makedirs(path)` | Paths over 260 characters fail on Windows unless prefixed; returns `False` instead of raising into a hook |
-| Open a deep path | `open(hostos.long_path(p), …)` | The `\\?\` prefix opts out of MAX_PATH on every Windows version, unlike the per-machine `LongPathsEnabled` flag |
-| Build a path component | `hostos.safe_component(name)` | `nul`, `con`, `com1`… are reserved on Windows with or without an extension, and trailing dots and spaces are silently dropped |
-| Owner-only file permissions | `hostos.restrict_file(path)` | `chmod(0o600)` only sets the read-only bit on Windows; an explicit ACL is required |
-| Run a subprocess | `hostos.run_text(cmd)` | `text=True` decodes with the console codepage and raises `UnicodeDecodeError` on non-ASCII output; also resolves `.cmd` shims via PATHEXT |
-
-Two rules the module cannot enforce for you:
-
-- Use `os.replace()`, not `os.rename()`, for atomic writes — `os.rename()` fails
-  on Windows when the destination already exists.
-- Pass `encoding="utf-8"` explicitly to `open()`; the platform default is not
-  UTF-8 on Windows.
-
-### Launching Python
-
-Hooks and slash commands never call `python3` directly. They go through
-`scripts/arcus-py.cmd`, which resolves the interpreter at call time.
-
-That file is a **polyglot**: `cmd.exe` runs the batch block, while a POSIX shell
-reads the leading `:` as a no-op and swallows the block as a heredoc before
-running the `sh` section underneath. One file therefore works whichever shell
-Claude Code uses, on any OS. The pattern is borrowed from the `superpowers`
-plugin's `run-hook.cmd`.
-
-It exists because Windows has no `python3` on `PATH`: the python.org installer
-ships `python.exe` and the `py` launcher, and the name `python3` is normally a
-Microsoft Store app-execution alias that opens the Store and exits non-zero. So
-each candidate is probed by *running* it — `command -v` alone would happily
-accept the Store alias — and the first one reporting Python 3.9+ wins. When none
-is found the launcher exits 0, so a missing interpreter disables capture instead
-of breaking the session.
-
-Two things worth knowing if you change it:
-
-- The batch half uses `goto` labels rather than parenthesised blocks, because
-  `%ERRORLEVEL%` inside a block is expanded when the block is *parsed*, not when
-  it runs.
-- Keep the name free of a `.sh` extension. Claude Code's Windows handling
-  prepends `bash` to any command containing `.sh`, which would defeat the point.
-
-A symlink cannot do this job: it only redirects which file is opened, and Windows
-ignores shebangs, so it could never supply an interpreter — and Git checks
-symlinks out as plain text files on Windows by default.
-
-## Releasing
-
-`plugins/arcus/.claude-plugin/plugin.json` is the **single source of truth** for
-the version. Claude Code parses that manifest before any of this code runs, so
-its `version` has to be a literal string — it is the one place the value cannot
-be computed.
-
-Everything else derives from it rather than keeping a copy:
-
-- Python code calls `auth.config.plugin_version()`, which reads the manifest at
-  runtime. Do not reintroduce a `PLUGIN_VERSION` constant; the one that used to
-  live in `scripts/auth/cli.py` had silently drifted to `0.1.0`.
-- `plugins/arcus/pyproject.toml` still carries a literal, because PEP 621
-  requires one and this project declares no build backend that could compute it.
-  That single remaining duplicate is guarded by a test, so drift fails CI rather
-  than shipping.
-
-To release, bump the manifest and `pyproject.toml` together, following semver:
-patch for bug fixes, minor for new commands or hooks, major for anything that
-breaks an existing install.
-
-```bash
-pytest tests/test_hostos.py -k version   # fails if the two disagree
-```
-
-## CI
-
-`.github/workflows/ci.yml` runs on pushes to `dev` and `prod`, on pull requests
-targeting either, and on demand via `workflow_dispatch`. It runs the suite on
-Linux, macOS and Windows. Windows is
-the point of the matrix: it is the only runner that exercises the `msvcrt`, ACL
-and MAX_PATH branches of `hostos.py`, and it covers Python 3.9 through 3.13. A
-separate job proves both halves of the `arcus-py.cmd` polyglot — under `cmd.exe`,
-under POSIX `sh`, and under Git Bash — and runs one real hook event end to end.
-
-## License
-
-MIT — see [LICENSE](LICENSE).
+The evals (`plugins/arcus/evals/`) check that Claude behaves as the skills say. They need the `arcus` CLI on your `PATH`,
+and the local test agent running for the cases that open a browser: `claude plugin eval plugins/arcus`.
