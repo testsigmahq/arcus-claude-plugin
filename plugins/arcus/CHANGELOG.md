@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.11.2
+
+The skills match the Android tools rule and the push rules of the present CLI. Only text changed.
+
+- Android tools come by default from the install folder of the Arcus agent that matches the CLI environment. There is no
+  fallback to the Android SDK, `ANDROID_HOME` or PATH. With no matching agent, the CLI names the agent to install.
+  `ARCUS_ANDROID_TOOLS_DIR` and `android.toolsDir` override it. `arcus device list` needs only adb. Changed in `setup`
+  and `references/running.md`.
+- `push`: `--case <id>` works only when the issue context is the story of that case. `ambiguous_case` means run
+  `arcus issue show <KEY>` for the right story, then push again. The result line shows `(vN, pending review)`, the
+  build is the last git commit, and with `run: required` any edit needs a new run.
+- `context`: `arcus issue show` gives no steps (use `arcus case show`). A case can be `linked, primary story <KEY>`.
+- `run`: the Android run command is shown in full.
+
 ## 0.11.1
 
 The skills match the final JSON output and exit codes of the renamed CLI. Only text changed.

@@ -18,7 +18,8 @@ Run `arcus project mode show`. With several projects ask which one and pass `--p
 - `direct`: a test and an element go to Arcus.
 - `qi`: an element goes to Arcus first. A test goes to QI as a new head on the working line of its case. The push also
   needs: an issue context on this machine (`/arcus:context`), younger than the policy allows, for an issue whose sprint
-  is open; and, when the policy says `run: required`, a run of the file as it is now (`/arcus:run`).
+  is open; and, when the policy says `run: required`, a run of the exact text of the file (`/arcus:run`). After any edit,
+  run again.
 
 Paths: the files the user named, or the files you just changed, else no path (the whole project; files that did
 not change come back `unchanged`). In qi mode, `arcus test status` first shows where each file stands.
@@ -27,7 +28,7 @@ A test file needs a case in qi mode:
 
 | The file | Flag, for the first push only |
 |---|---|
-| Automates a case from `arcus issue show` | `--case <id>` (one file per command) |
+| Automates a case from `arcus issue show` | `--case <id>` (one file per command). It works only when the current issue context is the story of that case: run `arcus issue show <KEY>` for that story first |
 | Is a new test with no case | `--new` |
 | Is new, and the issue is not in a sprint or QI does not know it | `--new --unmapped`, and `--issue <KEY>` as a hint for the reviewer |
 | Must move to another case (a duplicate warning names it) | `--rebind <id>` (one file) |
@@ -50,7 +51,7 @@ refused, conflicts or fails. All checks that stop a real push run here too, so a
   offline findings.
 - qi: the JSON has the Arcus part (`files[]`, for elements) and `cases` with `issue`, `build` and `files[]`. Each
   case file is `would_push` (with its base), `would_create`, `unchanged`, `skipped` or `refused` (with `reason`, `message`
-  and `next`).
+  and `next`). `build` is the last git commit of the repo, so commit your work before a push, or QI sees an older build.
 
 ## 3. Show the plan, in words
 
@@ -96,7 +97,8 @@ as the plan.
   pushed test as a link. A CLI with no `url` gives none: then say to open `arcusUrl`, the project, the folder, and look
   for the title. Never build a link yourself. A new test is in the folder shown. An updated test stays where it was.
 - qi: for each file `pushed` (`base -> revision`), `created` (the new case id; a `warning` may name a likely duplicate:
-  show it and the `--rebind` it offers), `unchanged`. Say the head is **pending review**. Show `took the suggested steps`
+  show it and the `--rebind` it offers), `unchanged` (the file equals its head: nothing was sent). The text line reads
+  `(vN, pending review)`: say the head is **pending review**. Show `took the suggested steps`
   when it appears. The files do not change, but `arcus.lock` does: tell the user to commit it with the tests.
 
 A push that stops half way is safe to run again. Do not add `--accept` unless the user asks to accept too: see
@@ -116,7 +118,7 @@ A push that stops half way is safe to run again. Do not add `--accept` unless th
 | `head_moved` | The case moved in QI. Pull (`/arcus:sync`), run, push |
 | `check_failed`, direct `refused` with diagnostics | The offline check failed. `/arcus:author` fixes it |
 | `unbound` | No case yet. Say which flag fits (`--case`, `--new`) and ask |
-| `ambiguous_case` | That case is not under this issue. Pick from `arcus issue show <KEY>` |
+| `ambiguous_case` (`case … is not under <KEY>`) | The issue context on this machine is another story than the story of that case. Run `arcus issue show <KEY>` for the right story, then push again with the same `--case` |
 | `element_not_pushed` | Push the element first, or fix why it failed |
 | direct `refused: A test named "…" already exists` | Another test has that title. Pick another |
 | direct `conflict` | The same step changed in Arcus and in the file. Undo the local edit to it, or make the file equal Arcus's text. Delete the base in `.arcus/base/` only if the user says to |

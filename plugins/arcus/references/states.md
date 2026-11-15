@@ -60,13 +60,13 @@ Exit `1` when a file is in a failing state.
 | `would_push`, `would_create` | Dry run only. This is what a push will do |
 | `pushed` | A new head on the case. Shows `base -> revision` |
 | `created` | A new case. `mapped: false` means it is in the unmapped cases. A `warning` may name a likely duplicate |
-| `unchanged` | The file equals its head |
+| `unchanged` | The file equals its head. Nothing was sent. The text line of a push shows `(vN, pending review)` for a sent head |
 | `skipped` (`local_only`) | The file is detached |
 | `refused` | Not sent. See the reasons below |
 
 Refusal reasons: `run_required` (policy needs a run of the file as it is now: run it, push again), `head_moved`
 (`arcus test pull`, run, push), `check_failed` (`arcus test check <path>`), `unbound` (give `--case <id>` or `--new`),
-`ambiguous_case` (the case id is not under this issue: pick one from `arcus issue show <KEY>`), `element_not_pushed` (push the
+`ambiguous_case` (`case … is not under <KEY>`: the issue context is not the story of that case. Run `arcus issue show` for the right story, then push again), `element_not_pushed` (push the
 element first, or fix it), `already_bound` (the file has a case: push without `--new`), `conflict` (markers in the
 file). With `--accept`, a failed accept gives `reason: accept_failed` and a `retry` command. The push still stands.
 
