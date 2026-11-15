@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.12.0
+
+A new skill, `prove`, for a developer whose coding agent changed a user-facing flow on a QI issue.
+
+- `/arcus:prove <issue>` orders the other skills into one loop: `context` reads the issue's cases, `author` writes the
+  tests for the cases the change touches, `run` runs them until they pass, `verify` checks the issue with
+  `arcus issue verify --json`, one "Ran locally" comment goes on the PR, and `push` sends the tests as pending heads.
+- A failure where the app now does on purpose what a case says it should not is an intent change. The skill leaves the
+  check failing and lists it in the comment for QI to decide. It never edits the case's step or `verify`.
+- Accepting waits for the PR to merge. The skill gives the developer the `arcus test accept` command when the policy
+  lets a developer accept, and never runs it, or `test push --accept`, itself.
+- `references/proving.md`: the comment's shape, its marker (edited in place on later runs) and the intent-change table.
+
 ## 0.11.1
 
 The skills match the final JSON output and exit codes of the renamed CLI. Only text changed.

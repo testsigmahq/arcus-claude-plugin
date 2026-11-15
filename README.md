@@ -73,6 +73,7 @@ claude plugin install arcus@testsigma
 | `/arcus:author [what to test]` | Writes tests and elements as `.sigma` files and loops `arcus test check` and `arcus test fmt` until clean |
 | `/arcus:run [test]` | Runs one test on web or Android, reads the result, and says whether the test, the app or the setup is wrong |
 | `/arcus:verify <issue>` | Qi mode. Runs every case of an issue and reports covered, failing, missing, local only or rejected |
+| `/arcus:prove <issue>` | Qi mode. The developer loop for a change: reads the issue's cases, writes the missing tests, runs them until they pass, writes one "Ran locally" PR comment, and pushes the tests as pending. Accepting waits for the PR to merge. Never edits what a case expects |
 | `/arcus:push [files]` | Dry run, a plan in words, a push after your yes, and every result and refusal explained. Both modes |
 | `/arcus:accept [files]` | Qi mode. After a policy check and your yes, accepts pushed versions into Arcus |
 | `/arcus:sync` | Shows where each file stands, pulls QI's changes, detaches and attaches files, and covers the pipeline check |
