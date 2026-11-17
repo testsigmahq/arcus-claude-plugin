@@ -121,3 +121,29 @@ def test_run_needs_no_sign_in_and_never_pushes():
 
 def test_run_reads_the_screenshot():
     assert "Read tool" in prose(skill_path("run"))
+
+
+def test_prove_follows_the_cases_and_invents_none():
+    text = prose(skill_path("prove"))
+    assert "arcus issue show <KEY> --json" in text and "arcus case show <id> --json" in text
+    assert "Do not invent cases" in text
+
+
+def test_prove_never_edits_what_a_case_expects():
+    text = prose(skill_path("prove"))
+    assert "**Do not edit the step or the `verify`.** It is an intent change" in text
+    assert "Never weaken a test to make it pass" in text
+
+
+def test_prove_labels_the_run_as_local_and_asks_before_posting():
+    text = prose(skill_path("prove"))
+    assert "the developer's own run on their machine" in text
+    assert "post it only after a yes, once per PR" in text
+    assert "<!-- arcus:ran-locally -->" in prose(REFERENCES / "proving.md")
+
+
+def test_prove_never_accepts_and_waits_for_the_merge():
+    text = prose(skill_path("prove"))
+    assert "**Never pass `--accept`.**" in text
+    assert "gh pr view --json state,mergedAt" in text
+    assert "Never run it yourself" in text
