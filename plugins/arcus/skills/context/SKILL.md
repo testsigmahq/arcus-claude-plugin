@@ -24,6 +24,8 @@ puts every push in the wrong place, so never guess it.
 arcus issue show <KEY> --json
 ```
 
+`arcus issue show` gives no manual steps. They come from `arcus case show <id>` (step 3).
+
 Read: `issue`, `sprint` and `sprintClosed`, `acceptanceCriteria`, `policy` (`acceptBy`, `run`, `contextMaxAgeHours`,
 `sprintClose`), `cases[]` and `related[]`, and `next`. Each case has `id`, `label`, `title`, `file` (null means no
 test file yet), `review`, `accepted`, `comments` and `suggestion`. The answer is saved in `.arcus/`. Never edit it.
@@ -37,6 +39,7 @@ Say in plain words, per case:
 | `suggestion` | The story changed. Read the suggested steps, change the file, run, read the context again, push |
 | `REJECTED` | Not yours to redo. Show the reason. See `/arcus:sync` |
 | Accepted, no change | Nothing to do |
+| `linked, primary story <KEY>` (`primary: false`, `primaryIssueKey`) | The case belongs to another story. It may already have a file and be accepted. Check `file` and `accepted` first. To push to it, read the context of its own story |
 
 Also tell the user: the sprint is closed (QI takes no new versions: see below), the policy needs a run before a push
 (`run: required`), and the context goes stale after `contextMaxAgeHours` (a push refuses then: read it again).

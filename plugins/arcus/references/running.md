@@ -43,9 +43,10 @@ It is never `2`: a run does not talk to Arcus.
 | `Cannot reach the …agent` (the CLI's own text) | the user | Start the local agent. If it runs somewhere else, `arcus config set execution.localUrl <url>` |
 | `… has no web platform` or `… has no android platform` | the user | Pick a platform the project lists with `--platform`, or ask before `arcus project platforms add <platform>` |
 | `ios runs are not supported yet` | the user | Say it as it is |
-| `The Android tools (adb) were not found` or `… is <folder>, but adb is not in it` | the user | Set the tools folder. See "Android: tools, device, app" below |
+| `The Android tools were not found` (it names the agent, for example `arcus-prod`, and the folder it looked in) | the user | The Arcus agent of this CLI environment is not installed. Install it. Never install or use the Android SDK. See "Android: tools, device, app" below |
+| `… is <folder>, but adb is not in it` | the user | A folder that was set on purpose has no adb. Fix `ARCUS_ANDROID_TOOLS_DIR` or `android.toolsDir`, or unset it to use the agent |
 | `ARCUS_ANDROID_TOOLS_DIR in <file> is …, which is not an absolute path` (or `is inside the repository`, `holds the repository`) | the user | A `.env` file may name only an absolute folder outside the repository. Use the shell variable or `arcus config set android.toolsDir <folder>` |
-| `Appium was not found` | the user | The tools folder has no Appium. Update the agent folder, or install Appium and put `appium` on PATH |
+| `Appium was not found` | the user | The tools folder has no Appium. Update or reinstall the Arcus agent |
 | `Appium stopped while starting`, `Appium was not ready after N s`, `Appium could not bind a port` | the user | Read the Appium log. The message gives its path (`.arcus/runs/appium-<time>-<pid>.log`) |
 | `The Appium server at … is not ready` | the user | `ARCUS_ANDROID_APPIUM_URL` is set in the shell and that server does not answer. Start it, or unset the variable so arcus starts its own |
 | `No Android device is connected` | the user | Connect a device with USB debugging on, or start an emulator. Check `arcus device list` |
@@ -73,15 +74,20 @@ takes about 10 to 25 seconds, so give the Bash tool a long time limit. Appium wr
 `.arcus/runs/appium-<time>-<pid>.log`. A start error names that path. Each run prints a `device:` line and a `tools:`
 line (the folder and where it came from). Show them to the user.
 
-**The tools folder.** The CLI looks in this order and takes the first that is set:
+**The tools folder.** By default the tools come from the install folder of the Arcus agent that matches the CLI
+environment: production (`arcus-prod`), preview, staging (`arcus-staging`) or dev. `TS_ROOT_DIR` or `TS_HOME` move that
+folder, as they do for the agent. There is no fallback to the Android SDK, `ANDROID_HOME` or the system PATH. With no
+matching agent, the CLI stops (exit `3`) and names the agent to install. `arcus device list` needs only adb.
+
+An override, in this order, first one set wins:
 
 1. `ARCUS_ANDROID_TOOLS_DIR` in the shell environment.
 2. The same key in a `.env` file at the repository root, or in the current folder.
 3. `arcus config set android.toolsDir <folder>`. The CLI stores an absolute path.
-4. `ANDROID_HOME`, then `ANDROID_SDK_ROOT`, then the usual SDK folder of the system, then `adb` on PATH.
 
-The folder can be the Testsigma agent install folder (it has adb and Appium), or a plain Android SDK folder. With an SDK
-folder, `appium` must be on PATH. A folder that was named on purpose and has no adb is an error.
+The override folder is an agent install folder, or an Android SDK folder that has `platform-tools/adb` (then `appium`
+must be on PATH). A folder that was set on purpose and has no adb is an error. Never tell the user to install or use
+the Android SDK: the answer is the Arcus agent.
 
 **A `.env` file is limited, on purpose.** A cloned repository must not choose the programs that run. So a `.env` value
 must be an absolute path (or start with `~`) outside the repository and the current folder. Anything else exits `3`.

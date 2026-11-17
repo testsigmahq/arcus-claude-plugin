@@ -68,6 +68,7 @@ arcus test run <file> --json --project <name> [--platform <web|android>] [--base
     [--headed] [--browser <name>] [--device <serial>] [--app <path-or-url>] [--note "<why>"]
 ```
 
+- Android: `arcus test run <file> --json --platform android --device <serial> --app <apk>`.
 - Headless is the default. Add `--headed` only when the user asks to watch, or when you need to see a failure that the
   screenshot does not explain. Say that a window opens.
 - `--note` keeps a reason with the run, and the next push sends it to QI. Use it only when reviewers need it (for
