@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // The deterministic half of /arcus:pr-check: which tests are the story's, running them on each build, and
-// keeping only what fails on the PR's build, passes on the base build, and fails again on a retry.
+// keeping only what fails on the PR's build, passes on the base build, and fails again on a retry, then the judge's
+// packets and the one PR comment its verdicts make.
 // Node 22+, no dependencies. Every command writes JSON to stdout.
 
 import { execFileSync } from "node:child_process";
@@ -11,8 +12,9 @@ const USAGE = `usage:
   pr-check.mjs story-tests --issue <issue.json>
   pr-check.mjs run --url <url> [--project <name>] [--var name=value ...] <paths...>
   pr-check.mjs diff --lane regression|break --pr <run.json> --base <run.json> [--retry <run.json>] [--issue <issue.json>]
-  pr-check.mjs request [--issue <issue.json>] --pr-url <url> --base-url <url> --repo <owner/name>
-                       [--pr <number>] [--sha <sha>] [--diff <diff.json> ...] [--stats <stats.json>] [--no-images]`;
+  pr-check.mjs packets [--issue <issue.json>] --out <dir> [--diff <diff.json> ...]
+  pr-check.mjs report [--issue <issue.json>] --pr-url <url> --base-url <url> [--diff <diff.json> ...]
+                      [--verdicts <verdicts.json>] [--stats <stats.json>] [--comment <comment.md>]`;
 
 function parse(argv) {
   const opts = { _: [], var: [], diff: [] };
@@ -23,10 +25,6 @@ function parse(argv) {
       continue;
     }
     const key = a.slice(2);
-    if (key === "no-images") {
-      opts[key] = true;
-      continue;
-    }
     const value = argv[++i];
     if (value === undefined) fail(`--${key} needs a value`);
     if (Array.isArray(opts[key])) opts[key].push(value);
@@ -142,35 +140,136 @@ export function diff({ lane, pr, base, retry, caseIds = new Map(), readSteps = (
   return out;
 }
 
-const MAX_SCREENSHOT_BYTES = 2 * 1024 * 1024;
+const differencesOf = (diffs) => diffs.flatMap((d) => d.differences);
 
-/** Each side's failing-step screenshot, inlined so the judge can look at what a user saw. */
-export function withScreenshots(difference) {
-  const out = { ...difference };
-  for (const side of ["pr", "base", "pr_retry"]) {
-    const o = difference[side];
-    if (!o?.screenshot || !fs.existsSync(o.screenshot) || fs.statSync(o.screenshot).size > MAX_SCREENSHOT_BYTES) continue;
-    out[side] = { ...o, screenshot_b64: fs.readFileSync(o.screenshot).toString("base64") };
-  }
-  return out;
+function side(name, o) {
+  if (!o) return `${name}: not run`;
+  const parts = [`${name}: ${o.status}`];
+  if (o.failed_step) parts.push(`failed at: ${o.failed_step}`);
+  if (o.message) parts.push(`message: ${o.message}`);
+  return parts.join("\n  ");
 }
 
-/** The body of `arcus pr-check report`. */
-export function request({ issue, prUrl, baseUrl, repo, pr, sha, diffs, stats, images = true }) {
-  const { story, cases } = storyOf(issue);
-  return {
-    repo,
-    pr_number: pr ? Number(pr) : null,
-    head_sha: sha ?? "",
-    pr_url_tested: prUrl,
-    base_url_tested: baseUrl,
-    story,
-    cases,
-    regression_passed: diffs.filter((d) => d.lane === "regression").flatMap((d) => d.passed),
-    differences: diffs.flatMap((d) => d.differences).map((d) => (images ? withScreenshots(d) : d)),
-    not_run: diffs.flatMap((d) => d.not_counted),
-    stats: stats ?? {},
-  };
+const SIDES = [
+  ["PR build", "pr"],
+  ["Base build", "base"],
+  ["PR build, re-run", "pr_retry"],
+];
+
+/** What the judge reads for one difference: the story, its cases, the test and what each build did. Never the diff. */
+export function judgePacket({ story, cases }, difference) {
+  const storyText = story ? `${story.issue_key}: ${story.title}\n${story.description}`.trim() : "No story is linked to this PR.";
+  const caseLines = cases.map((c) => `- ${c.title}`).join("\n") || "- none";
+  const kind = difference.lane === "regression" ? "one of the story's own test cases" : "a test written to break the change";
+  const shots = SIDES.filter(([, k]) => difference[k]?.screenshot && fs.existsSync(difference[k].screenshot)).map(
+    ([name, k]) => `- ${name}: ${difference[k].screenshot}`,
+  );
+  return [
+    `## Story\n${storyText}`,
+    `## The story's test cases\n${caseLines}`,
+    `## The test (${kind})\n${difference.title}\n\n${difference.steps}`,
+    `## What happened\n${SIDES.map(([name, k]) => side(name, difference[k])).join("\n")}`,
+    `## Screenshots at the failing step\n${shots.join("\n") || "- none"}`,
+  ].join("\n\n");
+}
+
+/** One packet file per difference, numbered in the order the report reads the verdicts. */
+export function writePackets({ issue, diffs, out }) {
+  const context = storyOf(issue);
+  fs.mkdirSync(out, { recursive: true });
+  return differencesOf(diffs).map((d, i) => {
+    const packet = path.join(out, `judge-${i + 1}.md`);
+    fs.writeFileSync(packet, `${judgePacket(context, d)}\n`);
+    return { n: i + 1, lane: d.lane, title: d.title, packet };
+  });
+}
+
+export const COMMENT_MARKER = "<!-- arcus-pr-check:v1 -->";
+const VERDICTS = ["real_bug", "intended_change", "test_issue", "environment_issue", "ambiguous"];
+const LABELS = {
+  real_bug: "Likely bug",
+  intended_change: "Intended change",
+  test_issue: "Test issue",
+  environment_issue: "Environment issue",
+  ambiguous: "Unclear",
+};
+const REPORTED = new Set(["real_bug", "ambiguous"]);
+// While the break lane is advisory, a low-confidence bug there is reported as unclear rather than as a bug.
+const ADVISORY_MIN_CONFIDENCE = 3;
+
+/** A verdict as the judge gave it, or ambiguous when it gave none that reads. */
+export function verdictOf(lane, given) {
+  const v =
+    given && VERDICTS.includes(given.verdict) && Number.isInteger(given.confidence) && given.confidence >= 1 && given.confidence <= 5
+      ? { verdict: given.verdict, confidence: given.confidence, reason: String(given.reason ?? "").trim() }
+      : { verdict: "ambiguous", confidence: 1, reason: "The judge gave no verdict that reads." };
+  if (lane === "break" && v.verdict === "real_bug" && v.confidence < ADVISORY_MIN_CONFIDENCE) return { ...v, verdict: "ambiguous" };
+  return v;
+}
+
+function outcomeMd(o) {
+  if (!o) return "not run";
+  let text = o.status;
+  if (o.failed_step) text += ` at \`${o.failed_step}\``;
+  if (o.message) text += `: ${o.message}`;
+  if (o.screenshot) text += ` (screenshot \`${path.basename(o.screenshot)}\` in the run's artifacts)`;
+  return text;
+}
+
+function findingMd({ difference: d, verdict: v }) {
+  const lines = [
+    `#### ${LABELS[v.verdict]}: ${d.title}`,
+    `${v.reason} (confidence ${v.confidence}/5)`,
+    "",
+    `- **This PR:** ${outcomeMd(d.pr)}`,
+    `- **Re-run on this PR:** ${outcomeMd(d.pr_retry)}`,
+    `- **Base:** ${outcomeMd(d.base)}`,
+  ];
+  if (v.verdict === "intended_change" && d.case_id) lines.push("- **Next:** the story asks for this. Update the case in QI; it waits there as pending.");
+  lines.push("", "<details><summary>Steps to reproduce</summary>", "", "```", d.steps, "```", "", "</details>");
+  return lines.join("\n");
+}
+
+/**
+ * Verdicts into findings, what blocks, and the one PR comment. `verdicts` is in packet order: `verdicts[i]` judges
+ * packet `i + 1`. Only the story's own cases block, and not when the story asked for the new behaviour.
+ */
+export function report({ issue, prUrl, baseUrl, diffs, verdicts = [], stats = {} }) {
+  const { story } = storyOf(issue);
+  const findings = differencesOf(diffs).map((difference, i) => {
+    const verdict = verdictOf(difference.lane, verdicts[i]);
+    return { difference, verdict, blocks: difference.lane === "regression" && REPORTED.has(verdict.verdict) };
+  });
+  const passed = diffs.filter((d) => d.lane === "regression").flatMap((d) => d.passed);
+  const notRun = diffs.flatMap((d) => d.not_counted);
+  const blocking = findings.filter((f) => f.blocks);
+  const reported = findings.filter((f) => f.difference.lane === "break" && REPORTED.has(f.verdict.verdict));
+  const other = findings.filter((f) => !blocking.includes(f) && !reported.includes(f));
+
+  const conclusion = blocking.length ? "failure" : notRun.length || findings.some((f) => REPORTED.has(f.verdict.verdict)) ? "neutral" : "success";
+
+  const storyLine = story ? `Story **${story.issue_key}**: ${story.title}` : "No story is linked to this PR, so the story's cases were not run.";
+  const lane1 = blocking.length
+    ? `**Blocks the merge:** ${blocking.length} of the story's cases broke on this PR.`
+    : story
+      ? `**The story's cases:** ${passed.length} passed on both builds, none broke.`
+      : "";
+  const lane2 = `**Tried to break it:** ${stats.scenarios_run ?? 0} scenarios, ${reported.length} findings (advisory, they don't block).`;
+  let run = `Tested \`${prUrl}\` against \`${baseUrl}\``;
+  if (stats.minutes) run += ` in ${Math.round(stats.minutes)} min`;
+  if (stats.budget) run += `. Budget ${stats.budget}`;
+  if (stats.stopped_because) run += `, stopped: ${stats.stopped_because}`;
+  const summary = [storyLine, lane1, lane2, `${run}.`].filter(Boolean).join("\n\n");
+
+  const sections = [];
+  if (blocking.length) sections.push("### Blocking: the story's cases", ...blocking.map(findingMd));
+  if (passed.length) sections.push("### Passed on both builds", passed.map((t) => `- ${t}`).join("\n"));
+  if (reported.length) sections.push("### Findings from trying to break it", ...reported.map(findingMd));
+  if (other.length) sections.push("### Not counted", ...other.map(findingMd));
+  if (notRun.length) sections.push("### Not run", notRun.map((line) => `- ${line}`).join("\n"));
+
+  const comment = [COMMENT_MARKER, "## Arcus PR check", summary, ...sections].join("\n\n");
+  return { conclusion, findings, comment };
 }
 
 function runArcus(paths, opts) {
@@ -207,19 +306,22 @@ function main(argv) {
         caseIds: opts.lane === "regression" ? caseIds : new Map(),
       });
     }
-    case "request":
-      if (!opts["pr-url"] || !opts["base-url"] || !opts.repo) fail("request needs --pr-url, --base-url and --repo");
-      return request({
+    case "packets":
+      if (!opts.out) fail("packets needs --out");
+      return writePackets({ issue: opts.issue ? readJson(opts.issue) : null, diffs: opts.diff.map(readJson), out: opts.out });
+    case "report": {
+      if (!opts["pr-url"] || !opts["base-url"]) fail("report needs --pr-url and --base-url");
+      const out = report({
         issue: opts.issue ? readJson(opts.issue) : null,
         prUrl: opts["pr-url"],
         baseUrl: opts["base-url"],
-        repo: opts.repo,
-        pr: opts.pr,
-        sha: opts.sha,
         diffs: opts.diff.map(readJson),
-        stats: opts.stats ? readJson(opts.stats) : undefined,
-        images: !opts["no-images"],
+        verdicts: opts.verdicts ? readJson(opts.verdicts) : [],
+        stats: opts.stats ? readJson(opts.stats) : {},
       });
+      if (opts.comment) fs.writeFileSync(opts.comment, `${out.comment}\n`);
+      return out;
+    }
     default:
       fail(command ? `unknown command ${command}` : "no command");
   }

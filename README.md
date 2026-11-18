@@ -77,7 +77,7 @@ claude plugin install arcus@testsigma
 | `/arcus:accept [files]` | Qi mode. After a policy check and your yes, accepts pushed versions into Arcus |
 | `/arcus:sync` | Shows where each file stands, pulls QI's changes, detaches and attaches files, and covers the pipeline check |
 | `/arcus:mode` | Shows the project mode and switches it with a dry run and your yes |
-| `/arcus:pr-check` | Qi mode, for a deployed PR (in CI or by hand). Runs the issue's tests on the PR's build and the base build, writes scenarios to try to break the change, keeps only what fails on the PR alone, and has QI judge each against the story into one check and one PR comment. A story case that breaks blocks; the rest is advisory |
+| `/arcus:pr-check` | Qi mode, for a deployed PR (in CI or by hand). Runs the issue's tests on the PR's build and the base build, writes scenarios to try to break the change, keeps only what fails on the PR alone, and has a judge subagent rule on each against the story, into one PR comment. A story case that breaks blocks; the rest is advisory |
 | `/arcus:help` | Shows the skills and the usual flow |
 
 **Typical flow in qi mode:** `/arcus:setup` once, then `/arcus:context CW-412`, `/arcus:author`, `/arcus:run`,

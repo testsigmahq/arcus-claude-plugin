@@ -3,7 +3,7 @@ import { test } from "node:test";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { diff, request, storyOf, storyTests, testsOf, withScreenshots } from "./pr-check.mjs";
+import { COMMENT_MARKER, diff, judgePacket, report, storyOf, storyTests, testsOf, verdictOf, writePackets } from "./pr-check.mjs";
 
 const run = (p, status, failedStep) => ({
   run: {
@@ -95,32 +95,80 @@ test("a test that did not compile, or never ran on the base, is said, not judged
   assert.deepEqual(out.not_counted, ["bad: did not compile, so it did not run", "half: not run on the base"]);
 });
 
-test("the request carries the story, the regression passes, every difference and what was not counted", () => {
-  const regression = { lane: "regression", differences: [{ lane: "regression", title: "a" }], passed: ["ok"], not_counted: [] };
-  const broke = { lane: "break", differences: [{ lane: "break", title: "b" }], passed: ["ignored"], not_counted: ["c: flaky"] };
-  const body = request({
-    issue: ISSUE,
-    prUrl: "http://pr",
-    baseUrl: "http://base",
-    repo: "o/r",
-    pr: "12",
-    sha: "abc",
-    diffs: [regression, broke],
-  });
-  assert.equal(body.pr_number, 12);
-  assert.equal(body.story.issue_key, "K-1");
-  assert.deepEqual(body.regression_passed, ["ok"]);
-  assert.deepEqual(body.differences.map((d) => d.title), ["a", "b"]);
-  assert.deepEqual(body.not_run, ["c: flaky"]);
+const difference = (lane, title, extra = {}) => ({
+  lane,
+  title,
+  steps: 'verify @list contains "v2"',
+  case_id: lane === "regression" ? "c1" : "",
+  pr: { status: "failed", failed_step: "verify @list", message: "not visible", screenshot: "" },
+  base: { status: "passed", failed_step: "", message: "", screenshot: "" },
+  pr_retry: { status: "failed", failed_step: "verify @list", message: "not visible", screenshot: "" },
+  ...extra,
 });
 
-test("a side's screenshot is inlined for the judge when the file is there", () => {
+test("the judge's packet holds the story, the cases, the test and each side, and only screenshots that exist", () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "pr-check-"));
   const shot = path.join(dir, "step.jpg");
   fs.writeFileSync(shot, "JPEG");
-  const d = withScreenshots({ pr: { status: "failed", screenshot: shot }, base: { status: "passed", screenshot: "" }, pr_retry: { status: "failed", screenshot: path.join(dir, "gone.jpg") } });
-  assert.equal(d.pr.screenshot_b64, Buffer.from("JPEG").toString("base64"));
-  assert.equal(d.base.screenshot_b64, undefined);
-  assert.equal(d.pr_retry.screenshot_b64, undefined);
+  const d = difference("break", "Search by name", { pr: { status: "failed", failed_step: "verify @list", message: "", screenshot: shot }, base: { status: "passed", screenshot: path.join(dir, "gone.jpg") } });
+  const text = judgePacket(storyOf(ISSUE), d);
+  assert.match(text, /K-1: Discount code\n- A valid code lowers the total/);
+  assert.match(text, /- Apply a valid code/);
+  assert.match(text, /a test written to break the change/);
+  assert.match(text, /PR build, re-run: failed/);
+  assert.ok(text.includes(`- PR build: ${shot}`));
+  assert.ok(!text.includes("gone.jpg"));
   fs.rmSync(dir, { recursive: true });
+});
+
+test("packets are numbered in the order the report reads the verdicts", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "pr-check-"));
+  const diffs = [
+    { lane: "regression", differences: [difference("regression", "a")], passed: [], not_counted: [] },
+    { lane: "break", differences: [difference("break", "b")], passed: [], not_counted: [] },
+  ];
+  const out = writePackets({ issue: null, diffs, out: dir });
+  assert.deepEqual(out.map((p) => [p.n, p.title]), [[1, "a"], [2, "b"]]);
+  assert.match(fs.readFileSync(out[0].packet, "utf8"), /No story is linked/);
+  fs.rmSync(dir, { recursive: true });
+});
+
+test("an unreadable verdict is ambiguous, and a low-confidence bug in the break lane is unclear", () => {
+  assert.equal(verdictOf("regression", { verdict: "nonsense", confidence: 4 }).verdict, "ambiguous");
+  assert.equal(verdictOf("regression", undefined).verdict, "ambiguous");
+  assert.equal(verdictOf("break", { verdict: "real_bug", confidence: 2, reason: "r" }).verdict, "ambiguous");
+  assert.equal(verdictOf("regression", { verdict: "real_bug", confidence: 2, reason: "r" }).verdict, "real_bug");
+});
+
+test("a story case that is a real bug blocks; a break finding never does", () => {
+  const diffs = [
+    { lane: "regression", differences: [difference("regression", "Profiles show version")], passed: ["Search by name"], not_counted: [] },
+    { lane: "break", differences: [difference("break", "Rename twice")], passed: [], not_counted: ["c: flaky"] },
+  ];
+  const out = report({
+    issue: ISSUE,
+    prUrl: "http://pr",
+    baseUrl: "http://base",
+    diffs,
+    verdicts: [
+      { verdict: "real_bug", confidence: 4, reason: "Version shows v1." },
+      { verdict: "real_bug", confidence: 5, reason: "The second rename is lost." },
+    ],
+    stats: { scenarios_run: 3, minutes: 12.6, budget: "low" },
+  });
+  assert.equal(out.conclusion, "failure");
+  assert.deepEqual(out.findings.map((f) => f.blocks), [true, false]);
+  assert.ok(out.comment.startsWith(COMMENT_MARKER));
+  assert.match(out.comment, /Blocks the merge:\*\* 1 of the story's cases/);
+  assert.match(out.comment, /3 scenarios, 1 findings/);
+  assert.match(out.comment, /in 13 min\. Budget low/);
+  assert.match(out.comment, /### Passed on both builds\n\n- Search by name/);
+  assert.match(out.comment, /### Not run\n\n- c: flaky/);
+});
+
+test("an intended change does not block and asks for the case to be updated", () => {
+  const diffs = [{ lane: "regression", differences: [difference("regression", "a")], passed: [], not_counted: [] }];
+  const out = report({ issue: ISSUE, prUrl: "p", baseUrl: "b", diffs, verdicts: [{ verdict: "intended_change", confidence: 4, reason: "The story asks for it." }] });
+  assert.equal(out.conclusion, "success");
+  assert.match(out.comment, /Update the case in QI/);
 });

@@ -47,8 +47,10 @@ on the base can still show this PR breaking it earlier. Everything else is liste
 
 ## The judge
 
-Arcus judges each difference from the story, its cases, the test, both outcomes and the failing step's screenshot from
-each build (`node S request` attaches them; `--no-images` leaves them out). It never sees the diff. Verdicts:
+The `pr-check-judge` subagent judges each difference from the story, its cases, the test, both outcomes and the failing
+step's screenshot from each build, all of it in the packet `node S packets` writes. It has only a file reader and never
+sees the diff or your session. The story is the issue's title and acceptance criteria as `arcus issue show` gives them.
+Not seeing the code is a strong default, not a guarantee: keep its prompt to the packet path. Verdicts:
 `real_bug`, `intended_change`, `test_issue`, `environment_issue`, `ambiguous`. A story case that is a real bug or
 unclear blocks the merge. An intended change asks for the case to be updated in QI. The break lane never blocks; a
 low-confidence bug there is reported as unclear.
@@ -73,5 +75,5 @@ commit; in CI, where nothing is switched, it is the PR's head.
 | `ARCUS_PR_CHECK_BREAK` | `on` or `off` |
 | `ARCUS_PR_CHECK_SWITCH` | Local mode only: the command that serves the base build |
 | `ARCUS_PR_CHECK_RESET` | A command that puts the test data back, run before each run of the story tests |
-| `ARCUS_PR_CHECK_POST` | `1` posts the check and the comment |
+| `ARCUS_PR_CHECK_POST` | `1` posts the comment on the PR, through `gh` |
 | `ARCUS_PR_CHECK_PUSH` | `1` pushes real findings to QI as pending cases without asking |

@@ -1,6 +1,6 @@
 ---
 name: pr-check
-description: Use when a pull request's build is deployed and someone asks Arcus to test it (a "/arcus test" PR comment in CI, or a developer asking to check a PR against its base). Runs the story's own tests on the PR's build and on the base build, then tries to break the change with new scenarios, keeps only what fails on the PR in a way the base does not, and has Arcus judge each against the story and report one check and one comment. Never edits the app, never accepts.
+description: Use when a pull request's build is deployed and someone asks Arcus to test it (a "/arcus test" PR comment in CI, or a developer asking to check a PR against its base). Runs the story's own tests on the PR's build and on the base build, then tries to break the change with new scenarios, keeps only what fails on the PR in a way the base does not, and has a judge subagent rule on each against the story, then posts one PR comment. Never edits the app, never accepts.
 ---
 
 # PR check: test the deployed change against its base, and try to break it
@@ -11,8 +11,9 @@ lanes:
 - **Regression.** The story's own tests, the ones `/arcus:verify` wrote. A story case that breaks blocks the merge.
 - **Break it.** New scenarios you write to find what the change broke that no case covers. Advisory: they never block.
 
-You never see the verdict-making side: Arcus judges each difference against the story, not the diff. Your job is to
-find differences honestly. Details, budgets and the local mode are in `${CLAUDE_PLUGIN_ROOT}/references/pr-check.md`.
+You never make the verdicts: the `pr-check-judge` subagent rules on each difference from the story and screenshots,
+never the diff. It has only a file reader, and you hand it nothing but its packet. Your job is to find differences
+honestly. Details, budgets and the local mode are in `${CLAUDE_PLUGIN_ROOT}/references/pr-check.md`.
 
 `S` below is `${CLAUDE_PLUGIN_ROOT}/scripts/pr-check.mjs`, run with `node`. Keep every file this run writes under
 `.arcus/pr-check/` (the work folder, `W`), except the scenario tests, which `arcus test run` needs in the project's `tests/`.
@@ -25,7 +26,7 @@ when there is a PR. They come from the environment (`ARCUS_PR_URL`, `ARCUS_BASE_
 answer (`curl -sS -o /dev/null -w '%{http_code}' <url>`). One that does not: stop and say which.
 
 Then `/arcus:setup`'s checks: the CLI, the sign-in, `arcus browser list`, `web` in the project's platforms, and qi mode
-(`arcus project mode show`): the story, its cases and the judge are in QI.
+(`arcus project mode show`): the story and its cases are in QI.
 
 ## 2. The story
 
@@ -99,17 +100,34 @@ node S run --url <base url> [--var ...] <story test files> > W/regression-base.j
 node S run --url <base url> [--var ...] <candidate files> > W/break-base.json
 ```
 
-## 6. Report
+## 6. Judge and report
 
 ```
 node S diff --lane regression --pr W/regression-pr.json --base W/regression-base.json --retry W/regression-retry.json --issue W/issue.json > W/regression.json
 node S diff --lane break --pr W/break-pr.json --base W/break-base.json --retry W/break-retry.json > W/break.json
-node S request --issue W/issue.json --pr-url <url> --base-url <url> --repo <owner/name> [--pr <n>] [--sha <sha>] --diff W/regression.json --diff W/break.json --stats W/stats.json > W/request.json
-arcus issue judge <key> W/request.json --json > W/report.json
+node S packets --issue W/issue.json --out W/judge --diff W/regression.json --diff W/break.json > W/packets.json
 ```
 
-`W/stats.json` holds `budget`, `minutes`, `scenarios_run` and `stopped_because`. Add `--post` to the report only when
-`ARCUS_PR_CHECK_POST=1`: that posts the check and the comment on the PR. Otherwise show the rendered comment.
+For each entry of `W/packets.json`, start the `pr-check-judge` subagent with only this prompt: `Judge the difference
+in <packet path>.` Nothing else: not the diff, not your reasoning, not what you expect. Run them in parallel. Write
+their answers, in packet order, as a JSON array to `W/verdicts.json` (an answer that is not one JSON object goes in as
+it is; the report counts it as unclear). Never change, drop or argue with a verdict.
+
+```
+node S report --issue W/issue.json --pr-url <url> --base-url <url> --diff W/regression.json --diff W/break.json --verdicts W/verdicts.json --stats W/stats.json --comment W/comment.md > W/report.json
+```
+
+`W/stats.json` holds `budget`, `minutes`, `scenarios_run` and `stopped_because`. `W/report.json` has the `conclusion`
+(`failure` when a story case blocks), the findings, and the comment. Post it only when `ARCUS_PR_CHECK_POST=1` and
+there is a PR: update the comment that starts with `<!-- arcus-pr-check:v1 -->` if one is there, else add one.
+
+```
+gh api repos/<owner/name>/issues/<n>/comments --paginate --jq '.[] | select(.body | startswith("<!-- arcus-pr-check:v1 -->")) | .id'
+gh api -X PATCH repos/<owner/name>/issues/comments/<id> -F body=@W/comment.md
+gh pr comment <n> -R <owner/name> --body-file W/comment.md
+```
+
+Otherwise show the comment.
 
 ## 7. Findings become pending tests
 
@@ -122,8 +140,8 @@ Then delete every `pr-check-*.sigma` file and any element this run created that 
 
 ## 8. Say
 
-The story (or that none was linked), the regression result, how many scenarios ran and what was found, the check's
-conclusion, whether it was posted, what was pushed, and what did not run and why.
+The story (or that none was linked), the regression result, how many scenarios ran and what was found, the report's
+conclusion, whether the comment was posted, what was pushed, and what did not run and why.
 
 ## What this skill never does
 
@@ -131,5 +149,6 @@ conclusion, whether it was posted, what was pushed, and what did not run and why
 - Weaken a scenario, or write one meant to fail.
 - Run a build the user did not name, or guess an address.
 - Post without `ARCUS_PR_CHECK_POST=1`, or push without `ARCUS_PR_CHECK_PUSH=1` or a yes.
+- Give the judge anything but its packet, or change a verdict it gave.
 - Accept anything, sign in, or start the agent or the app.
 - Commit scenario files, or leave them in `tests/`.
