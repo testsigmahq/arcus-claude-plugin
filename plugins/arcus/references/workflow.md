@@ -8,7 +8,7 @@ Read this once when a skill sends you here. It says where each thing lives and w
 | Place | What it holds |
 |---|---|
 | **Arcus** | The accepted test suite: every test case with its accepted versions. All element files. The project settings. The sign-in |
-| **QI** | The quality service. It holds the sprint and the issue, the cases it made from the acceptance criteria, the working line of each case (every pushed version), the review state of each head, the policy, and the run result sent with each push |
+| **QI** | The quality service. It holds the places of an issue (a sprint or an ad hoc session) and the issue, the cases it made from the acceptance criteria, the working line of each case (every pushed version), the review state of each head, the policy, and the run result sent with each push |
 | **The repo** | The `.sigma` test and element files, `arcus.json` (the project and its mode), `arcus.lock` (which file is which case or element; commit it) and `.arcus/` (local state; never commit it) |
 
 An element file always goes to Arcus, in both modes. A test file goes to Arcus or to QI, as the mode says.
@@ -57,6 +57,14 @@ issue in QI ──► cases (from the acceptance criteria)
 - After an accept, a fix moves the line again. The case then shows `changed_after_accept` until it is accepted again.
 - A change in the story does not move the line. QI attaches a suggestion to the case. The file follows it by hand.
 
+## Case versions off
+
+Some accounts keep no versions of a case. The answers say `versioning: "off"`. Push and accept work. The last push
+replaces the automated part of the case, with no conflict check and no history. Status can say only pushed, modified or
+accepted. It cannot tell behind, rework, a version number or drift, and pull changes nothing. If QI turns versions on
+later, a push is refused with `versions_turned_on`: `arcus test pull`, then push. While QI changes the mode
+(`versioning_changing`, exit `3`), try again later. The details are in `${CLAUDE_PLUGIN_ROOT}/references/push-qi.md`.
+
 ## The policy
 
 `arcus issue show <KEY>` shows the policy of the project:
@@ -65,6 +73,9 @@ issue in QI ──► cases (from the acceptance criteria)
 - `run`: `required` means a push needs a local run of the file as it is now. `optional` means it does not.
 - `contextMaxAgeHours`: a context older than this is refused at push. Read it again.
 - `sprintClose`: what happens to unaccepted work when the sprint closes.
+
+An issue can be in several places (sprints and ad hoc sessions). Then `arcus issue show <KEY>` lists them and the
+developer chooses with `--place <id or human id>`. The choice is saved and push, verify and status reuse it.
 
 QI checks the same policy again on its side. A refusal from QI wins over what you expect.
 

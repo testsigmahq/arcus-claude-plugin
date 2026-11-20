@@ -174,7 +174,7 @@ def test_align_does_not_stop_without_cases_and_asks_once_for_an_issue():
 
 def test_align_keeps_the_plan_table_and_the_refusals_table():
     text = prose(skill_path("align"))
-    for phrase in ("`file` is null", "`review: REWORK`", "`linked, primary story <KEY>`", "`issue_not_found`", "`versioning_off`", "`policy_forbids`"):
+    for phrase in ("`file` is null", "`review: REWORK`", "`linked, primary story <KEY>`", "`issue_not_found`", "`place_required`", "`place_not_found`", "`place_closed`", "`versioning_changing`", "`policy_forbids`"):
         assert phrase in text, phrase
     assert "pick up CW-412" in read(skill_path("align"))
 
@@ -247,3 +247,54 @@ def test_the_moved_facts_are_still_in_the_mode_references():
     for fact in ("--theirs", "--ours", "--rebuild", "arcus test detach", "arcus test attach", "ARCUS_API_KEY", "not_pushed"):
         assert fact in sync_qi, fact
     assert "`no_base`" in prose(mode_reference("sync", "direct"))
+
+
+def test_align_names_the_place_and_lets_the_developer_choose_it():
+    text = prose(skill_path("align"))
+    assert "`place` and `placeClosed`" in text and "type (`sprint` or `adhoc`), title, human id and status" in text
+    assert "Show the list and let the **developer** choose" in text
+    assert "Never choose a place for them" in text
+    assert "arcus issue show <KEY> --place <id or human id> --json" in text
+
+
+def test_align_counts_only_this_issue_and_unknown_cases_in_an_ad_hoc_session():
+    text = prose(skill_path("align"))
+    for word in ("`issueMatch`", "`this_issue`", "`other_issue`", "`unknown`"):
+        assert word in text, word
+    assert "Count only the `this_issue` and `unknown` cases" in text and "Name the `other_issue` cases" in text
+
+
+def test_no_skill_or_reference_names_a_gone_refusal_or_the_old_sprint_fields():
+    for path in [*(skill_path(n) for n in SKILLS), *REFERENCES.glob("*.md"), COMMANDS_DIR / "help.md"]:
+        text = read(path)
+        for gone in ("no_sprint", "versioning_off", "sprintClosed"):
+            assert gone not in text, f"{path.name} still says {gone}"
+
+
+def test_the_qi_references_say_what_case_versions_off_means():
+    for name in ("push", "sync"):
+        text = prose(mode_reference(name, "qi"))
+        assert "## Case versions off" in read(mode_reference(name, "qi"))
+        assert "The last push wins" in text and "What the CLI cannot tell" in text and "`versions_turned_on`" in text
+    assert "`versions_off`" in prose(mode_reference("sync", "qi"))
+    for term in ("--place", "versions_turned_on", "Case versions off"):
+        assert term not in read(mode_reference("push", "direct")) + read(mode_reference("sync", "direct")), term
+
+
+def test_push_names_the_place_refusals_and_has_no_place_option():
+    text = prose(mode_reference("push", "qi"))
+    for code in ("place_required", "place_not_found", "place_closed", "versioning_changing"):
+        assert code in text, code
+    assert "has no `--place` option" in text and "Never choose a" in text
+
+
+def test_accept_names_the_new_reasons_for_versions_off():
+    text = prose(skill_path("accept"))
+    for reason in ("no_pushed_test", "case_changed", "record_failed"):
+        assert reason in text, reason
+    assert "only when the user specifically asks" in prose(REFERENCES / "layer.md") or "specifically asks" in text
+
+
+def test_prove_says_what_a_closed_place_means():
+    text = prose(skill_path("prove")) + prose(REFERENCES / "verifying.md")
+    assert "`placeClosed`" in text and "QI takes no new versions there" in text

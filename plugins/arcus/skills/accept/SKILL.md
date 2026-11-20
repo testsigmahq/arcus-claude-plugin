@@ -18,8 +18,8 @@ Direct project: `arcus test accept` stops with exit `3`. Say there is nothing to
 
 1. Read the policy: `arcus issue show <KEY> --json`, field `policy.acceptBy`. If a developer is not on the list,
    stop and say the reviewer accepts in QI. QI also refuses with `policy_forbids`.
-2. Run `arcus test status --json` (`/arcus:sync` explains it). Only a file in step with its head can be accepted: `pending` or `changed_after_accept`.
-   Other states (`modified`, `behind`, `rework`, `rejected`, `unmapped`, `no_shadow`) refuse. Say what each needs
+2. Run `arcus test status --json` (`/arcus:sync` explains it). Only a file in step with its head can be accepted: `pending` or `changed_after_accept`. With case versions off, a
+   file that is `pushed`. Other states (`modified`, `behind`, `rework`, `rejected`, `unmapped`, `no_shadow`) refuse. Say what each needs
    (`states.md`).
 3. Tell the user what will be accepted: each case label, the file, the issue, and that it goes into the accepted suite in
    Arcus. Say if the run on the file failed. Ask for a clear yes for exactly these files. A past yes does not carry over.
@@ -45,6 +45,11 @@ refused.
 - `refused`: give the reason in plain words and the `next`. The reasons are in `states.md`. For `arcus_unavailable` and
   `arcus_error`, nothing changed: offer the `retry` command, and run it only after a yes. For `policy_forbids`, leave it
   to the reviewer. For `head_rejected`, show the comments (`arcus test status`). Never loop on a refusal.
+- Case versions off (`versioning: "off"`): there is no version number in the answer. Three reasons are new:
+  `no_pushed_test` (QI holds no pushed test for the case: run and push the file, then accept), `case_changed` (the test
+  in QI is not the file you accept, or it changed during the accept: push the file, accept again) and `record_failed`
+  (Arcus took the accept, but QI could not save its record: run the `retry` command, the same accept again, after a yes).
+  `versioning_changing` (exit `3`) means try again later.
 - A file that is detached is `skipped`. It is a local test.
 
 ## Never

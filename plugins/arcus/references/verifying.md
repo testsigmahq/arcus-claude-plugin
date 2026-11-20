@@ -47,6 +47,17 @@ Read `cases[]` and each `verdict`, not only the exit code. Exit `1` means some c
 (`/arcus:sync`) or push so the two agree. `next` in the answer says what to do for the whole issue.
 A verify run is not the run that a push needs: only `arcus test run` saves that.
 
+### Place and a closed place
+
+The issue is read in one place (a sprint or an ad hoc session). If the issue is in several places, the developer chooses
+one with `arcus issue show <KEY> --place <id or human id>` (see `/arcus:align`). Never choose for them. In an ad hoc
+session each case has `issueMatch` (`this_issue`, `other_issue`, `unknown`). Report `this_issue` and `unknown` cases as
+the expectation, and name the `other_issue` cases apart. If the place is closed (`placeClosed`), verify still runs and
+reports. QI takes no new versions there, so there is nothing to push.
+
+With case versions off, a case has no version to read a script from. Only the local file runs. A case with no local file
+cannot run.
+
 ## The gap report
 
 One verdict for each case of the issue, not only the cases the change touched. The verdicts are the five above and one

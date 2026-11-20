@@ -73,6 +73,9 @@ def markdown_files():
 
 #: The CLI's commands and the options each takes (the global options are in GLOBAL_FLAGS).
 #: Update this, and the documents, when the CLI changes. The live test below checks it against a real CLI.
+# Options of the CLI on `feat/versions-off`, not in a released CLI yet. The real-CLI check skips them until it is.
+NOT_RELEASED = {("issue show", "--place")}
+
 CLI_SURFACE = {
     "auth login": {"--region"},
     "auth logout": set(),
@@ -91,7 +94,7 @@ CLI_SURFACE = {
     "test fmt": {"--check", "--project"},
     "docs list": {"--all", "--project"},
     "docs show": {"--topic", "--project"},
-    "issue show": {"--project"},
+    "issue show": {"--project", "--place"},
     "case show": {"--project"},
     "test push": {
         "--dry-run", "--case", "--rebind", "--new", "--unmapped", "--issue", "--accept", "--session-id", "--project",

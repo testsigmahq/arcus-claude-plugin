@@ -63,7 +63,7 @@ your choice. Post nothing on a pull request unless the developer asks.
 
 "Done" is every case covered, or the developer says it is done. A failure does not block.
 
-A sprint that is closed: prove verifies and reports, and says that QI takes no new versions, so there is nothing to push.
+A place that is closed (`placeClosed`; a sprint or an ad hoc session): prove verifies and reports, and says that QI takes no new versions there, so there is nothing to push. The developer may choose an open place (`arcus issue show <KEY> --place <id or human id>`). If the issue is in several places, the developer chooses one first, as `/arcus:align` says. In an ad hoc session, report the cases of `this_issue` and `unknown` as the expectation, and name the `other_issue` cases apart.
 
 ## 5. Propose the push
 

@@ -7,8 +7,12 @@ new head on the working line of its case. Modes and results are in `${CLAUDE_PLU
 ## Files
 
 The push also needs: an issue context on this machine (`/arcus:align`), younger than the policy allows, for an issue
-whose sprint is open; and, when the policy says `run: required`, a run of the exact text of the file (`/arcus:run`).
+whose place (sprint or ad hoc session) is open; and, when the policy says `run: required`, a run of the exact text of the file (`/arcus:run`).
 After any edit, run again.
+
+The push goes into the place saved with the issue context. When the issue is in several places, the developer chooses
+one first: `arcus issue show <KEY> --place <id or human id>`. `arcus test push` has no `--place` option. Never choose a
+place for the developer.
 
 Paths: the files the user named, or the files you just changed, else no path (the whole project; files that did not
 change come back `unchanged`). `arcus test status` first shows where each file stands.
@@ -19,7 +23,7 @@ A test file needs a case:
 |---|---|
 | Automates a case from `arcus issue show` | `--case <id>` (one file per command). It works only when the current issue context is the story of that case: run `arcus issue show <KEY>` for that story first |
 | Is a new test with no case | `--new` |
-| Is new, and the issue is not in a sprint or QI does not know it | `--new --unmapped`, and `--issue <KEY>` as a hint for the reviewer |
+| Is new, and QI does not know the issue or has no place for it | `--new --unmapped`, and `--issue <KEY>` as a hint for the reviewer |
 | Must move to another case (a duplicate warning names it) | `--rebind <id>` (one file) |
 
 After the first push, `arcus.lock` binds the file. Push it again with no flag. Ask the user before `--new`: a new case is
@@ -34,7 +38,7 @@ The JSON has the Arcus part (`files[]`, for elements) and `cases` with `issue`, 
 
 ## The plan, in words
 
-Begin with the place: `Tests go to QI, as new versions of these cases, under issue <KEY>. Elements go to the Arcus
+Begin with the place: `Tests go to QI, as new versions of these cases, under issue <KEY>, in place <type, title, human id>. Elements go to the Arcus
 project "<project>".` Say the policy: a reviewer accepts, so nothing joins the accepted suite yet.
 
 Then one line per file: `would_push` adds a head to case <label>; `would_create` makes a new case (say `unmapped` when
@@ -73,8 +77,26 @@ Next is review. The user can check with `/arcus:sync` (`arcus test status`). The
 | `unbound` | No case yet. Say which flag fits (`--case`, `--new`) and ask |
 | `ambiguous_case` (`case … is not under <KEY>`) | The issue context on this machine is another story than the story of that case. Run `arcus issue show <KEY>` for the right story, then push again with the same `--case` |
 | `element_not_pushed` | Push the element first, or fix why it failed |
-| Whole-run error, exit `3` | Closed sprint, stale or missing context, or a lock that does not fit the mode. Give the message and its `remediation` |
-| `QI refused: …` | Use the table in `states.md` |
+| `versions_turned_on` | Case versions were turned on after this file was pushed. The file has no base. `arcus test pull <path>`, run, push |
+| Whole-run error, exit `3` | Stale or missing context, or a lock that does not fit the mode. Give the message and its `remediation` |
+| `QI refused: place_required` | The issue is in several places. The developer chooses: `arcus issue show <KEY> --place <id or human id>`. Then push again |
+| `QI refused: place_not_found` | QI has no such place. `arcus issue show <KEY>` shows the places. The developer chooses. Push again |
+| `QI refused: place_closed` or `sprint_closed` | The place is closed: QI takes no new versions. The developer chooses an open place, or uses an issue of an open place that links to it. New tests with no issue: `--new --unmapped` |
+| `versioning_changing` (exit `3`) | QI is changing how it stores case versions. Nothing was sent. Try again later |
+| Other `QI refused: …` | Use the table in `states.md` |
+
+## Case versions off
+
+The answers of push carry `versioning: "off"`. Some accounts keep no versions of a case. Then:
+
+- **What works.** Push (of a bound file and of a new case with `--new`), accept, status and verify of the local file.
+- **What the CLI cannot tell.** The dry run and the result show no version, no base and no review of a version. Do not say
+  `vN` or `pending review`.
+- **The last push wins.** A push replaces the automated part of the case. The manual steps stay. There is no conflict
+  check and no history. Say this before the yes. A teammate's push before yours is replaced.
+- `unchanged`: QI already holds this test, build and run. Nothing was written.
+- If the account is later turned to versions on, a push is refused with `versions_turned_on`. The fix is
+  `arcus test pull <path>`, then run and push.
 
 ## Never
 
