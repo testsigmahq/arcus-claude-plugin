@@ -4,20 +4,20 @@ import re
 
 import pytest
 
-from support import REFERENCES_DIR, REPO_ROOT, SKILLS, markdown_files, prose, read, skill_path
+from support import REFERENCES_DIR, REPO_ROOT, SKILLS, markdown_files, prose, read, skill_path, skill_text
 
 SKILL_NAME = re.compile(r"/arcus:([a-z]+)")
 
 #: Who names whom. A skill that ends a job names the next skill, so the user is never left at a dead end.
 HANDOVERS = {
-    "setup": {"author", "run", "push", "context", "mode"},
-    "context": {"setup", "author", "verify", "push", "mode"},
-    "author": {"setup", "run", "push", "context", "sync"},
-    "run": {"setup", "author", "push", "verify"},
-    "verify": {"setup", "author", "run", "push", "context", "sync"},
-    "push": {"setup", "author", "run", "accept", "sync", "context"},
-    "accept": {"setup", "push", "sync"},
-    "sync": {"setup", "push", "run", "accept", "context"},
+    "setup": {"author", "run", "push", "align", "mode"},
+    "align": {"setup", "author", "prove", "push", "mode"},
+    "author": {"setup", "run", "push", "align", "sync"},
+    "run": {"setup", "author", "push", "prove"},
+    "prove": {"setup", "author", "run", "push", "align", "accept", "mode"},
+    "push": {"setup", "author", "run", "accept", "sync", "align"},
+    "accept": {"setup", "push", "sync", "prove"},
+    "sync": {"setup", "push", "run", "accept", "align"},
     "mode": {"setup", "push"},
 }
 
@@ -30,7 +30,7 @@ def test_every_slash_command_a_document_names_exists(doc):
 
 @pytest.mark.parametrize("name", SKILLS)
 def test_a_skill_names_the_skills_it_hands_over_to(name):
-    named = set(SKILL_NAME.findall(read(skill_path(name))))
+    named = set(SKILL_NAME.findall(skill_text(name)))
     assert HANDOVERS[name] <= named, f"{name} does not name {sorted(HANDOVERS[name] - named)}"
 
 
@@ -40,7 +40,7 @@ def test_author_hands_over_to_run_without_asking_when_the_user_asked_to_verify()
 
 
 def test_push_offers_a_run_but_does_not_hold_the_push_back_for_it():
-    text = prose(skill_path("push"))
+    text = " ".join(skill_text("push").split())
     assert "/arcus:run" in text and "do not hold a direct push back" in text.lower()
 
 
@@ -69,8 +69,8 @@ def test_no_document_still_says_the_plugin_cannot_run_tests(doc):
 def test_android_is_said_to_run_and_ios_is_not():
     assert "web and Android" in prose(REFERENCES_DIR / "platforms.md")
     assert "iOS" in prose(skill_path("run"))
-    for name in ("run", "verify", "setup"):
-        assert "android" in read(skill_path(name)).lower()
+    for name in ("run", "prove", "setup"):
+        assert "android" in skill_text(name).lower() or "android" in read(REFERENCES_DIR / "verifying.md").lower()
 
 
 def test_the_running_reference_has_the_exit_codes_and_the_result_shape():

@@ -7,7 +7,9 @@ description: Use when a developer asks to accept pushed test heads into Arcus in
 
 In qi mode a push only adds a head to the case in QI. Accept makes that head the accepted version in Arcus, as
 **Dev accepted**. This changes the suite the team trusts and runs. A reviewer normally decides it. A developer may do it
-only when the policy lists the developer. See `${CLAUDE_PLUGIN_ROOT}/references/workflow.md`.
+only when the policy lists the developer. **You accept only when the user specifically asks to accept a case.** Never
+accept on your own, and never as the last step of `/arcus:prove`. The normal path is that QA or a PM accepts or rejects
+in QI. See `${CLAUDE_PLUGIN_ROOT}/references/workflow.md`.
 
 Direct project: `arcus test accept` stops with exit `3`. Say there is nothing to accept: a direct push is final. Not signed in
 (exit `2`): `/arcus:setup`.
@@ -47,6 +49,7 @@ refused.
 
 ## Never
 
+- Accept unless the user specifically asked to accept a case.
 - Accept without the policy check and a yes, or accept a rejected or unmapped case.
 - Edit `arcus.lock` or `.arcus/` to make a file acceptable.
 - Add files to the accept that the user did not name.

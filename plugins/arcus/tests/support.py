@@ -13,7 +13,11 @@ COMMANDS_DIR = PLUGIN_ROOT / "commands"
 REFERENCES_DIR = PLUGIN_ROOT / "references"
 
 #: The skills this plugin has. A new skill is added here on purpose, with its tests.
-SKILLS = ("setup", "context", "author", "run", "verify", "push", "accept", "sync", "mode")
+SKILLS = ("setup", "align", "author", "run", "prove", "push", "accept", "sync", "mode")
+
+#: push and sync are routers: they check the mode, then read one reference for that mode.
+ROUTERS = ("push", "sync")
+MODES = ("direct", "qi")
 
 #: A skill is read in full every time it loads, so it has a size budget. Detail goes in references/.
 SKILL_MAX_LINES = 200
@@ -34,6 +38,18 @@ def prose(path):
 
 def skill_path(name):
     return SKILLS_DIR / name / "SKILL.md"
+
+
+def mode_reference(name, mode):
+    return REFERENCES_DIR / f"{name}-{mode}.md"
+
+
+def skill_text(name):
+    """A skill and, for a router, the two mode references it reads. The facts of a router live in those files."""
+    text = read(skill_path(name))
+    if name in ROUTERS:
+        text += "\n" + "\n".join(read(mode_reference(name, mode)) for mode in MODES)
+    return text
 
 
 def frontmatter(path):

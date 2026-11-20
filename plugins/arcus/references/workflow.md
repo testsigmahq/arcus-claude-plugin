@@ -29,13 +29,21 @@ A project has one mode. It is `"mode": "direct"` or `"mode": "qi"` in `arcus.jso
 The mode and `arcus.lock` must agree. When they do not, every command stops with exit `3` and says how to fix it. The
 `mode` skill (`/arcus:mode`) handles that.
 
+## The layer: align at the start, prove at the end
+
+In qi mode, QI is the alignment and verification layer of the developer's coding agent. `/arcus:align` reads what the
+issue expects before the first code edit. The developer and the agent build the code in their own way. `/arcus:prove`
+runs every case at the end, gives a gap report and proposes a push of every test. The eight rules of the layer are in
+`${CLAUDE_PLUGIN_ROOT}/references/layer.md`. The plugin suggests how to work. It never dictates how the code is built.
+
 ## The path of one case in QI mode
 
 ```text
 issue in QI ──► cases (from the acceptance criteria)
-   arcus issue show  read them
+   align             read the issue, the steps of every case, and show the expectation summary
    author            write the test file for a case
    arcus test run    run it here: this is the proof a push may need
+   prove             run every case of the issue, give the gap report, propose the push
    arcus test push   a new head on the case's line, with the run result
    QI review         pending ──► rework (comments) ──► push again
                               └─► rejected (a kind and a reason)
@@ -44,7 +52,8 @@ issue in QI ──► cases (from the acceptance criteria)
 
 - The line moves when anyone pushes: the agent, a developer, or a reviewer who edits in QI. A push on a head that has
   moved is refused (`head_moved`). The fix is `arcus test pull`, then run, then push. This is like git.
-- Review is not accept. A head can be pending for days. Accept happens once, when the policy allows it.
+- Review is not accept. A head can be pending for days. Accept happens once, when the policy allows it. The normal path
+  is that QA or a PM accepts or rejects in QI. The agent accepts only when the user specifically asks.
 - After an accept, a fix moves the line again. The case then shows `changed_after_accept` until it is accepted again.
 - A change in the story does not move the line. QI attaches a suggestion to the case. The file follows it by hand.
 
@@ -60,6 +69,8 @@ issue in QI ──► cases (from the acceptance criteria)
 QI checks the same policy again on its side. A refusal from QI wins over what you expect.
 
 ## Rules that hold in every skill
+
+In qi mode the rules of the layer in `${CLAUDE_PLUGIN_ROOT}/references/layer.md` hold too.
 
 - The user signs in. You never do, and you never handle a password, a token or an API key.
 - Learn the language and the flags from the CLI, not from memory: `arcus help --json` (every command), `arcus docs list` and `arcus docs show`,

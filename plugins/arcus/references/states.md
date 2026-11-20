@@ -108,6 +108,8 @@ again later), `rebuilt`, `skipped`.
 `covered` (passed), `failing`, `missing` (no script in QI, no file), `local_only` (QI holds no script yet: push it),
 `rejected` (listed, not run). `ran` says if the file or QI's script ran. `local_differs` means the file is not the text
 QI holds. Exit `1` unless every case is `covered` or `rejected`.
+The gap report of `/arcus:prove` adds one verdict, `not verified` (a case this machine cannot run). The command and the
+report are in `${CLAUDE_PLUGIN_ROOT}/references/verifying.md`.
 
 ## `arcus test run`
 

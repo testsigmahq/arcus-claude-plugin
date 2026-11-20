@@ -36,8 +36,8 @@ flags and the exit code table. When this file and that output differ, the output
 | Show the platforms of the project | `arcus project platforms list` (change: `arcus project platforms add\|remove <platform>`) | both | no | `setup`, `run` |
 | Switch the mode (plan, then do) | `arcus project mode set <direct\|qi> --dry-run` then `arcus project mode set <direct\|qi>` | both | qi only | `mode` |
 | Set the mode at the start | `arcus project init --project <id> --mode <direct\|qi>` | both | yes | `setup` |
-| Read an issue and its cases | `arcus issue show <KEY>` | qi | yes | `context` |
-| Read the manual steps of one case | `arcus case show <id>` | qi | yes | `context` |
+| Read an issue and its cases | `arcus issue show <KEY>` | qi | yes | `align` |
+| Read the manual steps of one case | `arcus case show <id>` | qi | yes | `align` |
 | Check and format | `arcus test check`, `arcus test fmt` | both | no | `author` |
 | Learn the language | `arcus docs list` (every action), `arcus docs show <action>`, `arcus docs show --topic <id>` | both | no | `author` |
 | List the browsers (the web run needs the local agent) | `arcus browser list` | both | no | `setup`, `run` |
@@ -46,8 +46,8 @@ flags and the exit code table. When this file and that output differ, the output
 | Run on a platform | `arcus test run <file> --platform <web\|android>` | both | no | `run` |
 | Run on a device, with an app | `arcus test run <file> --platform android --device <serial> --app <apk>` | both | no | `run` |
 | List the devices (state `device` is ready) | `arcus device list` or `arcus device list --json` | both | no | `setup`, `run` |
-| Run every case of an issue | `arcus issue verify <KEY>` | qi | yes | `verify` |
-| Run every case on Android | `arcus issue verify <KEY> --platform android [--device <serial>] [--app <apk>]` | qi | yes | `verify` |
+| Run every case of an issue | `arcus issue verify <KEY>` | qi | yes | `prove` |
+| Run every case on Android | `arcus issue verify <KEY> --platform android [--device <serial>] [--app <apk>]` | qi | yes | `prove` |
 | Plan a push | `arcus test push --dry-run [paths]` | both | yes | `push` |
 | Push | `arcus test push [paths]` | both | yes | `push` |
 | Bind a file to a case on its first push | `arcus test push <path> --case <id>` | qi | yes | `push` |

@@ -16,7 +16,7 @@ This skill writes and checks files. It does not push them (`/arcus:push`) and it
 clean check means the CLI accepts a test. Only a run shows that it passes against the app.
 
 **The mode.** Run `arcus project mode show`. In `qi` mode a test automates one QI case: read the issue and the case steps with
-`/arcus:context` first, and write one file per case that covers every manual step. The file is bound to its case on its
+`/arcus:align` first, and write one file per case that covers every manual step. The file is bound to its case on its
 first push (`/arcus:push`). In `direct` mode the file becomes an Arcus test on its first push. Elements are the same in
 both modes.
 

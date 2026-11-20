@@ -1,6 +1,6 @@
 ---
 name: run
-description: Use when a developer asks to run, try or execute one Arcus test on their machine (web in a browser, or on an Android device), to watch it, to get the run a QI push needs, or to find out why a test fails. Runs one .sigma test with arcus test run, reads the result and the screenshot, and says whether the test, the app or the setup is wrong. Sends nothing to Arcus or QI and needs no sign-in. Not for running every case of an issue (use verify). Does not push.
+description: Use when a developer asks to run, try or execute one Arcus test on their machine (web in a browser, or on an Android device), to watch it, to get the run a QI push needs, or to find out why a test fails. Runs one .sigma test with arcus test run, reads the result and the screenshot, and says whether the test, the app or the setup is wrong. Sends nothing to Arcus or QI and needs no sign-in. Not for running every case of an issue (use prove). Does not push.
 ---
 
 # Run: try a test on this machine
@@ -140,7 +140,7 @@ Say, briefly:
 Datasets (`for row in dataset …`, refused as `ARC1201`), groups, iOS, a suite result, and running on Arcus's own machines.
 On Android also: device actions, alerts, web views, app install and uninstall, and image actions are not tested on a
 device yet, and a physical phone and Windows are not tested. Do not promise them.
-For every case of an issue, use `/arcus:verify`.
+For every case of an issue, use `/arcus:prove`.
 
 ## What this skill never does
 

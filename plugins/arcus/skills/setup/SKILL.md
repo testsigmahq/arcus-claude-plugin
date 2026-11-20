@@ -71,7 +71,7 @@ Find `arcus.json` here or above.
 
 ## 5. Can this machine run tests?
 
-This step never stops setup. It matters only for `/arcus:run` and `/arcus:verify`.
+This step never stops setup. It matters only for `/arcus:run` and `/arcus:prove`.
 
 - Web (the project lists `web`): `arcus browser list`. It lists browsers: ready. A message that starts `Cannot reach`
   means the local agent is not running. The user must start it. You cannot.
@@ -106,7 +106,7 @@ Ready.
   signed in    <email>, region <region>
   project      <name>, mode <direct|qi>, platforms <list>, tests in <folder>
   can run      web: <browsers> | android: <device or "no device">
-Next: /arcus:context <KEY> (qi), /arcus:author, /arcus:run or /arcus:push
+Next: /arcus:align <KEY> (qi), /arcus:author, /arcus:run or /arcus:push
 ```
 
 When a line is not true, name it, give the one thing to do, and stop.

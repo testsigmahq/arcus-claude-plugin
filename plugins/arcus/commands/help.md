@@ -13,11 +13,13 @@ versions, and a reviewer accepts them. Elements go to Arcus in both modes.
 
 - `/arcus:setup` — Check the CLI, the sign-in, the project, its mode and platforms, and whether this machine can run
   web and Android tests. Stops with the one thing to do.
-- `/arcus:context <issue>` — Qi mode. Read the issue, its cases and the policy from QI. Plan which tests to write.
+- `/arcus:align <issue>` — Qi mode. Start of work on an issue. Read what QI expects (the cases and their steps) before
+  the first code edit, show a short summary, and plan which tests to write.
 - `/arcus:author [what to test]` — Write tests and elements as `.sigma` files. Loops check and format until clean.
 - `/arcus:run [test]` — Run one test on web or Android (`--platform`, `--device`, `--app`). Says whether the test, the
   app or the setup is wrong. Nothing is sent.
-- `/arcus:verify <issue>` — Qi mode. Run every case of an issue and report each one.
+- `/arcus:prove <issue>` — Qi mode. End of work on an issue. Run every case, give a gap report (covered, failing,
+  missing, local only, rejected, not verified, and additions), and propose a push of every test.
 - `/arcus:push [files]` — Dry run first, a plan in words, a push after your yes. Explains every result and refusal.
 - `/arcus:accept [files]` — Qi mode. Accept pushed versions into Arcus, after a policy check and your yes.
 - `/arcus:sync` — Show where each file stands. Pull QI's changes. Detach or attach a file. Pipeline check.
@@ -26,11 +28,12 @@ versions, and a reviewer accepts them. Elements go to Arcus in both modes.
 ## Typical flow
 
 1. `/arcus:setup` once per repo. Sign in yourself when it asks.
-2. Qi mode: `/arcus:context CW-412` to see what QI expects. Direct mode: go to step 3.
+2. Qi mode: `/arcus:align CW-412` to see what QI expects before you change code. Direct mode: go to step 3.
 3. `/arcus:author` — Claude writes the files and checks them.
 4. `/arcus:run` — Claude runs the test and tells you what happened.
 5. `/arcus:push` — read the plan, say yes, and commit `arcus.lock` with the tests.
-6. Qi mode: `/arcus:sync` to see the review, `/arcus:verify` before a merge, `/arcus:accept` when the policy allows.
+6. Qi mode: `/arcus:prove` when the work is done, `/arcus:sync` to see the review, `/arcus:accept` only when you ask to
+   accept a case and the policy allows.
 
 ## Troubleshooting
 
