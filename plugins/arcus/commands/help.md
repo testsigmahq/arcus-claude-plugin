@@ -1,40 +1,46 @@
 ---
-description: Show Arcus commands and how to use them
+description: Show what the Arcus plugin does and how to use it
 ---
 
-Arcus captures Claude Code session context (prompts, tool I/O, file snapshots, subagent boundaries) and ingests it. Sessions are grouped by git branch and linked to an Arcus workflow; you pick the project and map tickets.
+The Arcus plugin guides you through the developer side of the Arcus CLI and the QI workflow. QI is the quality service:
+it keeps test cases as versions and a reviewer accepts them. Tests and elements are `.sigma` files. The `arcus`
+command-line tool checks them offline, runs them on your machine, and sends them. The plugin sends nothing by itself.
 
-## Commands
+A project works in one mode. **direct**: a push puts tests in Arcus at once. **qi**: a push sends tests to QI as
+versions, and a reviewer accepts them. Elements go to Arcus in both modes.
 
-- `/arcus:login` — Authenticate via SSO. Asks which region your Arcus account is in (`US` default, `IN`, `EU`), then stores the refresh token in your OS keychain. Run once per machine.
-- `/arcus:logout` — Clear local credentials. Server-side revoke not yet supported.
-- `/arcus:project list [search]` — List Arcus projects you can access. Optional substring filter.
-- `/arcus:project use <project_id>` — Pin a project. Future events tag this project.
-- `/arcus:project current` — Show pinned project.
-- `/arcus:map ticket <KEY>` — Link ticket (Jira / ADO / Linear / ClickUp / GitHub) to the workflow resolved from this session. Provider auto-detected from sprint membership.
-- `/arcus:test [feature]` — Author Testsigma script e2e tests for this repo, validate them, and offer to run them.
-- `/arcus:push` — Push the test cases authored this session to Agentic Test; pick a sprint or leave unmapped. The `testsigma` CLI does the work.
+## Skills
+
+- `/arcus:setup` — Check the CLI, the sign-in, the project, its mode and platforms, and whether this machine can run
+  web and Android tests. Stops with the one thing to do.
+- `/arcus:context <issue>` — Qi mode. Read the issue, its cases and the policy from QI. Plan which tests to write.
+- `/arcus:author [what to test]` — Write tests and elements as `.sigma` files. Loops check and format until clean.
+- `/arcus:run [test]` — Run one test on web or Android (`--platform`, `--device`, `--app`). Says whether the test, the
+  app or the setup is wrong. Nothing is sent.
+- `/arcus:verify <issue>` — Qi mode. Run every case of an issue and report each one.
+- `/arcus:push [files]` — Dry run first, a plan in words, a push after your yes. Explains every result and refusal.
+- `/arcus:accept [files]` — Qi mode. Accept pushed versions into Arcus, after a policy check and your yes.
+- `/arcus:sync` — Show where each file stands. Pull QI's changes. Detach or attach a file. Pipeline check.
+- `/arcus:mode` — Show the project mode. Switch it with a dry run and your yes.
 
 ## Typical flow
 
-1. `/arcus:login` — once per machine; pick your region when asked.
-2. `/arcus:project list` then `/arcus:project use <id>` — pick where sessions land.
-3. Start working on a branch. Each Claude session resolves to a workflow automatically.
-4. `/arcus:map ticket <KEY>` — link ticket to the workflow when you know it.
-5. `/arcus:test` to author tests, then `/arcus:push` to push them into a sprint.
-
-## Where data lives
-
-Per session: `$CLAUDE_PLUGIN_DATA/sessions/<session_id>/`
-- `session_manifest.json` — grouping keys (branch, git user, ticket IDs) + `testsigma` link block
-- `context_files/` — Read/Write/Edit snapshots mirroring project tree
-- `attachments/` — binary payloads + dup of context_files
-
-Hook events POST to `{chitragupt_host}/api/v1/plugin/events` (host from `/arcus:login`).
+1. `/arcus:setup` once per repo. Sign in yourself when it asks.
+2. Qi mode: `/arcus:context CW-412` to see what QI expects. Direct mode: go to step 3.
+3. `/arcus:author` — Claude writes the files and checks them.
+4. `/arcus:run` — Claude runs the test and tells you what happened.
+5. `/arcus:push` — read the plan, say yes, and commit `arcus.lock` with the tests.
+6. Qi mode: `/arcus:sync` to see the review, `/arcus:verify` before a merge, `/arcus:accept` when the policy allows.
 
 ## Troubleshooting
 
-- Browser didn't open on login → copy URL from stderr, paste manually. Flow times out after 5 min.
-- Events not ingesting → check `/arcus:project current` is set and login still valid (re-run `/arcus:login`).
-- Wrong workflow linked → re-run `/arcus:map ticket <KEY>` with correct ticket.
-- Signed in to the wrong region → `/arcus:logout`, then `/arcus:login` and pick the right one. The region is shown when login succeeds.
+- `arcus: command not found` — install the CLI (`/arcus:setup` gives the command).
+- Exit code `2` — not signed in, or the region differs. Sign in yourself, then try again.
+- Exit code `3` — wrong setup. Read the message and its `remediation`. A mode and lock mismatch: `/arcus:mode`.
+- A push is refused — the plan says which file and why. `/arcus:push` explains each reason.
+- `Cannot reach the …agent` — start the local test agent. Only web runs need it.
+- `The Android tools (adb) were not found` — tell the CLI where the tools are: the `ARCUS_ANDROID_TOOLS_DIR` variable
+  in your shell, or `arcus config set android.toolsDir <folder>`. `/arcus:setup` explains it.
+- Several Android devices are ready — pass `--device <serial>`. `arcus device list` shows them.
+- An Android step fails with only `Step failed` — Claude reads `results.ndjson` and the screenshot of the run. Ask it to.
+- Not sure which commands the CLI has — `arcus help --json` prints all of them.
