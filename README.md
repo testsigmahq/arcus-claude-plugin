@@ -143,3 +143,4 @@ exist. Run them from `plugins/arcus/` with `python -m pytest`.
 
 The evals (`plugins/arcus/evals/`) check that Claude behaves as the skills say. They need the `arcus` CLI on your `PATH`,
 and the local test agent running for the cases that open a browser: `claude plugin eval plugins/arcus`.
+
