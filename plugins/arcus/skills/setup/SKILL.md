@@ -44,14 +44,16 @@ Find `arcus.json` here or above.
 2. Ask where tests go, only for the first project: the default `tests/arcus`, or `.` for a repo that holds only Arcus
    tests.
 3. Ask the platforms: `web`, `android`, `ios`, or a mix. Default `web`. More platforms make `arcus test check` stricter.
-4. Ask the mode, in plain words. **direct**: a push puts tests in Arcus at once. **qi**: a push sends tests to QI as
-   versions that a reviewer accepts. Without `--mode`, the CLI picks `qi` when the account uses QI case versions, and
-   stops when it cannot tell. Do not choose for the user.
+4. The mode: do not ask. Leave `--mode` out and the CLI chooses: **qi** when the account uses QI (with case versions
+   on or off), **direct** when the account has no QI address. Tell the user which mode the CLI chose, in plain words.
+   **qi**: a push sends tests to QI and a reviewer accepts them. **direct**: a push puts tests in Arcus at once. Pass
+   `--mode` only when the user asks for one. If the CLI cannot tell, it stops and writes nothing: show its message and
+   let the user choose. To change the mode later: `/arcus:mode`.
 5. Say what `arcus project init` does (it writes `arcus.json`, makes `<folder>/<project>/tests/` and `elements/`, adds `.arcus/` to
    `.gitignore`). After a yes, run:
 
    ```
-   arcus project init --project <id> [--dir <folder>] --mode <direct|qi> [--platforms <list>]
+   arcus project init --project <id> [--dir <folder>] [--mode <direct|qi>] [--platforms <list>]
    ```
 
 ### There is an `arcus.json`
