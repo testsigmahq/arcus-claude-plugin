@@ -21,7 +21,7 @@ A command that could not do its work writes one failure object on stderr: `ok: f
 | Switch the mode (plan, then do) | `arcus project mode set <direct\|qi> --dry-run` then `arcus project mode set <direct\|qi>` | both | qi only | `mode` |
 | Set the mode at the start | `arcus project init --project <id> --mode <direct\|qi>` | both | yes | `setup` |
 | Read an issue and its cases | `arcus issue show <KEY>` | qi | yes | `align` |
-| Choose the place of an issue (a sprint or an ad hoc session), when it has several | `arcus issue show <KEY> --place <id or human id>` | qi | yes | `align` |
+| Choose the session of an issue (a sprint or an ad hoc session), when it has several | `arcus issue show <KEY> --session <id or human id>` | qi | yes | `align` |
 | Read the manual steps of one case | `arcus case show <id>` | qi | yes | `align` |
 | Check and format | `arcus test check`, `arcus test fmt` | both | no | `author` |
 | Learn the language | `arcus docs list` (every action), `arcus docs show <action>`, `arcus docs show --topic <id>` | both | no | `author` |

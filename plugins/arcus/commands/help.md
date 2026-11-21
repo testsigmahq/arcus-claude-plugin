@@ -9,7 +9,7 @@ A project works in one mode. **direct**: a push puts tests in Arcus at once. **q
 ## Skills
 
 - `/arcus:setup` — Check the CLI, the sign-in, the project, its mode and platforms, and whether this machine can run web and Android tests. Stops with the one thing to do.
-- `/arcus:align <issue>` — Qi mode. Start of work on an issue. Read what QI expects (the cases and their steps) before the first code edit, show a short summary, and plan which tests to write. If the issue is in several places (sprints or ad hoc sessions), you choose one.
+- `/arcus:align <issue>` — Qi mode. Start of work on an issue. Read what QI expects (the cases and their steps) before the first code edit, show a short summary, and plan which tests to write. If the issue is in several sessions (sprints or ad hoc sessions), you choose one.
 - `/arcus:author [what to test]` — Write tests and elements as `.sigma` files. Loops check and format until clean.
 - `/arcus:run [test]` — Run one test on web or Android (`--platform`, `--device`, `--app`). Says whether the test, the app or the setup is wrong. Nothing is sent.
 - `/arcus:prove <issue>` — Qi mode. End of work on an issue. Run every case, give a gap report (covered, failing, missing, local only, rejected, not verified, and additions), and propose a push of every test.
@@ -32,7 +32,7 @@ A project works in one mode. **direct**: a push puts tests in Arcus at once. **q
 - Exit code `2` — not signed in, or the region differs. Sign in yourself, then try again.
 - Exit code `3` — wrong setup. Read the message and its `remediation`. A mode and lock mismatch: `/arcus:mode`.
 - A push is refused — the plan says which file and why. `/arcus:push` explains each reason.
-- `place_required` — the issue is in several places. Choose one: `arcus issue show <KEY> --place <id or human id>`.
+- `session_required` — the issue is in several sessions. Choose one: `arcus issue show <KEY> --session <id or human id>`.
 - Some accounts keep no case versions. Push still works. The last push replaces the case's test, and status shows only pushed, modified or accepted.
 - `Cannot reach the …agent` — start the local test agent. Only web runs need it.
 - `The Android tools (adb) were not found` — tell the CLI where the tools are: the `ARCUS_ANDROID_TOOLS_DIR` variable in your shell, or `arcus config set android.toolsDir <folder>`. `/arcus:setup` explains it.

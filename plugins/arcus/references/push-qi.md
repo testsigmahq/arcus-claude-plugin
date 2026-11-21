@@ -4,9 +4,9 @@ Read by `/arcus:push` when `arcus project mode show` says `qi`. An element goes 
 
 ## Files
 
-The push also needs: an issue context on this machine (`/arcus:align`), younger than the policy allows, for an issue whose place (sprint or ad hoc session) is open; and, when the policy says `run: required`, a run of the exact text of the file (`/arcus:run`). After any edit, run again.
+The push also needs: an issue context on this machine (`/arcus:align`), younger than the policy allows, for an issue whose session (sprint or ad hoc session) is open; and, when the policy says `run: required`, a run of the exact text of the file (`/arcus:run`). After any edit, run again.
 
-The push goes into the place saved with the issue context. When the issue is in several places, the developer chooses one first: `arcus issue show <KEY> --place <id or human id>`. `arcus test push` has no `--place` option. Never choose a place for the developer.
+The push goes into the session saved with the issue context. When the issue is in several sessions, the developer chooses one first: `arcus issue show <KEY> --session <id or human id>`. `arcus test push` has no `--session` option. Never choose a session for the developer.
 
 Paths: the files the user named, or the files you just changed, else no path (the whole project; files that did not change come back `unchanged`). `arcus test status` first shows where each file stands.
 
@@ -16,7 +16,7 @@ A test file needs a case:
 |---|---|
 | Automates a case from `arcus issue show` | `--case <id>` (one file per command). It works only when the current issue context is the story of that case: run `arcus issue show <KEY>` for that story first |
 | Is a new test with no case | `--new` |
-| Is new, and QI does not know the issue or has no place for it | `--new --unmapped`, and `--issue <KEY>` as a hint for the reviewer |
+| Is new, and QI does not know the issue or has no session for it | `--new --unmapped`, and `--issue <KEY>` as a hint for the reviewer |
 | Must move to another case (a duplicate warning names it) | `--rebind <id>` (one file) |
 
 After the first push, `arcus.lock` binds the file. Push it again with no flag. Ask the user before `--new`: a new case is something the reviewer did not ask for. When `/arcus:prove` proposes the push of a `local only` test, `--new` is the flag, and the user's yes covers it.
@@ -27,7 +27,7 @@ The JSON has the Arcus part (`files[]`, for elements) and `cases` with `issue`, 
 
 ## The plan, in words
 
-Begin with the place: `Tests go to QI, as new versions of these cases, under issue <KEY>, in place <type, title, human id>. Elements go to the Arcus project "<project>".` Say the policy: a reviewer accepts, so nothing joins the accepted suite yet.
+Begin with the session: `Tests go to QI, as new versions of these cases, under issue <KEY>, in session <type, title, human id>. Elements go to the Arcus project "<project>".` Say the policy: a reviewer accepts, so nothing joins the accepted suite yet.
 
 Then one line per file: `would_push` adds a head to case <label>; `would_create` makes a new case (say `unmapped` when it has no issue: a reviewer must link it before it can be accepted); `refused` gives the reason and `next`. Call out: how many new cases, and a changed element with how many tests use it (its whole locator list is replaced for all of them).
 
@@ -55,9 +55,9 @@ Next is review. A reviewer (QA or a PM) accepts or rejects the test in QI. The u
 | `element_not_pushed` | Push the element first, or fix why it failed |
 | `versions_turned_on` | Case versions were turned on after this file was pushed. The file has no base. `arcus test pull <path>`, then push |
 | Whole-run error, exit `3` | Stale or missing context, or a lock that does not fit the mode. Give the message and its `remediation` |
-| `QI refused: place_required` | The issue is in several places. The developer chooses: `arcus issue show <KEY> --place <id or human id>`. Then push again |
-| `QI refused: place_not_found` | QI has no such place. `arcus issue show <KEY>` shows the places. The developer chooses. Push again |
-| `QI refused: place_closed` or `sprint_closed` | The place is closed: QI takes no new versions. The developer chooses an open place, or uses an issue of an open place that links to it. New tests with no issue: `--new --unmapped` |
+| `QI refused: session_required` | The issue is in several sessions. The developer chooses: `arcus issue show <KEY> --session <id or human id>`. Then push again |
+| `QI refused: session_not_found` | QI has no such session. `arcus issue show <KEY>` shows the sessions. The developer chooses. Push again |
+| `QI refused: session_closed` or `sprint_closed` | The session is closed: QI takes no new versions. The developer chooses an open session, or uses an issue of an open session that links to it. New tests with no issue: `--new --unmapped` |
 | `versioning_changing` (exit `3`) | QI is changing how it stores case versions. Nothing was sent. Try again later |
 | Other `QI refused: …` | Use the table in `states.md` |
 

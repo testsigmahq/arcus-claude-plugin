@@ -4,7 +4,7 @@ In a qi-mode project, QI is the alignment and verification layer of the develope
 
 1. **The plugin suggests.** It never dictates build order, when to write a test, or how the app is built and started. Where a skill says "you can" or "a useful order is", it is a suggestion. The developer decides how the app runs. Ask when you do not know.
 2. **Every case QI returns is the expectation.** QI has no "verified" state for a case today.
-3. **Read the steps of every case before the first code edit.** Keep them so that they survive a compaction of the session. How you keep them is your choice.
+3. **Read the steps of every case before the first code edit.** Keep them so that they survive a compaction of the conversation. How you keep them is your choice.
 4. **You may repair a test. You never weaken one.** Remove no step and no check (`verify`) that the case has. Do not change an expected value to what the app shows.
 5. **A failure does not block the developer.** "Done" means every case passes, or the developer says it is done. A loop of fix and run again is a suggestion, not a duty.
 6. **Verification is the default for an issue that has cases.** The developer can say "skip".

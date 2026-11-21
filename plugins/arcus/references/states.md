@@ -64,7 +64,7 @@ Exit `1` when a file is in a failing state.
 
 Refusal reasons: `versions_turned_on` (versions were turned on after the file was pushed: `arcus test pull <path>`, then push), `run_required` (policy needs a run of the file as it is now: run it, push again), `head_moved` (`arcus test pull`, then push; run again before the push when the policy needs it or you judge the merge can affect the test), `check_failed` (`arcus test check <path>`), `unbound` (give `--case <id>` or `--new`), `ambiguous_case` (`case … is not under <KEY>`: the issue context is not the story of that case. Run `arcus issue show` for the right story, then push again), `element_not_pushed` (push the element first, or fix it), `already_bound` (the file has a case: push without `--new`), `conflict` (markers in the file).
 
-Errors that stop the whole push (exit `3` unless noted): no context on this machine; a context older than the policy allows; `versioning_changing`; a flag that needs `qi` mode in a direct project; region mismatch (exit `2`). A QI refusal such as `place_required` or `place_closed` is exit `1`.
+Errors that stop the whole push (exit `3` unless noted): no context on this machine; a context older than the policy allows; `versioning_changing`; a flag that needs `qi` mode in a direct project; region mismatch (exit `2`). A QI refusal such as `session_required` or `session_closed` is exit `1`.
 
 ## `arcus test push`, direct mode: result per file
 
@@ -75,10 +75,10 @@ Errors that stop the whole push (exit `3` unless noted): no context on this mach
 | Code | Say and do |
 |---|---|
 | `versioning_changing` (exit `3`) | QI is changing how it stores case versions. Nothing was sent or changed. Try again later |
-| `issue_not_found` | QI has no such issue, or no place for it. Check the key and the project. For a new issue: `--new --unmapped` |
-| `place_required` | The issue is in several places and none is chosen. The developer chooses: `arcus issue show <KEY> --place <id or human id>`. Then push again |
-| `place_not_found` | QI has no such place for the issue. `arcus issue show <KEY>` shows the places. The developer chooses. Push again |
-| `place_closed` | The chosen ad hoc session is closed. Choose an open place, or push new tests with `--new --unmapped` |
+| `issue_not_found` | QI has no such issue, or no session for it. Check the key and the project. For a new issue: `--new --unmapped` |
+| `session_required` | The issue is in several sessions and none is chosen. The developer chooses: `arcus issue show <KEY> --session <id or human id>`. Then push again |
+| `session_not_found` | QI has no such session for the issue. `arcus issue show <KEY>` shows the sessions. The developer chooses. Push again |
+| `session_closed` | The chosen ad hoc session is closed. Choose an open session, or push new tests with `--new --unmapped` |
 | `sprint_closed` | QI takes no new versions for this issue. Read the context again. Or use an issue of an open sprint that links to it |
 | `context_stale` | The story changed after you read it. Read the context again, read each case's suggested steps, update, run, push |
 | `case_not_found` | Wrong case id or project |

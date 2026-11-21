@@ -18,7 +18,7 @@ QI becomes an alignment and verification layer for the developer's coding agent.
 - A `suggestion` is explained from the developer's view: read the suggested steps and update the test.
 - `author`, `run`, `setup`: pointers renamed (`context` to `align`, `verify` to `prove`).
 - `workflow.md`, `states.md`, `commands.md`, `commands/help.md` and the README match.
-- Places. The issue answer has `place` (type, title, human id, status, closed) and `placeClosed`. An issue in several places is listed, and the developer chooses with `arcus issue show <KEY> --place <id or human id>`. The skill never chooses. In an ad hoc session each case has `issueMatch`: only `this_issue` and `unknown` cases count as the expectation. Refusals `place_required`, `place_not_found` and `place_closed` replace `no_sprint`.
+- Sessions. The issue answer has `session` (type, title, human id, status, closed) and `sessionClosed`. An issue in several sessions is listed, and the developer chooses with `arcus issue show <KEY> --session <id or human id>`. The skill never chooses. In an ad hoc session each case has `issueMatch`: only `this_issue` and `unknown` cases count as the expectation. Refusals `session_required`, `session_not_found` and `session_closed` replace `no_sprint`.
 - Case versions off. Push works. The last push replaces the automated part of the case. Status shows pushed, modified or accepted (accepted in QI). Pull changes nothing. `versions_turned_on` after a switch to on. `versioning_changing` (exit `3`) means try again later. `versioning_off` is not a refusal any more. One section "Case versions off" in `push-qi.md` and `sync-qi.md`.
 - Not yet in the CLI, so the skills use what exists: steps on disk (the skills read the steps again with `arcus case show`).
 

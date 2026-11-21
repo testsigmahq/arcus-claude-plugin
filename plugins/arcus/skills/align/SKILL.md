@@ -21,19 +21,19 @@ arcus issue show <KEY> --json
 
 `arcus issue show` gives no manual steps. They come from `arcus case show <id>` (step 3).
 
-Read: `issue`, `place` and `placeClosed`, `acceptanceCriteria`, `policy` (`acceptBy`, `run`, `contextMaxAgeHours`, `sprintClose`), `cases[]` and `related[]`, and `next`. Each case has `id`, `label`, `title`, `file` (null means no test file yet), `review`, `accepted`, `comments`, `suggestion` and, in an ad hoc session, `issueMatch`. The answer is saved in `.arcus/`. Never edit it.
+Read: `issue`, `session` and `sessionClosed`, `acceptanceCriteria`, `policy` (`acceptBy`, `run`, `contextMaxAgeHours`, `sprintClose`), `cases[]` and `related[]`, and `next`. Each case has `id`, `label`, `title`, `file` (null means no test file yet), `review`, `accepted`, `comments`, `suggestion` and, in an ad hoc session, `issueMatch`. The answer is saved in `.arcus/`. Never edit it.
 
-Tell the user where QI holds the issue: the place. Give its type (`sprint` or `adhoc`), title, human id and status. A closed place still works here: say it is closed.
+Tell the user where QI holds the issue: the session. Give its type (`sprint` or `adhoc`), title, human id and status. A closed session still works here: say it is closed.
 
-### Several places
+### Several sessions
 
-An issue can be in several places. Then `place` is null and `places[]` lists them (`id`, `type`, `title`, `humanId`, `status`, `closed`, `caseCount`). Nothing is saved yet. Show the list and let the **developer** choose. Never choose a place for them, not even when one looks right. Then run the command again with the choice:
+An issue can be in several sessions. Then `session` is null and `sessions[]` lists them (`id`, `type`, `title`, `humanId`, `status`, `closed`, `caseCount`). Nothing is saved yet. Show the list and let the **developer** choose. Never choose a session for them, not even when one looks right. Then run the command again with the choice:
 
 ```
-arcus issue show <KEY> --place <id or human id> --json
+arcus issue show <KEY> --session <id or human id> --json
 ```
 
-QI saves the choice with the issue context. Push, verify and status use it. Run it again with a new `--place` to change it.
+QI saves the choice with the issue context. Push, verify and status use it. Run it again with a new `--session` to change it.
 
 ### An ad hoc session
 
@@ -50,7 +50,7 @@ Say in plain words, per case:
 | Accepted, no change | Nothing to do |
 | `linked, primary story <KEY>` (`primary: false`, `primaryIssueKey`) | The case belongs to another story. It may already have a file and be accepted. Check `file` and `accepted` first. To push to it, read the context of its own story |
 
-Also tell the user: the place is closed (QI takes no new versions: see below), the policy needs a run before a push (`run: required`), and the context goes stale after `contextMaxAgeHours` (a push refuses then: read it again). `related[]` are cases of linked issues. A fix that extends one goes on its line with `--case`. Their absence is not an error.
+Also tell the user: the session is closed (QI takes no new versions: see below), the policy needs a run before a push (`run: required`), and the context goes stale after `contextMaxAgeHours` (a push refuses then: read it again). `related[]` are cases of linked issues. A fix that extends one goes on its line with `--case`. Their absence is not an error.
 
 ## 3. Read the steps of every case
 
@@ -58,7 +58,7 @@ Also tell the user: the place is closed (QI takes no new versions: see below), t
 arcus case show <id> --json
 ```
 
-Do this for every case in `cases[]` before the first code edit. Read `related[]` too when QI has them. It gives `steps` (plain text), and `suggestion` with `steps` and `changes` when the story changed. Keep the steps so that they survive a compaction of the session. How you keep them is your choice. The CLI does not write the steps to disk: `arcus case show` is the way to read them again.
+Do this for every case in `cases[]` before the first code edit. Read `related[]` too when QI has them. It gives `steps` (plain text), and `suggestion` with `steps` and `changes` when the story changed. Keep the steps so that they survive a compaction of the conversation. How you keep them is your choice. The CLI does not write the steps to disk: `arcus case show` is the way to read them again.
 
 ## 4. Show the expectation summary
 
@@ -78,10 +78,10 @@ A useful habit, not a rule: write and run the test of a case when its flow is ru
 
 | You see | Say and do |
 |---|---|
-| `issue_not_found` | QI has no place for the issue, or no such issue. Check the key and the project. QI gives no expectation: go on from the Jira text. For a new issue the user may push unmapped (`/arcus:push`) |
-| `place_required` | The issue is in several places and none is chosen. Show the list. The developer chooses. Run `arcus issue show <KEY> --place <id or human id>` |
-| `place_not_found` | QI has no such place for this issue. Show the places again (`arcus issue show <KEY>`) and let the developer choose |
-| `place_closed`, `placeClosed` or `sprint_closed` | The place is closed. QI takes no new versions there. The developer may choose an open place, or use an issue of an open place that links to it |
+| `issue_not_found` | QI has no session for the issue, or no such issue. Check the key and the project. QI gives no expectation: go on from the Jira text. For a new issue the user may push unmapped (`/arcus:push`) |
+| `session_required` | The issue is in several sessions and none is chosen. Show the list. The developer chooses. Run `arcus issue show <KEY> --session <id or human id>` |
+| `session_not_found` | QI has no such session for this issue. Show the sessions again (`arcus issue show <KEY>`) and let the developer choose |
+| `session_closed`, `sessionClosed` or `sprint_closed` | The session is closed. QI takes no new versions there. The developer may choose an open session, or use an issue of an open session that links to it |
 | `versioning_changing` (exit `3`) | QI is changing how it stores case versions. Nothing changed. Try again later |
 | `policy_forbids` | The Arcus role is too low. Ask a project admin |
 

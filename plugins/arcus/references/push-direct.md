@@ -4,7 +4,7 @@ Read by `/arcus:push` when `arcus project mode show` says `direct`. A test and a
 
 ## Say what direct mode means
 
-Before the plan, say it once in a session, in plain words:
+Before the plan, say it once in a conversation, in plain words:
 
 - A push puts a test into Arcus at once, and the team sees it. No reviewer accepts it first.
 - QI is not used: no cases of an issue, no expectation to align with, no gap report, no review of the pushed test.

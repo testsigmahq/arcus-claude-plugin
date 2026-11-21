@@ -7,7 +7,7 @@ Read this once when a skill sends you here. It says where each thing lives and w
 | Place | What it holds |
 |---|---|
 | **Arcus** | The accepted test suite: every test case with its accepted versions. All element files. The project settings. The sign-in |
-| **QI** | The quality service. It holds the places of an issue (a sprint or an ad hoc session) and the issue, the cases it made from the acceptance criteria, the working line of each case (every pushed version), the review state of each head, the policy, and the run result sent with each push |
+| **QI** | The quality service. It holds the sessions of an issue (a sprint or an ad hoc session) and the issue, the cases it made from the acceptance criteria, the working line of each case (every pushed version), the review state of each head, the policy, and the run result sent with each push |
 | **The repo** | The `.sigma` test and element files, `arcus.json` (the project and its mode), `arcus.lock` (which file is which case or element; commit it) and `.arcus/` (local state; never commit it) |
 
 An element file always goes to Arcus, in both modes. A test file goes to Arcus or to QI, as the mode says.
@@ -62,7 +62,7 @@ Some accounts keep no versions of a case. The answers say `versioning: "off"`. P
 - `contextMaxAgeHours`: a context older than this is refused at push. Read it again.
 - `sprintClose`: what happens to unaccepted work when the sprint closes.
 
-An issue can be in several places (sprints and ad hoc sessions). Then `arcus issue show <KEY>` lists them and the developer chooses with `--place <id or human id>`. The choice is saved and push, verify and status reuse it.
+An issue can be in several sessions (sprints and ad hoc sessions). Then `arcus issue show <KEY>` lists them and the developer chooses with `--session <id or human id>`. The choice is saved and push, verify and status reuse it.
 
 QI checks the same policy again on its side. A refusal from QI wins over what you expect.
 
