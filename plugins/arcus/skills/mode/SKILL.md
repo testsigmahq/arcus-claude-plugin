@@ -33,6 +33,10 @@ the QI case it links to.
 - A file can come back `not_in_qi` (QI has no case for its Arcus test case: a reviewer imports it first) or
   `no_working_line` (QI has the case but no version yet: a reviewer opens it in QI). Any such file stops the whole
   switch with exit `1`. Say which files and why. Do not work around it.
+- Case versions off for the account: a file whose case exists in QI with no script yet is still linked. The plan marks
+  it "not pushed yet" (`pushed: false`): the first push stores the script. After the switch, status shows it as
+  `no_shadow`: run it and push it. `no_working_line` does not come back in that state.
+- `versioning_changing`: QI is changing how it stores case versions. Nothing is switched. Try again later.
 - After a clear yes: `arcus project mode set qi`. Then run `arcus test status`. Element lines do not change. Tell the user
   to commit `arcus.json` and `arcus.lock`.
 
