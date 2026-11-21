@@ -4,6 +4,14 @@ Read by `/arcus:push` when `arcus project mode show` says `direct`. A test and a
 team sees them. Modes and results are in `${CLAUDE_PLUGIN_ROOT}/references/workflow.md` and
 `${CLAUDE_PLUGIN_ROOT}/references/states.md`.
 
+## Say what direct mode means
+
+Before the plan, say it once in a session, in plain words:
+
+- A push puts a test into Arcus at once, and the team sees it. No reviewer accepts it first.
+- QI is not used: no cases of an issue, no expectation to align with, no gap report, no review of the pushed test.
+- If the account uses QI and the user wants that, the switch is `/arcus:mode`. Do not switch for them.
+
 ## Files
 
 Paths: the files the user named, or the files you just changed, else no path (the whole project; files that did not
