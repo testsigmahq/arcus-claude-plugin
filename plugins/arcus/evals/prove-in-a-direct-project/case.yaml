@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: prove-in-a-direct-project
+context:
+  scaffold_script: scaffold.sh

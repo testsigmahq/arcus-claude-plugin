@@ -1,6 +1,6 @@
 ---
 name: qi-command-in-a-direct-project
-tags: [context, mode]
+tags: [align, mode]
 runs: 2
 max_turns: 15
 timeout_seconds: 600

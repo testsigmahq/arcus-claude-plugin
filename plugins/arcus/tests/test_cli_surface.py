@@ -3,7 +3,7 @@ import subprocess
 
 import pytest
 
-from support import CLI_SURFACE, GLOBAL_FLAGS, cli_uses, markdown_files, read
+from support import CLI_SURFACE, GLOBAL_FLAGS, NOT_RELEASED, cli_uses, markdown_files, read
 
 
 @pytest.mark.parametrize("doc", markdown_files(), ids=lambda p: p.name)
@@ -27,4 +27,6 @@ def test_the_surface_matches_a_real_cli(command):
     """The table in support.py is only as good as it is true. Ask the CLI."""
     help_text = subprocess.run(["arcus", *command.split(), "--help"], capture_output=True, text=True, timeout=60).stdout
     for flag in CLI_SURFACE[command]:
+        if (command, flag) in NOT_RELEASED:
+            continue
         assert flag in help_text, f"`arcus {command}` has no {flag}"

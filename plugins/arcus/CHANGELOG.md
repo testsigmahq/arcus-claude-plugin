@@ -1,5 +1,37 @@
 # Changelog
 
+## 0.12.0
+
+QI becomes an alignment and verification layer for the developer's coding agent. The plugin suggests how to work. It
+never dictates how the agent builds the code. Only text changed.
+
+- New `references/layer.md`: the eight rules of the layer. `align` and `prove` point to it.
+- `context` is now `align`. It runs at the start of work on an issue, before the first code edit. It reads the steps of
+  every case, keeps them through a compaction, shows an expectation summary (expects; unclear or in conflict; missing)
+  and goes on without a "yes". It stops only for a conflict. No cases, or no issue in QI: it goes on from the Jira text
+  and says that QI gives no expectation. With no issue named it asks once. The per-case plan table and the refusals table
+  stay.
+- New `prove`, at the end of work on an issue. It takes over `verify`. Default verification, a gap report with one
+  verdict per case (covered, failing, missing, local only, rejected, not verified), intent changes, a list of additions,
+  and a proposal to push every test. A fix loop is a suggestion. A failure does not block. A test is never weakened.
+- `verify` is removed as a skill. The description of `arcus issue verify` moved to `references/verifying.md`.
+- `push` and `sync` are short routers. They check the mode (`arcus project mode show`) and read one reference for
+  that mode: `references/push-direct.md`, `push-qi.md`, `sync-direct.md` or `sync-qi.md`. Text of one mode is not loaded
+  in the other.
+- `accept`: the agent accepts only when the user specifically asks to accept a case.
+- `author`, `run`, `setup`: pointers renamed (`context` to `align`, `verify` to `prove`).
+- `workflow.md`, `states.md`, `commands.md`, `commands/help.md` and the README match.
+- Places. The issue answer has `place` (type, title, human id, status, closed) and `placeClosed`. An issue in several
+  places is listed, and the developer chooses with `arcus issue show <KEY> --place <id or human id>`. The skill never
+  chooses. In an ad hoc session each case has `issueMatch`: only `this_issue` and `unknown` cases count as the
+  expectation. Refusals `place_required`, `place_not_found` and `place_closed` replace `no_sprint`.
+- Case versions off. Push and accept work. The last push replaces the automated part of the case. Status shows pushed,
+  modified or accepted. Pull changes nothing. New accept reasons `no_pushed_test`, `case_changed`, `record_failed`.
+  `versions_turned_on` after a switch to on. `versioning_changing` (exit `3`) means try again later. `versioning_off` is
+  not a refusal any more. One section "Case versions off" in `push-qi.md` and `sync-qi.md`.
+- Not yet in the CLI, so the skills use what exists: steps on disk (the skills read the steps again with
+  `arcus case show`).
+
 ## 0.11.2
 
 The skills match the Android tools rule and the push rules of the present CLI. Only text changed.

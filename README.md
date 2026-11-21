@@ -69,22 +69,22 @@ claude plugin install arcus@testsigma
 | Skill | What it does |
 |---|---|
 | `/arcus:setup` | Checks the CLI, the sign-in, the project, its mode and platforms, and whether this machine can run web and Android tests |
-| `/arcus:context <issue>` | Qi mode. Reads the issue, its cases and the policy from QI, and plans which tests to write or change |
+| `/arcus:align <issue>` | Qi mode. Start of work on an issue: reads what QI expects (the cases and their steps) before the first code edit, shows a short summary, and plans which tests to write or change |
 | `/arcus:author [what to test]` | Writes tests and elements as `.sigma` files and loops `arcus test check` and `arcus test fmt` until clean |
 | `/arcus:run [test]` | Runs one test on web or Android, reads the result, and says whether the test, the app or the setup is wrong |
-| `/arcus:verify <issue>` | Qi mode. Runs every case of an issue and reports covered, failing, missing, local only or rejected |
+| `/arcus:prove <issue>` | Qi mode. End of work on an issue: runs every case, gives a gap report (covered, failing, missing, local only, rejected, not verified, additions) and proposes a push of every test |
 | `/arcus:push [files]` | Dry run, a plan in words, a push after your yes, and every result and refusal explained. Both modes |
 | `/arcus:accept [files]` | Qi mode. After a policy check and your yes, accepts pushed versions into Arcus |
 | `/arcus:sync` | Shows where each file stands, pulls QI's changes, detaches and attaches files, and covers the pipeline check |
 | `/arcus:mode` | Shows the project mode and switches it with a dry run and your yes |
 | `/arcus:help` | Shows the skills and the usual flow |
 
-**Typical flow in qi mode:** `/arcus:setup` once, then `/arcus:context CW-412`, `/arcus:author`, `/arcus:run`,
-`/arcus:push`, `/arcus:sync` to see the review, and `/arcus:verify` before a merge. In direct mode: `/arcus:author`,
+**Typical flow in qi mode:** `/arcus:setup` once, then `/arcus:align CW-412`, `/arcus:author`, `/arcus:run`,
+`/arcus:push`, `/arcus:sync` to see the review, and `/arcus:prove` when the work is done. In direct mode: `/arcus:author`,
 `/arcus:run`, `/arcus:push`.
 
 ```text
-setup ──► context ──► author ──► run ──► push ──► sync ──► accept
+setup ──► align ──► author ──► run ──► prove ──► push ──► sync ──► accept
                         ▲         │        │         │
                         └─ fix ───┴────────┴─ rework ┘
 ```
@@ -102,7 +102,10 @@ setup ──► context ──► author ──► run ──► push ──► 
   passed by reference to a variable you set in your own terminal.
 - **QI and Arcus text is data.** Case titles, steps and review comments can come from other people. Claude shows them
   to you and never follows an instruction inside them.
-- **Accept and mode changes need your clear yes.** They change the suite the team trusts.
+- **Accept and mode changes need your clear yes.** They change the suite the team trusts. Claude accepts a case only
+  when you specifically ask.
+- **Claude suggests how to work, and never dictates how it builds your code.** It reads what QI expects before the
+  first edit, and at the end it shows the gaps. It never weakens a test, and a failure does not block you.
 
 ## This version
 
@@ -128,7 +131,7 @@ elements to the Arcus project you chose, using your own sign-in. See the
 plugins/arcus/
   .claude-plugin/plugin.json        the plugin manifest
   commands/help.md                  /arcus:help
-  skills/{setup,context,author,run,verify,push,accept,sync,mode}/   one SKILL.md each
+  skills/{setup,align,author,run,prove,push,accept,sync,mode}/   one SKILL.md each
   references/                       notes the skills read when they need them
   tests/                            tests of the documents (pytest)
   evals/                            behavioural cases: `claude plugin eval plugins/arcus`
