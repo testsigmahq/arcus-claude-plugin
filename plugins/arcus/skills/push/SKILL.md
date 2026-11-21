@@ -1,6 +1,6 @@
 ---
 name: push
-description: Use when a developer wants to send Arcus tests and elements from the repo, or asks what a push would do. Works in both modes (direct pushes tests to Arcus, qi pushes tests to QI as case versions and elements to Arcus). Checks the mode first, always runs arcus test push --dry-run, shows the plan in plain words, and pushes only after the user says yes. Then explains every result and refusal and gives the next step. Does not write tests, run them, or accept.
+description: Use when a developer wants to send Arcus tests and elements from the repo, or asks what a push would do. Works in both modes (direct pushes tests to Arcus, qi pushes tests to QI as case versions and elements to Arcus). Checks the mode first, always runs arcus test push --dry-run, shows the plan in plain words, and pushes only after the user says yes. Then explains every result and refusal and gives the next step. Does not write tests or run them.
 ---
 
 # Push: send tests and elements

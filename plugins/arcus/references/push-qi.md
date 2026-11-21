@@ -63,21 +63,20 @@ it and the `--rebind` it offers), `unchanged` (the file equals its head: nothing
 `(vN, pending review)`: say the head is **pending review**. Show `took the suggested steps` when it appears. The files
 do not change, but `arcus.lock` does: tell the user to commit it with the tests.
 
-Do not add `--accept` unless the user asks to accept too: see `/arcus:accept`.
-
-Next is review. The user can check with `/arcus:sync` (`arcus test status`). Then `rework` means change and push again.
+Next is review. A reviewer (QA or a PM) accepts or rejects the test in QI. The user can check with `/arcus:sync`
+(`arcus test status`). Then `rework` or `rejected` means change the test, run it and push again.
 
 ## Failures to explain
 
 | You see | Tell the user |
 |---|---|
 | `run_required` | The policy needs a run of the file as it is. Run it (`/arcus:run`), then push |
-| `head_moved` | The case moved in QI. Pull (`/arcus:sync`), run, push |
+| `head_moved` | The case moved in QI. Pull (`/arcus:sync`), then push. Run again before the push when the policy needs it or you judge the merge can affect the test |
 | `check_failed` | The offline check failed. `/arcus:author` fixes it |
 | `unbound` | No case yet. Say which flag fits (`--case`, `--new`) and ask |
 | `ambiguous_case` (`case … is not under <KEY>`) | The issue context on this machine is another story than the story of that case. Run `arcus issue show <KEY>` for the right story, then push again with the same `--case` |
 | `element_not_pushed` | Push the element first, or fix why it failed |
-| `versions_turned_on` | Case versions were turned on after this file was pushed. The file has no base. `arcus test pull <path>`, run, push |
+| `versions_turned_on` | Case versions were turned on after this file was pushed. The file has no base. `arcus test pull <path>`, then push |
 | Whole-run error, exit `3` | Stale or missing context, or a lock that does not fit the mode. Give the message and its `remediation` |
 | `QI refused: place_required` | The issue is in several places. The developer chooses: `arcus issue show <KEY> --place <id or human id>`. Then push again |
 | `QI refused: place_not_found` | QI has no such place. `arcus issue show <KEY>` shows the places. The developer chooses. Push again |
@@ -89,16 +88,16 @@ Next is review. The user can check with `/arcus:sync` (`arcus test status`). The
 
 The answers of push carry `versioning: "off"`. Some accounts keep no versions of a case. Then:
 
-- **What works.** Push (of a bound file and of a new case with `--new`), accept, status and verify of the local file.
+- **What works.** Push (of a bound file and of a new case with `--new`), status and verify of the local file.
 - **What the CLI cannot tell.** The dry run and the result show no version, no base and no review of a version. Do not say
   `vN` or `pending review`.
 - **The last push wins.** A push replaces the automated part of the case. The manual steps stay. There is no conflict
   check and no history. Say this before the yes. A teammate's push before yours is replaced.
 - `unchanged`: QI already holds this test, build and run. Nothing was written.
 - If the account is later turned to versions on, a push is refused with `versions_turned_on`. The fix is
-  `arcus test pull <path>`, then run and push.
+  `arcus test pull <path>`, then push.
 
 ## Never
 
-- Add `--new`, `--unmapped` or `--accept` on your own.
+- Add `--new` or `--unmapped` on your own.
 - Get past a refusal by editing `arcus.lock` or `.arcus/`, or by renaming files.

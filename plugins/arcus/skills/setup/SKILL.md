@@ -59,7 +59,7 @@ Find `arcus.json` here or above.
 
 ### There is an `arcus.json`
 
-- Run `arcus project mode show`. It prints the mode, and says when `arcus.json` names none (then it is `direct`). A line
+- Run `arcus project mode show`. It prints the mode, and says when `arcus.json` names none (then it is `qi`). A line
   that says the lock and the mode disagree means: stop and use `/arcus:mode`.
   When the mode is **direct**, say what that means (see "Direct mode: say it" below).
 - Region: each project has a `region`. It must equal the signed-in region, or a push stops with exit `2`.
@@ -109,7 +109,7 @@ the report:
 
 - A push puts a test into Arcus at once, and the team sees it. No reviewer accepts it first.
 - QI is not used: no cases of an issue, no expectation to align with, no gap report, no review of a pushed test.
-  `/arcus:align`, `/arcus:prove` and `/arcus:accept` do not work.
+  `/arcus:align` and `/arcus:prove` do not work.
 - If the account uses QI and the user wants that, the switch is `/arcus:mode`. Do not switch for them.
 
 ## 6. Report
@@ -129,6 +129,6 @@ When a line is not true, name it, give the one thing to do, and stop.
 
 ## What setup does not do
 
-- Write tests, run them, push them, accept, or switch a working project's mode.
+- Write tests, run them, push them, or switch a working project's mode.
 - Run `arcus auth login`, `arcus test push` or anything that changes Arcus or QI.
 - Edit `arcus.json` beyond the `android` block, or touch `arcus.lock` or `.arcus/`.

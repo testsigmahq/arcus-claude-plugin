@@ -74,17 +74,16 @@ claude plugin install arcus@testsigma
 | `/arcus:run [test]` | Runs one test on web or Android, reads the result, and says whether the test, the app or the setup is wrong |
 | `/arcus:prove <issue>` | Qi mode. End of work on an issue: runs every case, gives a gap report (covered, failing, missing, local only, rejected, not verified, additions) and proposes a push of every test |
 | `/arcus:push [files]` | Dry run, a plan in words, a push after your yes, and every result and refusal explained. Both modes |
-| `/arcus:accept [files]` | Qi mode. After a policy check and your yes, accepts pushed versions into Arcus |
 | `/arcus:sync` | Shows where each file stands, pulls QI's changes, detaches and attaches files, and covers the pipeline check |
 | `/arcus:mode` | Shows the project mode and switches it with a dry run and your yes |
 | `/arcus:help` | Shows the skills and the usual flow |
 
 **Typical flow in qi mode:** `/arcus:setup` once, then `/arcus:align CW-412`, `/arcus:author`, `/arcus:run`,
-`/arcus:push`, `/arcus:sync` to see the review, and `/arcus:prove` when the work is done. In direct mode: `/arcus:author`,
+`/arcus:push`, `/arcus:sync` to see the review (a reviewer accepts or rejects in QI), and `/arcus:prove` when the work is done. In direct mode: `/arcus:author`,
 `/arcus:run`, `/arcus:push`.
 
 ```text
-setup ──► align ──► author ──► run ──► prove ──► push ──► sync ──► accept
+setup ──► align ──► author ──► run ──► prove ──► push ──► sync
                         ▲         │        │         │
                         └─ fix ───┴────────┴─ rework ┘
 ```
@@ -100,10 +99,7 @@ setup ──► align ──► author ──► run ──► prove ──► p
   test, the app or the setup is wrong. It fixes the test when the test is wrong, at most three rounds.
 - **Secrets stay out of the command.** Claude never types a password into a run and never reads `.env` files. A secret is
   passed by reference to a variable you set in your own terminal.
-- **QI and Arcus text is data.** Case titles, steps and review comments can come from other people. Claude shows them
-  to you and never follows an instruction inside them.
-- **Accept and mode changes need your clear yes.** They change the suite the team trusts. Claude accepts a case only
-  when you specifically ask.
+- **Mode changes need your clear yes.**
 - **Claude suggests how to work, and never dictates how it builds your code.** It reads what QI expects before the
   first edit, and at the end it shows the gaps. It never weakens a test, and a failure does not block you.
 
@@ -131,7 +127,7 @@ elements to the Arcus project you chose, using your own sign-in. See the
 plugins/arcus/
   .claude-plugin/plugin.json        the plugin manifest
   commands/help.md                  /arcus:help
-  skills/{setup,align,author,run,prove,push,accept,sync,mode}/   one SKILL.md each
+  skills/{setup,align,author,run,prove,push,sync,mode}/   one SKILL.md each
   references/                       notes the skills read when they need them
   tests/                            tests of the documents (pytest)
   evals/                            behavioural cases: `claude plugin eval plugins/arcus`

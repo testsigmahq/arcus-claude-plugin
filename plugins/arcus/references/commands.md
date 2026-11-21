@@ -55,8 +55,6 @@ flags and the exit code table. When this file and that output differ, the output
 | Push a new case | `arcus test push <path> --new` | qi | yes | `push` |
 | Push a new case with no issue | `arcus test push <path> --new --unmapped [--issue <KEY>]` | qi | yes | `push` |
 | Move a file to another case | `arcus test push <path> --rebind <id>` | qi | yes | `push` |
-| Push and accept | `arcus test push [paths] --accept` | qi | yes | `push`, `accept` |
-| Accept pushed heads | `arcus test accept <paths>` or `arcus test accept --issue <KEY>` | qi | yes | `accept` |
 | Show where files stand | `arcus test status [paths]` | both | qi: yes. direct: no | `sync` |
 | Show where files stand in a pipeline | `arcus test status --ci` | both | qi: yes | `sync` |
 | Bring QI's head into a file | `arcus test pull [paths]` | qi | yes | `sync` |

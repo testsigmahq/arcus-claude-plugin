@@ -14,7 +14,7 @@ reviewer accepts. Element files go to Arcus in both. See `${CLAUDE_PLUGIN_ROOT}/
 arcus project mode show --json
 ```
 
-It gives `mode`, `stored` (false means `arcus.json` names no mode, so it is `direct`), and a `problem` when the lock and
+It gives `mode`, `stored` (false means `arcus.json` names no mode, so it is `qi`), and a `problem` when the lock and
 the mode disagree. A command that stops with exit `3` for this reason says the same thing. With several projects, pass
 `--project <name>`.
 
@@ -60,4 +60,4 @@ test lines (the same command links them). Show the message and the plan. Do not 
 
 - Switch without a yes, or edit `arcus.json` or `arcus.lock` to change the mode.
 - Switch to qi to get past a refusal in direct mode.
-- Push or accept. Hand over to `/arcus:push` or `/arcus:setup` when the mode is right.
+- Push. Hand over to `/arcus:push` or `/arcus:setup` when the mode is right.

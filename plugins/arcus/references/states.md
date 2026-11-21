@@ -24,13 +24,13 @@ The same object and the codes are in `${CLAUDE_PLUGIN_ROOT}/references/commands.
 | `modified` | The file changed after its last push | Run it, then push |
 | `behind` | The case moved in QI. The file has no local change | `arcus test pull <path>` |
 | `diverged` | The case moved and the file has local changes | `arcus test pull <path>`: it merges |
-| `conflict` | The file holds conflict markers from a pull | Resolve the markers, then check, run, push |
+| `conflict` | The file holds conflict markers from a pull | Resolve the markers, check, push. Run again only when the policy needs it or you judge the merge can affect the test |
 | `rework` | A reviewer asked for changes. Comments are in the answer | Read them, edit, run, push |
 | `rejected` | A reviewer rejected the head. A kind and a reason come with it | See the kinds below |
 | `suggestion` | The story changed. QI suggests new steps | `arcus case show <id>`, update the file, run, read the context again, push |
 | `automation_behind` | A reviewer changed the manual steps after this automation | Read the steps, update the file, run, push |
-| `unmapped` | The case has no issue yet. Push works, accept does not | A reviewer links it to an issue in QI |
-| `changed_after_accept` | A newer head waits after an accept | A reviewer accepts again, or `arcus test accept <path>` if the policy allows |
+| `unmapped` | The case has no issue yet. Push works. A reviewer cannot accept it | A reviewer links it to an issue in QI |
+| `changed_after_accept` | A newer head waits after an accept | A reviewer accepts again in QI |
 | `no_shadow` | This machine has no local record of the file | `arcus test pull --rebuild` |
 | `missing` | The file is gone | Restore it, or remove its line by `arcus test detach` |
 | `local` | Detached: a local test | `arcus test attach <path>` to sync it again |
@@ -70,11 +70,11 @@ Exit `1` when a file is in a failing state.
 | `skipped` (`local_only`) | The file is detached |
 | `refused` | Not sent. See the reasons below |
 
-Refusal reasons: `versions_turned_on` (versions were turned on after the file was pushed: `arcus test pull <path>`, run, push), `run_required` (policy needs a run of the file as it is now: run it, push again), `head_moved`
-(`arcus test pull`, run, push), `check_failed` (`arcus test check <path>`), `unbound` (give `--case <id>` or `--new`),
+Refusal reasons: `versions_turned_on` (versions were turned on after the file was pushed: `arcus test pull <path>`, then push), `run_required` (policy needs a run of the file as it is now: run it, push again), `head_moved`
+(`arcus test pull`, then push; run again before the push when the policy needs it or you judge the merge can affect the test), `check_failed` (`arcus test check <path>`), `unbound` (give `--case <id>` or `--new`),
 `ambiguous_case` (`case … is not under <KEY>`: the issue context is not the story of that case. Run `arcus issue show` for the right story, then push again), `element_not_pushed` (push the
 element first, or fix it), `already_bound` (the file has a case: push without `--new`), `conflict` (markers in the
-file). With `--accept`, a failed accept gives `reason: accept_failed` and a `retry` command. The push still stands.
+file).
 
 Errors that stop the whole push (exit `3` unless noted): no context on this machine; a context older than the policy
 allows; `versioning_changing`; a flag that needs `qi` mode in a direct project; region mismatch (exit `2`). A QI refusal such as `place_required` or `place_closed` is exit `1`.
@@ -98,12 +98,6 @@ allows; `versioning_changing`; a flag that needs `qi` mode in a direct project; 
 | `case_not_found` | Wrong case id or project |
 | `policy_forbids` | The user's Arcus role does not allow it. Ask a project admin. Do not retry |
 | `project_not_found`, `project_scope_required` | Wrong project, or an old CLI. Update the CLI |
-
-## `arcus test accept`: result per file
-
-`accepted` or `refused`. Reasons from the CLI: `unbound`, `missing`, `no_shadow`, `automation_behind`, `modified`,
-`case_not_found`, `case_unmapped`, `head_moved`. Reasons from QI: `head_rejected`, `case_changed`, `policy_forbids`
-(leave it to the reviewer), `arcus_unavailable` and `arcus_error` (run the `retry` command). `ok: false` gives exit `1`. With case versions off, the new reasons are `no_pushed_test` (run and push the file first), `case_changed` (the test in QI is not the file: push it, accept again) and `record_failed` (Arcus took the accept, QI could not save its record: the `retry` command writes it).
 
 ## `arcus test pull`: result per file
 

@@ -21,7 +21,6 @@ versions, and a reviewer accepts them. Elements go to Arcus in both modes.
 - `/arcus:prove <issue>` — Qi mode. End of work on an issue. Run every case, give a gap report (covered, failing,
   missing, local only, rejected, not verified, and additions), and propose a push of every test.
 - `/arcus:push [files]` — Dry run first, a plan in words, a push after your yes. Explains every result and refusal.
-- `/arcus:accept [files]` — Qi mode. Accept pushed versions into Arcus, after a policy check and your yes.
 - `/arcus:sync` — Show where each file stands. Pull QI's changes. Detach or attach a file. Pipeline check.
 - `/arcus:mode` — Show the project mode. Switch it with a dry run and your yes.
 
@@ -32,8 +31,8 @@ versions, and a reviewer accepts them. Elements go to Arcus in both modes.
 3. `/arcus:author` — Claude writes the files and checks them.
 4. `/arcus:run` — Claude runs the test and tells you what happened.
 5. `/arcus:push` — read the plan, say yes, and commit `arcus.lock` with the tests.
-6. Qi mode: `/arcus:prove` when the work is done, `/arcus:sync` to see the review, `/arcus:accept` only when you ask to
-   accept a case and the policy allows.
+6. Qi mode: `/arcus:prove` when the work is done, `/arcus:sync` to see the review. A reviewer (QA or a PM) accepts or
+   rejects the pushed test in QI.
 
 ## Troubleshooting
 
@@ -42,7 +41,7 @@ versions, and a reviewer accepts them. Elements go to Arcus in both modes.
 - Exit code `3` — wrong setup. Read the message and its `remediation`. A mode and lock mismatch: `/arcus:mode`.
 - A push is refused — the plan says which file and why. `/arcus:push` explains each reason.
 - `place_required` — the issue is in several places. Choose one: `arcus issue show <KEY> --place <id or human id>`.
-- Some accounts keep no case versions. Push and accept still work. The last push replaces the case's test, and status
+- Some accounts keep no case versions. Push still works. The last push replaces the case's test, and status
   shows only pushed, modified or accepted.
 - `Cannot reach the …agent` — start the local test agent. Only web runs need it.
 - `The Android tools (adb) were not found` — tell the CLI where the tools are: the `ARCUS_ANDROID_TOOLS_DIR` variable

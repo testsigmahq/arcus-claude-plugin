@@ -14,10 +14,9 @@ HANDOVERS = {
     "align": {"setup", "author", "prove", "push", "mode"},
     "author": {"setup", "run", "push", "align", "sync"},
     "run": {"setup", "author", "push", "prove"},
-    "prove": {"setup", "author", "run", "push", "align", "accept", "mode"},
-    "push": {"setup", "author", "run", "accept", "sync", "align"},
-    "accept": {"setup", "push", "sync", "prove"},
-    "sync": {"setup", "push", "run", "accept", "align"},
+    "prove": {"setup", "author", "run", "push", "align", "mode"},
+    "push": {"setup", "author", "run", "sync", "align"},
+    "sync": {"setup", "push", "run", "align"},
     "mode": {"setup", "push"},
 }
 

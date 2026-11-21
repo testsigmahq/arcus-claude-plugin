@@ -13,7 +13,7 @@ COMMANDS_DIR = PLUGIN_ROOT / "commands"
 REFERENCES_DIR = PLUGIN_ROOT / "references"
 
 #: The skills this plugin has. A new skill is added here on purpose, with its tests.
-SKILLS = ("setup", "align", "author", "run", "prove", "push", "accept", "sync", "mode")
+SKILLS = ("setup", "align", "author", "run", "prove", "push", "sync", "mode")
 
 #: push and sync are routers: they check the mode, then read one reference for that mode.
 ROUTERS = ("push", "sync")
@@ -97,10 +97,9 @@ CLI_SURFACE = {
     "issue show": {"--project", "--place"},
     "case show": {"--project"},
     "test push": {
-        "--dry-run", "--case", "--rebind", "--new", "--unmapped", "--issue", "--accept", "--session-id", "--project",
+        "--dry-run", "--case", "--rebind", "--new", "--unmapped", "--issue", "--session-id", "--project",
     },
     "test pull": {"--theirs", "--ours", "--rebuild", "--project"},
-    "test accept": {"--issue", "--project"},
     "test status": {"--ci", "--project"},
     "test detach": {"--project"},
     "test attach": {"--project"},
@@ -121,7 +120,7 @@ GLOBAL_FLAGS = {"--json", "--help", "--version"}
 
 #: Every command is `arcus <entity> <command>`. `arcus help --json` prints the full tree: it is the source of truth.
 COMMAND = re.compile(
-    r"\barcus (auth (?:login|logout|status)|project (?:list|init|mode (?:show|set)|(?:platforms|sources) (?:list|add|remove))|test (?:check|fmt|run|push|pull|status|accept|attach|detach)|issue (?:show|verify)|case show|docs (?:list|show)|browser list|device list|config (?:show|set|unset))\b([^\n`]*)"
+    r"\barcus (auth (?:login|logout|status)|project (?:list|init|mode (?:show|set)|(?:platforms|sources) (?:list|add|remove))|test (?:check|fmt|run|push|pull|status|attach|detach)|issue (?:show|verify)|case show|docs (?:list|show)|browser list|device list|config (?:show|set|unset))\b([^\n`]*)"
 )
 FLAG = re.compile(r"(?<![\w-])(--[a-z][a-z-]*)")
 

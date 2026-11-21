@@ -1,6 +1,6 @@
 ---
 name: sync
-description: Use when a developer asks where their Arcus test files stand, after QI changed a case (rework, rejection, a suggestion, a head that moved), on a fresh clone, or to keep a file as a local test. Checks the mode first. Runs arcus test status, arcus test pull, arcus test detach and arcus test attach, and explains every state in plain words with the next step. Also covers arcus test status --ci for pipelines. Pull is qi mode only. Not for pushing or accepting.
+description: Use when a developer asks where their Arcus test files stand, after QI changed a case (rework, rejection, a suggestion, a head that moved), on a fresh clone, or to keep a file as a local test. Checks the mode first. Runs arcus test status, arcus test pull, arcus test detach and arcus test attach, and explains every state in plain words with the next step. Also covers arcus test status --ci for pipelines. Pull is qi mode only. Not for pushing.
 ---
 
 # Sync: where do my files stand?
@@ -22,4 +22,4 @@ in (exit `2`): `/arcus:setup`.
 ## Never
 
 - Edit `arcus.lock` or `.arcus/`, or push to get past a state.
-- Push, run or accept from here: hand over to `/arcus:push`, `/arcus:run` or `/arcus:accept`.
+- Push or run from here: hand over to `/arcus:push` or `/arcus:run`.

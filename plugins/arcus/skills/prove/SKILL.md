@@ -59,7 +59,7 @@ Give it before you say the work is finished. One verdict for each case of the is
 **covered**, **failing** (the failed step and the cause: code, test or setup), **missing**, **local only**,
 **rejected**, **not verified** (with the reason). Then the intent changes, and the list of **additions**: behaviour that
 no case and no acceptance criterion asks for. The shapes are in `references/verifying.md`. How you keep the report is
-your choice. Post nothing on a pull request unless the developer asks.
+your choice.
 
 "Done" is every case covered, or the developer says it is done. A failure does not block.
 
@@ -71,12 +71,12 @@ Propose a push of every test of the issue: passing, failing and new ones. A `loc
 (`--new`), so that a PM or QA can review it. A failed run can be pushed: QA and the PM then see the failure. Hand over to
 `/arcus:push`. Its dry run and the developer's yes apply to every push.
 
-Review in QI is the normal path. Accept only when the user specifically asks to accept a case (`/arcus:accept`).
+After the push, a reviewer (QA or a PM) accepts or rejects each test in QI.
 
 ## Never
 
 - Weaken a test, or hide a gap, a failure or a case that did not run.
 - Say a case passes when it was `local only`, `missing` or `not verified`.
-- Push without the developer's yes, or accept on your own.
+- Push without the developer's yes.
 - Edit a step or a `verify` of a case to match what the app now does.
 - Sign in, or edit `arcus.json`, `arcus.lock` or `.arcus/`.
