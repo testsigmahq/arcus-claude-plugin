@@ -4,7 +4,7 @@ Read this once when a skill sends you here. It says where each thing lives and w
 
 ## Who holds what
 
-| Place | What it holds |
+| Where | What it holds |
 |---|---|
 | **Arcus** | The accepted test suite: every test case with its accepted versions. All element files. The project settings. The sign-in |
 | **QI** | The quality service. It holds the sessions of an issue (a sprint or an ad hoc session) and the issue, the cases it made from the acceptance criteria, the working line of each case (every pushed version), the review state of each head, the policy, and the run result sent with each push |
