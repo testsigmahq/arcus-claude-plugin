@@ -36,7 +36,8 @@ The same object and the codes are in `${CLAUDE_PLUGIN_ROOT}/references/commands.
 | `local` | Detached: a local test | `arcus test attach <path>` to sync it again |
 
 With case versions off (the answer says `versioning: "off"`), status has only: `pushed` (the file is as it was pushed:
-nothing to do, like `pending`), `modified`, `accepted`, `conflict`, `no_shadow`, `missing`, `local`. It cannot tell
+nothing to do, like `pending`), `modified`, `accepted`, `rejected` (QA's comments are shown: change, run, push again),
+`conflict`, `no_shadow`, `missing`, `local`. The review state comes from QI. It cannot tell
 `behind`, `diverged`, `rework`, `suggestion`, `automation_behind` or a version number. See "Case versions off" in
 `${CLAUDE_PLUGIN_ROOT}/references/push-qi.md`.
 

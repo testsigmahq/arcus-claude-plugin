@@ -45,9 +45,12 @@ Then check, run and push. A file with markers is refused by push.
 
 When the answer says `versioning: "off"` (status and pull print a note), QI keeps only the last push of each case:
 
-- **What works.** Status says `pushed` (the file is as it was pushed), `modified` (it changed after the push) or
-  `accepted`. `local`, `missing`, `conflict` and `no_shadow` still apply.
-- **What the CLI cannot tell.** Behind, rework, a version number and drift. Do not guess them. A teammate's push is not seen.
+- **What works.** Status says `pushed` (the file is as it was pushed), `modified` (it changed after the push),
+  `accepted` or `rejected`. The review state comes from QI, so a fresh clone and a teammate see the same. `accepted`
+  shows who accepted and when: QA can accept in QI with no `arcus test accept`. `rejected` shows QA's comments: change
+  the test, run it and push again. `local`, `missing`, `conflict` and `no_shadow` still apply.
+- **What the CLI cannot tell.** Behind, rework, a version number and drift. Do not guess them. A teammate's push
+  shows only as `modified`.
 - **Pull changes nothing.** The result is `versions_off`, and the file is not touched. Do not offer `--theirs`, `--ours`
   or a merge.
 - **The last push wins.** A push of a `modified` file replaces the automated part of the case in QI. No conflict check,
