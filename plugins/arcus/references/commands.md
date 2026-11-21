@@ -1,34 +1,18 @@
 # The commands of the QI workflow, in one place
 
-Every command string that the QI workflow uses is in this table and in the skill that owns it. A name change in the CLI
-then means changing these two places and the few other documents that name the command (search for `arcus `). The
-skills say what each command does and what to do with the answer. The CLI says the rest: run
-`arcus <entity> <command> --help` when you are unsure of a flag.
+Every command string that the QI workflow uses is in this table and in the skill that owns it. A name change in the CLI then means changing these two places and the few other documents that name the command (search for `arcus `). The skills say what each command does and what to do with the answer. The CLI says the rest: run `arcus <entity> <command> --help` when you are unsure of a flag.
 
-**The source of truth is the CLI.** Every command has the form `arcus <entity> <command> [args]`. `arcus help --json`
-prints the full command tree as JSON: every entity, command, argument and option. When this table and that output
-differ, the output is right. Say so to the user, and use the CLI's name.
+**The source of truth is the CLI.** Every command has the form `arcus <entity> <command> [args]`. `arcus help --json` prints the full command tree as JSON: every entity, command, argument and option. When this table and that output differ, the output is right. Say so to the user, and use the CLI's name.
 
-Add `--json` to any command to get one JSON object. Add `--project <folder name or id>` when a repo holds several
-projects.
+Add `--json` to any command to get one JSON object. Add `--project <folder name or id>` when a repo holds several projects.
 
 ## The output contract
 
-With `--json`, every result has an `ok` field. A result with exit `0` has `ok: true` and the fields of the command, on
-stdout. A report of a command that ran and found a problem (a failed check, a refused push, a failed test) has
-`ok: false`, also on stdout, and the exit code is `1`. So `ok` is `true` exactly when the exit code is `0`. A list is
-always inside an object, for example `arcus project list --json` gives `{ok, projects: [...]}`. Never read a result as a
-plain array.
+With `--json`, every result has an `ok` field. A result with exit `0` has `ok: true` and the fields of the command, on stdout. A report of a command that ran and found a problem (a failed check, a refused push, a failed test) has `ok: false`, also on stdout, and the exit code is `1`. So `ok` is `true` exactly when the exit code is `0`. A list is always inside an object, for example `arcus project list --json` gives `{ok, projects: [...]}`. Never read a result as a plain array.
 
-A command that could not do its work writes one failure object on stderr: `ok: false`, `code`, `exitCode`, `message`
-and, when the CLI knows a next step, `remediation`. Tell the user the `message`, then do the `remediation`. The `code` is
-`GENERIC` (exit `1`), `AUTH` (exit `2`), `VALIDATION` (exit `3`), `CONFIRMATION` (exit `4`) or `USAGE` (exit `3`). A
-wrong command line gives exit `3` and the code `USAGE`: a bare entity, an unknown command, a missing argument or an
-unknown option. A bare entity also lists its commands in `commands`. Exit `3` is never a failed check, which is exit
-`1`. `arcus test push` can write its report with `ok: false` on stdout and then the failure object on stderr.
+A command that could not do its work writes one failure object on stderr: `ok: false`, `code`, `exitCode`, `message` and, when the CLI knows a next step, `remediation`. Tell the user the `message`, then do the `remediation`. The `code` is `GENERIC` (exit `1`), `AUTH` (exit `2`), `VALIDATION` (exit `3`), `CONFIRMATION` (exit `4`) or `USAGE` (exit `3`). A wrong command line gives exit `3` and the code `USAGE`: a bare entity, an unknown command, a missing argument or an unknown option. A bare entity also lists its commands in `commands`. Exit `3` is never a failed check, which is exit `1`. `arcus test push` can write its report with `ok: false` on stdout and then the failure object on stderr.
 
-`arcus --version --json` prints `{"ok":true,"version":"..."}`. `arcus help --json` prints the full command tree, the
-flags and the exit code table. When this file and that output differ, the output is right.
+`arcus --version --json` prints `{"ok":true,"version":"..."}`. `arcus help --json` prints the full command tree, the flags and the exit code table. When this file and that output differ, the output is right.
 
 | Step | Command | Mode | Needs sign-in | Owner skill |
 |---|---|---|---|---|
@@ -68,16 +52,8 @@ flags and the exit code table. When this file and that output differ, the output
 
 ## When a command name changes
 
-Every command follows one rule: `arcus <entity> <command> [args]`. The entities are `auth`, `config`, `project`
-(with `platforms`, `sources` and `mode` below it), `test`, `issue`, `case`, `docs`, `browser` and `device`. Old names
-are gone, and there are no aliases. When a name changes again: change the table above, the command strings in the owner
-skill of each row, the other documents that name the command (the README, `commands/help.md`, `references/` and the
-eval cases), and the `CLI_SURFACE` table in `tests/support.py`. Run the tests. They fail on every string that the CLI
-no longer has.
+Every command follows one rule: `arcus <entity> <command> [args]`. The entities are `auth`, `config`, `project` (with `platforms`, `sources` and `mode` below it), `test`, `issue`, `case`, `docs`, `browser` and `device`. Old names are gone, and there are no aliases. When a name changes again: change the table above, the command strings in the owner skill of each row, the other documents that name the command (the README, `commands/help.md`, `references/` and the eval cases), and the `CLI_SURFACE` table in `tests/support.py`. Run the tests. They fail on every string that the CLI no longer has.
 
 ## Android settings that are not commands
 
-`ARCUS_ANDROID_TOOLS_DIR` (the tools folder) is read from the shell environment, then from a `.env` file. A `.env` value
-must be an absolute path outside the repository. `ARCUS_ANDROID_APPIUM_URL` (use an Appium that already runs) is read
-from the shell environment only. The order, the limits and the `android` block of `arcus.json` are in
-`${CLAUDE_PLUGIN_ROOT}/references/running.md`.
+`ARCUS_ANDROID_TOOLS_DIR` (the tools folder) is read from the shell environment, then from a `.env` file. A `.env` value must be an absolute path outside the repository. `ARCUS_ANDROID_APPIUM_URL` (use an Appium that already runs) is read from the shell environment only. The order, the limits and the `android` block of `arcus.json` are in `${CLAUDE_PLUGIN_ROOT}/references/running.md`.

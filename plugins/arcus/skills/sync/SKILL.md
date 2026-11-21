@@ -5,19 +5,16 @@ description: Use when a developer asks where their Arcus test files stand, after
 
 # Sync: where do my files stand?
 
-This skill reads where each test file stands and brings the file and its case back in step. The states differ by mode, so
-check the mode first. Always give the `next` line the CLI prints.
+This skill reads where each test file stands and brings the file and its case back in step. The states differ by mode, so check the mode first. Always give the `next` line the CLI prints.
 
 ## 1. Check the mode, then read one file
 
-Run `arcus project mode show`. With several projects ask which one and pass `--project <folder name>` everywhere. Then
-read exactly one file, and do not read the other:
+Run `arcus project mode show`. With several projects ask which one and pass `--project <folder name>` everywhere. Then read exactly one file, and do not read the other:
 
 - `direct`: `${CLAUDE_PLUGIN_ROOT}/references/sync-direct.md`
 - `qi`: `${CLAUDE_PLUGIN_ROOT}/references/sync-qi.md`
 
-That file holds the status command, the states, pull, detach and attach, and the pipeline check for that mode. Not signed
-in (exit `2`): `/arcus:setup`.
+That file holds the status command, the states, pull, detach and attach, and the pipeline check for that mode. Not signed in (exit `2`): `/arcus:setup`.
 
 ## Never
 

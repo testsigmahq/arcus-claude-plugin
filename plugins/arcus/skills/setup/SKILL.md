@@ -5,22 +5,17 @@ description: Use when a developer wants to start using Arcus in a repo, or when 
 
 # Setup: is this repo ready for Arcus?
 
-Read `${CLAUDE_PLUGIN_ROOT}/references/workflow.md` first if you do not know the two modes. Check in this order, cheapest
-first. Stop at the first thing that is not true.
+Read `${CLAUDE_PLUGIN_ROOT}/references/workflow.md` first if you do not know the two modes. Check in this order, cheapest first. Stop at the first thing that is not true.
 
-You never sign the user in and you never handle credentials. Setup reads from Arcus and QI. It writes only to the repo
-and to the CLI settings, and only after the user says yes.
+You never sign the user in and you never handle credentials. Setup reads from Arcus and QI. It writes only to the repo and to the CLI settings, and only after the user says yes.
 
 ## 1. The CLI
 
 Run `arcus --version`. (`arcus --version --json` prints `{"ok":true,"version":"..."}`.)
 
-- Not found: stop. Say the CLI is not installed. Give one command: `npm i -g @testsigma/arcus-cli` (Node 22 or newer).
-  Do not install it for the user.
-- Found: run `arcus docs show --topic project-layout --json`. It needs no project. The output must be JSON with `id` and
-  `markdown`. If not, the CLI is too old or is another program: stop and give the same command.
-- Then run `arcus issue show --help`. If it fails, this CLI has no QI commands. Say that direct mode still works and that
-  qi mode needs a newer CLI. Give the same command.
+- Not found: stop. Say the CLI is not installed. Give one command: `npm i -g @testsigma/arcus-cli` (Node 22 or newer). Do not install it for the user.
+- Found: run `arcus docs show --topic project-layout --json`. It needs no project. The output must be JSON with `id` and `markdown`. If not, the CLI is too old or is another program: stop and give the same command.
+- Then run `arcus issue show --help`. If it fails, this CLI has no QI commands. Say that direct mode still works and that qi mode needs a newer CLI. Give the same command.
 
 ## 2. The sign-in
 
@@ -30,8 +25,7 @@ Run `arcus auth status --json`. If `loggedIn` is `false`, stop. The user signs i
 arcus auth login --region us     # us, in or eu
 ```
 
-Ask which region the account is in. Never guess it from the locale or the email. Wait, then check again. Exit `2` from
-any later command also sends the user back here. Note: `arcus test run`, `arcus test check`, `arcus test fmt` and `arcus docs` need no sign-in.
+Ask which region the account is in. Never guess it from the locale or the email. Wait, then check again. Exit `2` from any later command also sends the user back here. Note: `arcus test run`, `arcus test check`, `arcus test fmt` and `arcus docs` need no sign-in.
 
 ## 3. The project and its mode
 
@@ -39,19 +33,11 @@ Find `arcus.json` here or above.
 
 ### No `arcus.json`
 
-1. Run `arcus project list`. Show the projects. The user picks one. Do not pick for them. With `--json` the answer is
-   an object, `{ok, projects: [...]}`, not a plain array.
-2. Ask where tests go, only for the first project: the default `tests/arcus`, or `.` for a repo that holds only Arcus
-   tests.
+1. Run `arcus project list`. Show the projects. The user picks one. Do not pick for them. With `--json` the answer is an object, `{ok, projects: [...]}`, not a plain array.
+2. Ask where tests go, only for the first project: the default `tests/arcus`, or `.` for a repo that holds only Arcus tests.
 3. Ask the platforms: `web`, `android`, `ios`, or a mix. Default `web`. More platforms make `arcus test check` stricter.
-4. The mode: do not ask. Leave `--mode` out and the CLI chooses: **qi** when the account uses QI (with case versions
-   on or off), **direct** when the account has no QI address. Tell the user which mode the CLI chose, in plain words.
-   **qi**: a push sends tests to QI and a reviewer accepts them. **direct**: a push puts tests in Arcus at once. Pass
-   `--mode` only when the user asks for one. If the CLI cannot tell, it stops and writes nothing: show its message and
-   let the user choose. To change the mode later: `/arcus:mode`.
-   When the mode is **direct**, say what that means (see "Direct mode: say it" below).
-5. Say what `arcus project init` does (it writes `arcus.json`, makes `<folder>/<project>/tests/` and `elements/`, adds `.arcus/` to
-   `.gitignore`). After a yes, run:
+4. The mode: do not ask. Leave `--mode` out and the CLI chooses: **qi** when the account uses QI (with case versions on or off), **direct** when the account has no QI address. Tell the user which mode the CLI chose, in plain words. **qi**: a push sends tests to QI and a reviewer accepts them. **direct**: a push puts tests in Arcus at once. Pass `--mode` only when the user asks for one. If the CLI cannot tell, it stops and writes nothing: show its message and let the user choose. To change the mode later: `/arcus:mode`. When the mode is **direct**, say what that means (see "Direct mode: say it" below).
+5. Say what `arcus project init` does (it writes `arcus.json`, makes `<folder>/<project>/tests/` and `elements/`, adds `.arcus/` to `.gitignore`). After a yes, run:
 
    ```
    arcus project init --project <id> [--dir <folder>] [--mode <direct|qi>] [--platforms <list>]
@@ -59,17 +45,14 @@ Find `arcus.json` here or above.
 
 ### There is an `arcus.json`
 
-- Run `arcus project mode show`. It prints the mode, and says when `arcus.json` names none (then it is `qi`). A line
-  that says the lock and the mode disagree means: stop and use `/arcus:mode`.
-  When the mode is **direct**, say what that means (see "Direct mode: say it" below).
+- Run `arcus project mode show`. It prints the mode, and says when `arcus.json` names none (then it is `qi`). A line that says the lock and the mode disagree means: stop and use `/arcus:mode`. When the mode is **direct**, say what that means (see "Direct mode: say it" below).
 - Region: each project has a `region`. It must equal the signed-in region, or a push stops with exit `2`.
 - Several projects: ask which one, and pass `--project <name>` to later commands.
 - Platforms: `arcus project platforms list`. To change, after a yes: `arcus project platforms add <platform>` or `remove`.
 
 ## 4. Look at the repo
 
-- `arcus.lock` must be committed. If `git check-ignore arcus.lock` prints it, tell the user to remove it from
-  `.gitignore`.
+- `arcus.lock` must be committed. If `git check-ignore arcus.lock` prints it, tell the user to remove it from `.gitignore`.
 - Fresh clone in qi mode (a lock, no `.arcus/`): tell the user to run `arcus test pull --rebuild` once (`/arcus:sync`).
 - Fresh clone in direct mode: the first push adopts files equal to Arcus and refuses files that differ.
 
@@ -77,39 +60,22 @@ Find `arcus.json` here or above.
 
 This step never stops setup. It matters only for `/arcus:run` and `/arcus:prove`.
 
-- Web (the project lists `web`): `arcus browser list`. It lists browsers: ready. A message that starts `Cannot reach`
-  means the local agent is not running. The user must start it. You cannot.
-- Android (the project lists `android`): run `arcus device list`. Ready means state `device`. `unauthorized` and
-  `offline` need the user: unlock the phone and accept the USB prompt, or reconnect it or restart the emulator. No
-  device: connect one or start an emulator. Several ready devices are fine: a run then needs `--device <serial>`.
-  - The Android tools (adb and Appium) come by default from the install folder of the Arcus agent that matches the CLI
-    environment (production, preview, staging or dev). Nothing else is searched: not `ANDROID_HOME`, not an Android
-    SDK folder, not PATH. `arcus device list` needs only adb.
-  - If it says the Android tools were not found, the matching agent is not installed. The message names the agent to
-    install (for example `arcus-prod`) and the folder it looked in. Tell the user to install it. Never tell the user to
-    install or use the Android SDK. A user whose agent is in another folder can override: the `ARCUS_ANDROID_TOOLS_DIR`
-    variable in the shell, a `.env` file, or `arcus config set android.toolsDir <folder>`. Prefer the variable or
-    `arcus config set`. With a yes, run the `config set` command. A `.env` value must be an absolute path (or start
-    with `~`) outside the repository, or the CLI refuses it (exit `3`). Do not write a `.env` file for the user without
-    a yes, and never read one. Check with `arcus config show`.
-  - The CLI starts and stops Appium itself. Do not start it. A start takes 10 to 25 seconds. Only a user who already
-    runs an Appium sets `ARCUS_ANDROID_APPIUM_URL`, in the shell.
-  - The app under test: `--app` on a run, or the `android` block of `arcus.json`: `app` (only a relative path to an
-    `.apk` inside the project folder), `appPackage`, `appActivity`, `device`, `capabilities`. All are optional. No
-    secret goes in it. With a yes you may edit that block only, then run `arcus project platforms list` to see that the
-    file still parses. The details are in `${CLAUDE_PLUGIN_ROOT}/references/running.md`.
+- Web (the project lists `web`): `arcus browser list`. It lists browsers: ready. A message that starts `Cannot reach` means the local agent is not running. The user must start it. You cannot.
+- Android (the project lists `android`): run `arcus device list`. Ready means state `device`. `unauthorized` and `offline` need the user: unlock the phone and accept the USB prompt, or reconnect it or restart the emulator. No device: connect one or start an emulator. Several ready devices are fine: a run then needs `--device <serial>`.
+  - The Android tools (adb and Appium) come by default from the install folder of the Arcus agent that matches the CLI environment (production, preview, staging or dev). Nothing else is searched: not `ANDROID_HOME`, not an Android SDK folder, not PATH. `arcus device list` needs only adb.
+  - If it says the Android tools were not found, the matching agent is not installed. The message names the agent to install (for example `arcus-prod`) and the folder it looked in. Tell the user to install it. Never tell the user to install or use the Android SDK. A user whose agent is in another folder can override: the `ARCUS_ANDROID_TOOLS_DIR` variable in the shell, a `.env` file, or `arcus config set android.toolsDir <folder>`. Prefer the variable or `arcus config set`. With a yes, run the `config set` command. A `.env` value must be an absolute path (or start with `~`) outside the repository, or the CLI refuses it (exit `3`). Do not write a `.env` file for the user without a yes, and never read one. Check with `arcus config show`.
+  - The CLI starts and stops Appium itself. Do not start it. A start takes 10 to 25 seconds. Only a user who already runs an Appium sets `ARCUS_ANDROID_APPIUM_URL`, in the shell.
+  - The app under test: `--app` on a run, or the `android` block of `arcus.json`: `app` (only a relative path to an `.apk` inside the project folder), `appPackage`, `appActivity`, `device`, `capabilities`. All are optional. No secret goes in it. With a yes you may edit that block only, then run `arcus project platforms list` to see that the file still parses. The details are in `${CLAUDE_PLUGIN_ROOT}/references/running.md`.
 - `ios` runs are not supported.
 - If `arcus test run --help` has no `--platform`, the CLI has no Android runs yet. Say so.
 - A physical phone and Windows have not been tested yet. Say so if the user asks.
 
 ### Direct mode: say it
 
-Whenever the project is in direct mode, point it out to the user, once, in plain words. Do not leave it as one word in
-the report:
+Whenever the project is in direct mode, point it out to the user, once, in plain words. Do not leave it as one word in the report:
 
 - A push puts a test into Arcus at once, and the team sees it. No reviewer accepts it first.
-- QI is not used: no cases of an issue, no expectation to align with, no gap report, no review of a pushed test.
-  `/arcus:align` and `/arcus:prove` do not work.
+- QI is not used: no cases of an issue, no expectation to align with, no gap report, no review of a pushed test. `/arcus:align` and `/arcus:prove` do not work.
 - If the account uses QI and the user wants that, the switch is `/arcus:mode`. Do not switch for them.
 
 ## 6. Report

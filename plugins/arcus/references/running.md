@@ -14,16 +14,11 @@
 
 - `ok` is `true` only when `status` is `passed`. It is the same as exit `0`.
 - `status` is `passed`, `failed`, `refused` or `interrupted`.
-- `failedStep.description` is the step as written in the file. `message` is plain text. `screenshot` is the absolute path
-  of a `.jpg` of the page at that step. Open it with the Read tool.
-- `problem` is set when there is no failed step to show: the run was stopped, the browser went away, the test has no
-  steps, or the run failed with no step error. `interruptedAt` is the step the run was on when it stopped.
+- `failedStep.description` is the step as written in the file. `message` is plain text. `screenshot` is the absolute path of a `.jpg` of the page at that step. Open it with the Read tool.
+- `problem` is set when there is no failed step to show: the run was stopped, the browser went away, the test has no steps, or the run failed with no step error. `interruptedAt` is the step the run was on when it stopped.
 - A run that hit the time limit is `failed`, with the step it was on and the message `timed out after N s`.
 - `diagnostics` holds what `arcus test check` found: the errors of a refused run, or the warnings of a run that went on.
-- `artifactsDir` is the run's own folder, under `.arcus/runs/`. It holds `runner-output.log`, with the engine's own
-  output, and on Android `results.ndjson`, with one line for each step. Read the log only for a `problem` that nothing
-  else explains. `browser` and `artifactsDir` are `null` when the test was refused before a browser was chosen. On an
-  Android run `browser` is always `null`, and `device` and `tools` say where the run went.
+- `artifactsDir` is the run's own folder, under `.arcus/runs/`. It holds `runner-output.log`, with the engine's own output, and on Android `results.ndjson`, with one line for each step. Read the log only for a `problem` that nothing else explains. `browser` and `artifactsDir` are `null` when the test was refused before a browser was chosen. On an Android run `browser` is always `null`, and `device` and `tools` say where the run went.
 - Counts cover the steps that ran. After a failure the later steps are `skippedSteps`.
 
 ## Exit codes
@@ -67,17 +62,9 @@ It is never `2`: a run does not talk to Arcus.
 
 ## Android: tools, device, app
 
-Android runs need three things: the tools (adb and Appium), a ready device, and an app. `arcus device list` shows the
-devices. `arcus device list --json` gives the same as data. The state `device` is ready. `unauthorized` and `offline`
-need the user. The CLI starts Appium by itself, uses it for the run, and stops it. You never start Appium. A cold start
-takes about 10 to 25 seconds, so give the Bash tool a long time limit. Appium writes a log to
-`.arcus/runs/appium-<time>-<pid>.log`. A start error names that path. Each run prints a `device:` line and a `tools:`
-line (the folder and where it came from). Show them to the user.
+Android runs need three things: the tools (adb and Appium), a ready device, and an app. `arcus device list` shows the devices. `arcus device list --json` gives the same as data. The state `device` is ready. `unauthorized` and `offline` need the user. The CLI starts Appium by itself, uses it for the run, and stops it. You never start Appium. A cold start takes about 10 to 25 seconds, so give the Bash tool a long time limit. Appium writes a log to `.arcus/runs/appium-<time>-<pid>.log`. A start error names that path. Each run prints a `device:` line and a `tools:` line (the folder and where it came from). Show them to the user.
 
-**The tools folder.** By default the tools come from the install folder of the Arcus agent that matches the CLI
-environment: production (`arcus-prod`), preview, staging (`arcus-staging`) or dev. `TS_ROOT_DIR` or `TS_HOME` move that
-folder, as they do for the agent. There is no fallback to the Android SDK, `ANDROID_HOME` or the system PATH. With no
-matching agent, the CLI stops (exit `3`) and names the agent to install. `arcus device list` needs only adb.
+**The tools folder.** By default the tools come from the install folder of the Arcus agent that matches the CLI environment: production (`arcus-prod`), preview, staging (`arcus-staging`) or dev. `TS_ROOT_DIR` or `TS_HOME` move that folder, as they do for the agent. There is no fallback to the Android SDK, `ANDROID_HOME` or the system PATH. With no matching agent, the CLI stops (exit `3`) and names the agent to install. `arcus device list` needs only adb.
 
 An override, in this order, first one set wins:
 
@@ -85,24 +72,15 @@ An override, in this order, first one set wins:
 2. The same key in a `.env` file at the repository root, or in the current folder.
 3. `arcus config set android.toolsDir <folder>`. The CLI stores an absolute path.
 
-The override folder is an agent install folder, or an Android SDK folder that has `platform-tools/adb` (then `appium`
-must be on PATH). A folder that was set on purpose and has no adb is an error. Never tell the user to install or use
-the Android SDK: the answer is the Arcus agent.
+The override folder is an agent install folder, or an Android SDK folder that has `platform-tools/adb` (then `appium` must be on PATH). A folder that was set on purpose and has no adb is an error. Never tell the user to install or use the Android SDK: the answer is the Arcus agent.
 
-**A `.env` file is limited, on purpose.** A cloned repository must not choose the programs that run. So a `.env` value
-must be an absolute path (or start with `~`) outside the repository and the current folder. Anything else exits `3`.
-The CLI reads only keys that start with `ARCUS_ANDROID_` from it. Do not write or change a `.env` file for the user
-unless they say yes. Prefer the shell variable or `arcus config set`. Never read `.env` files to find a value.
+**A `.env` file is limited, on purpose.** A cloned repository must not choose the programs that run. So a `.env` value must be an absolute path (or start with `~`) outside the repository and the current folder. Anything else exits `3`. The CLI reads only keys that start with `ARCUS_ANDROID_` from it. Do not write or change a `.env` file for the user unless they say yes. Prefer the shell variable or `arcus config set`. Never read `.env` files to find a value.
 
-**An Appium that already runs.** `ARCUS_ANDROID_APPIUM_URL` makes the run use that server and start none. The CLI reads
-it from the shell environment only, never from `.env`, and `arcus device list` ignores it. A URL with a user name or
-password is refused. Only the user sets it.
+**An Appium that already runs.** `ARCUS_ANDROID_APPIUM_URL` makes the run use that server and start none. The CLI reads it from the shell environment only, never from `.env`, and `arcus device list` ignores it. A URL with a user name or password is refused. Only the user sets it.
 
-**The device.** `--device <serial>`, else `android.device` in `arcus.json`, else the only ready device. With several
-ready and none named, the CLI exits `3` and lists them: ask the user which one.
+**The device.** `--device <serial>`, else `android.device` in `arcus.json`, else the only ready device. With several ready and none named, the CLI exits `3` and lists them: ask the user which one.
 
-**The app.** `--app <relative path | absolute path | URL>` on the command line. In `arcus.json` the optional `android`
-block has:
+**The app.** `--app <relative path | absolute path | URL>` on the command line. In `arcus.json` the optional `android` block has:
 
 | Field | Holds |
 |---|---|
@@ -111,9 +89,7 @@ block has:
 | `device` | A serial |
 | `capabilities` | Session-tuning capabilities from a closed list (for example `noReset`, `autoGrantPermissions`, `newCommandTimeout`, `appWaitActivity`). Any other name exits `3`, and the message lists the allowed ones |
 
-With no app information, the session starts on the device as it is, and `launch app` fails at run time. Give `--app`,
-set `android.appPackage`, or write `launch app "<package>"`. An app that is not installed fails with
-`Cannot start the '<package>' application` and no step result. No secret goes in `arcus.json`.
+With no app information, the session starts on the device as it is, and `launch app` fails at run time. Give `--app`, set `android.appPackage`, or write `launch app "<package>"`. An app that is not installed fails with `Cannot start the '<package>' application` and no step result. No secret goes in `arcus.json`.
 
 ## Failure messages, and who usually owns them
 
@@ -149,14 +125,11 @@ Read these before you judge the test.
 
 A physical phone and Windows have not been tested yet. Say so if the user asks.
 
-A failure that is the app's belongs to the user. Report it with the screenshot and the step. A test that rightly fails
-because of a bug in the app is a good test. Do not change it.
+A failure that is the app's belongs to the user. Report it with the screenshot and the step. A test that rightly fails because of a bug in the app is a good test. Do not change it.
 
 ## Reading the screenshot
 
-The Read tool shows a `.jpg`. Look for: the page you expected (a login page when you expected the home page is a
-navigation or sign-in problem, not a locator one), an error banner or a cookie wall that covers the control, the control
-under a different label, a spinner that has not finished. Say what you see in a sentence.
+The Read tool shows a `.jpg`. Look for: the page you expected (a login page when you expected the home page is a navigation or sign-in problem, not a locator one), an error banner or a cookie wall that covers the control, the control under a different label, a spinner that has not finished. Say what you see in a sentence.
 
 ## Options
 
@@ -176,18 +149,10 @@ under a different label, a spinner that has not finished. Say what you see in a 
 
 ## What the run leaves behind
 
-`.arcus/runs/<id>/`, in the repo. It is local state, and git ignores it. A run never changes the test files,
-`arcus.lock` or `.arcus/base/`.
+`.arcus/runs/<id>/`, in the repo. It is local state, and git ignores it. A run never changes the test files, `arcus.lock` or `.arcus/base/`.
 
 ## A run is evidence for a push
 
-A run that ends `passed` or `failed` is saved in `.arcus/` with the hash of the file, the platform, the device and the
-note. There is one local record for each test path and platform (`.arcus/evidence/<path>.android.json`,
-`<path>.web.json`), so an Android run does not replace the web run of the same test. In qi mode, when the policy says
-`run: required`, `arcus test push` accepts a file only if it has a run of the file as it is now. The gate takes the newest
-matching record of any platform, and the push plan shows the platform and device of the run it uses. Any edit makes the
-run old. A failed run counts as a run: QI shows it as failed, not executed. `interrupted` and `refused` runs are not
-saved. `arcus issue verify` saves nothing.
+A run that ends `passed` or `failed` is saved in `.arcus/` with the hash of the file, the platform, the device and the note. There is one local record for each test path and platform (`.arcus/evidence/<path>.android.json`, `<path>.web.json`), so an Android run does not replace the web run of the same test. In qi mode, when the policy says `run: required`, `arcus test push` accepts a file only if it has a run of the file as it is now. The gate takes the newest matching record of any platform, and the push plan shows the platform and device of the run it uses. Any edit makes the run old. A failed run counts as a run: QI shows it as failed, not executed. `interrupted` and `refused` runs are not saved. `arcus issue verify` saves nothing.
 
-When the policy says `run: optional`, a push with no run is allowed. The dry run, the result and `arcus test status` then
-show `no local run`. Say it as it is: it is not a pass.
+When the policy says `run: optional`, a push with no run is allowed. The dry run, the result and `arcus test status` then show `no local run`. Say it as it is: it is not a pass.

@@ -1,7 +1,6 @@
 # States, results, refusal reasons and exit codes
 
-The CLI puts a `next` line on every state and every refusal. That line is the authority. This list helps you explain
-it in plain words. If the CLI says something else, trust the CLI.
+The CLI puts a `next` line on every state and every refusal. That line is the authority. This list helps you explain it in plain words. If the CLI says something else, trust the CLI.
 
 ## Exit codes (all commands)
 
@@ -35,20 +34,13 @@ The same object and the codes are in `${CLAUDE_PLUGIN_ROOT}/references/commands.
 | `missing` | The file is gone | Restore it, or remove its line by `arcus test detach` |
 | `local` | Detached: a local test | `arcus test attach <path>` to sync it again |
 
-With case versions off (the answer says `versioning: "off"`), status has only: `pushed` (the file is as it was pushed:
-nothing to do, like `pending`), `modified`, `accepted`, `rejected` (QA's comments are shown: change, run, push again),
-`conflict`, `no_shadow`, `missing`, `local`. The review state comes from QI. It cannot tell
-`behind`, `diverged`, `rework`, `suggestion`, `automation_behind` or a version number. See "Case versions off" in
-`${CLAUDE_PLUGIN_ROOT}/references/push-qi.md`.
+With case versions off (the answer says `versioning: "off"`), status has only: `pushed` (the file is as it was pushed: nothing to do, like `pending`), `modified`, `accepted`, `rejected` (QA's comments are shown: change, run, push again), `conflict`, `no_shadow`, `missing`, `local`. The review state comes from QI. It cannot tell `behind`, `diverged`, `rework`, `suggestion`, `automation_behind` or a version number. See "Case versions off" in `${CLAUDE_PLUGIN_ROOT}/references/push-qi.md`.
 
-Rejection kinds: `duplicate` (names the case that already covers it: read it, move missing steps there, or push onto
-it with `--rebind`), `wrong` (fix and push), `not_wanted` and `out_of_scope` (ask the developer: detach the file or
-delete it). Do not push a rejected file again without the user's say.
+Rejection kinds: `duplicate` (names the case that already covers it: read it, move missing steps there, or push onto it with `--rebind`), `wrong` (fix and push), `not_wanted` and `out_of_scope` (ask the developer: detach the file or delete it). Do not push a rejected file again without the user's say.
 
 ## `arcus test status`, direct mode
 
-`new` (never pushed), `changed`, `in_step`, `no_base` (a fresh clone: the push compares with Arcus), `missing`,
-`conflict`. No server call.
+`new` (never pushed), `changed`, `in_step`, `no_base` (a fresh clone: the push compares with Arcus), `missing`, `conflict`. No server call.
 
 ## `arcus test status --ci`
 
@@ -70,19 +62,13 @@ Exit `1` when a file is in a failing state.
 | `skipped` (`local_only`) | The file is detached |
 | `refused` | Not sent. See the reasons below |
 
-Refusal reasons: `versions_turned_on` (versions were turned on after the file was pushed: `arcus test pull <path>`, then push), `run_required` (policy needs a run of the file as it is now: run it, push again), `head_moved`
-(`arcus test pull`, then push; run again before the push when the policy needs it or you judge the merge can affect the test), `check_failed` (`arcus test check <path>`), `unbound` (give `--case <id>` or `--new`),
-`ambiguous_case` (`case … is not under <KEY>`: the issue context is not the story of that case. Run `arcus issue show` for the right story, then push again), `element_not_pushed` (push the
-element first, or fix it), `already_bound` (the file has a case: push without `--new`), `conflict` (markers in the
-file).
+Refusal reasons: `versions_turned_on` (versions were turned on after the file was pushed: `arcus test pull <path>`, then push), `run_required` (policy needs a run of the file as it is now: run it, push again), `head_moved` (`arcus test pull`, then push; run again before the push when the policy needs it or you judge the merge can affect the test), `check_failed` (`arcus test check <path>`), `unbound` (give `--case <id>` or `--new`), `ambiguous_case` (`case … is not under <KEY>`: the issue context is not the story of that case. Run `arcus issue show` for the right story, then push again), `element_not_pushed` (push the element first, or fix it), `already_bound` (the file has a case: push without `--new`), `conflict` (markers in the file).
 
-Errors that stop the whole push (exit `3` unless noted): no context on this machine; a context older than the policy
-allows; `versioning_changing`; a flag that needs `qi` mode in a direct project; region mismatch (exit `2`). A QI refusal such as `place_required` or `place_closed` is exit `1`.
+Errors that stop the whole push (exit `3` unless noted): no context on this machine; a context older than the policy allows; `versioning_changing`; a flag that needs `qi` mode in a direct project; region mismatch (exit `2`). A QI refusal such as `place_required` or `place_closed` is exit `1`.
 
 ## `arcus test push`, direct mode: result per file
 
-`created`, `updated`, `renamed`, `unchanged`, `refused`, `conflict`, `missing`, `failed`. Each has a message. A
-`conflict` means the same step changed in Arcus and in the file. A `refused` file is not sent.
+`created`, `updated`, `renamed`, `unchanged`, `refused`, `conflict`, `missing`, `failed`. Each has a message. A `conflict` means the same step changed in Arcus and in the file. A `refused` file is not sent.
 
 ## QI refusal codes (`QI refused: <code>`)
 
@@ -101,20 +87,12 @@ allows; `versioning_changing`; a flag that needs `qi` mode in a direct project; 
 
 ## `arcus test pull`: result per file
 
-`up_to_date`, `updated`, `merged`, `conflict` (exit `1`; markers are in the file), `kept_ours`, `taken_theirs`,
-`automation_behind`, `automation_unavailable` (a script edited in Arcus cannot be read yet: do not push that file, pull
-again later), `rebuilt`, `skipped`. With case versions off: `versions_off` (nothing changed, no head to pull). While QI changes modes: `versions_changing` (nothing changed, try again later).
+`up_to_date`, `updated`, `merged`, `conflict` (exit `1`; markers are in the file), `kept_ours`, `taken_theirs`, `automation_behind`, `automation_unavailable` (a script edited in Arcus cannot be read yet: do not push that file, pull again later), `rebuilt`, `skipped`. With case versions off: `versions_off` (nothing changed, no head to pull). While QI changes modes: `versions_changing` (nothing changed, try again later).
 
 ## `arcus issue verify`: verdict per case
 
-`covered` (passed), `failing`, `missing` (no script in QI, no file), `local_only` (QI holds no script yet: push it),
-`rejected` (listed, not run). `ran` says if the file or QI's script ran. `local_differs` means the file is not the text
-QI holds. Exit `1` unless every case is `covered` or `rejected`.
-The gap report of `/arcus:prove` adds one verdict, `not verified` (a case this machine cannot run). The command and the
-report are in `${CLAUDE_PLUGIN_ROOT}/references/verifying.md`.
+`covered` (passed), `failing`, `missing` (no script in QI, no file), `local_only` (QI holds no script yet: push it), `rejected` (listed, not run). `ran` says if the file or QI's script ran. `local_differs` means the file is not the text QI holds. Exit `1` unless every case is `covered` or `rejected`. The gap report of `/arcus:prove` adds one verdict, `not verified` (a case this machine cannot run). The command and the report are in `${CLAUDE_PLUGIN_ROOT}/references/verifying.md`.
 
 ## `arcus test run`
 
-JSON `run.status`: `passed`, `failed`, `refused` (did not compile; no run started), `interrupted` (not a verdict).
-Exit `0` for passed, `1` for the others, `3` when this machine cannot run it. Only `passed` and `failed` runs are kept
-as evidence for a push. See `${CLAUDE_PLUGIN_ROOT}/references/running.md`.
+JSON `run.status`: `passed`, `failed`, `refused` (did not compile; no run started), `interrupted` (not a verdict). Exit `0` for passed, `1` for the others, `3` when this machine cannot run it. Only `passed` and `failed` runs are kept as evidence for a push. See `${CLAUDE_PLUGIN_ROOT}/references/running.md`.

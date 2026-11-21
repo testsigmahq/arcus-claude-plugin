@@ -6,11 +6,9 @@ The test must describe the real app. Read it from the repo first. Ask the user o
 
 - **Web:** a web framework in `package.json` (React, Vue, Svelte, Next, Angular), no mobile signals.
 - **Mobile:** `android/`, `ios/`, an `.xcodeproj`, `pubspec.yaml`, React Native or Capacitor.
-- **API only:** OpenAPI or Swagger files, or a backend framework with no UI. **Arcus tests cannot hold `api` steps yet:**
-  the compile blocks them. Say so, and offer to test the UI that calls the API.
+- **API only:** OpenAPI or Swagger files, or a backend framework with no UI. **Arcus tests cannot hold `api` steps yet:** the compile blocks them. Say so, and offer to test the UI that calls the API.
 
-If the signals conflict or there are none, ask. Never guess. The answer also tells you if the project's platforms are
-right (see `${CLAUDE_PLUGIN_ROOT}/references/platforms.md`).
+If the signals conflict or there are none, ask. Never guess. The answer also tells you if the project's platforms are right (see `${CLAUDE_PLUGIN_ROOT}/references/platforms.md`).
 
 ## Where the facts are
 
@@ -26,21 +24,14 @@ right (see `${CLAUDE_PLUGIN_ROOT}/references/platforms.md`).
 
 ## Choosing what a target says
 
-Prefer, in this order: a test id made for tests, a stable id, an accessible label or role, visible text that will not
-change, a short css selector, xpath. Prefer what a person would call the thing over its position in the page.
+Prefer, in this order: a test id made for tests, a stable id, an accessible label or role, visible text that will not change, a short css selector, xpath. Prefer what a person would call the thing over its position in the page.
 
 ## Values and secrets
 
-- Use test data. Never copy a real email, password, token or key from the repo, an env file or a fixture of real data
-  into a test.
-- A value that changes by environment or is secret is read as `{env.name}` (see `arcus docs show --topic data`). Tell the user
-  which names the test reads. The values do not belong in the file.
-  A run gives those names their values: `--base-url` for `base_url`, `--var name=value` for the rest. List the names
-  to the user so a run does not stop on `Unresolved reference`. A secret goes in as `--var name="$VARIABLE"` from the user's
-  own shell (see `/arcus:run`), never typed.
+- Use test data. Never copy a real email, password, token or key from the repo, an env file or a fixture of real data into a test.
+- A value that changes by environment or is secret is read as `{env.name}` (see `arcus docs show --topic data`). Tell the user which names the test reads. The values do not belong in the file. A run gives those names their values: `--base-url` for `base_url`, `--var name=value` for the rest. List the names to the user so a run does not stop on `Unresolved reference`. A secret goes in as `--var name="$VARIABLE"` from the user's own shell (see `/arcus:run`), never typed.
 - Do not read `.env*`, key files or credential files to find a value.
 
 ## What to ask
 
-Only these, and one at a time: which behaviour to cover, which environment's URL, where a credential comes from, which
-platform if the repo has several. Anything the repo answers, the repo answers.
+Only these, and one at a time: which behaviour to cover, which environment's URL, where a credential comes from, which platform if the repo has several. Anything the repo answers, the repo answers.
