@@ -49,6 +49,7 @@ Find `arcus.json` here or above.
    **qi**: a push sends tests to QI and a reviewer accepts them. **direct**: a push puts tests in Arcus at once. Pass
    `--mode` only when the user asks for one. If the CLI cannot tell, it stops and writes nothing: show its message and
    let the user choose. To change the mode later: `/arcus:mode`.
+   When the mode is **direct**, say what that means (see "Direct mode: say it" below).
 5. Say what `arcus project init` does (it writes `arcus.json`, makes `<folder>/<project>/tests/` and `elements/`, adds `.arcus/` to
    `.gitignore`). After a yes, run:
 
@@ -60,6 +61,7 @@ Find `arcus.json` here or above.
 
 - Run `arcus project mode show`. It prints the mode, and says when `arcus.json` names none (then it is `direct`). A line
   that says the lock and the mode disagree means: stop and use `/arcus:mode`.
+  When the mode is **direct**, say what that means (see "Direct mode: say it" below).
 - Region: each project has a `region`. It must equal the signed-in region, or a push stops with exit `2`.
 - Several projects: ask which one, and pass `--project <name>` to later commands.
 - Platforms: `arcus project platforms list`. To change, after a yes: `arcus project platforms add <platform>` or `remove`.
@@ -100,6 +102,16 @@ This step never stops setup. It matters only for `/arcus:run` and `/arcus:prove`
 - If `arcus test run --help` has no `--platform`, the CLI has no Android runs yet. Say so.
 - A physical phone and Windows have not been tested yet. Say so if the user asks.
 
+### Direct mode: say it
+
+Whenever the project is in direct mode, point it out to the user, once, in plain words. Do not leave it as one word in
+the report:
+
+- A push puts a test into Arcus at once, and the team sees it. No reviewer accepts it first.
+- QI is not used: no cases of an issue, no expectation to align with, no gap report, no review of a pushed test.
+  `/arcus:align`, `/arcus:prove` and `/arcus:accept` do not work.
+- If the account uses QI and the user wants that, the switch is `/arcus:mode`. Do not switch for them.
+
 ## 6. Report
 
 ```
@@ -110,6 +122,8 @@ Ready.
   can run      web: <browsers> | android: <device or "no device">
 Next: /arcus:align <KEY> (qi), /arcus:author, /arcus:run or /arcus:push
 ```
+
+In direct mode, add the lines of "Direct mode: say it" under the report.
 
 When a line is not true, name it, give the one thing to do, and stop.
 
