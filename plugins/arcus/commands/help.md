@@ -18,6 +18,8 @@ versions, and a reviewer accepts them. Elements go to Arcus in both modes.
 - `/arcus:run [test]` — Run one test on web or Android (`--platform`, `--device`, `--app`). Says whether the test, the
   app or the setup is wrong. Nothing is sent.
 - `/arcus:verify <issue>` — Qi mode. Run every case of an issue and report each one.
+- `/arcus:prove <issue>` — Qi mode. For a change on an issue: write the missing tests for its cases, run them until they
+  pass, write one "Ran locally" comment for the PR, and push the tests as pending. Accept after the PR merges.
 - `/arcus:push [files]` — Dry run first, a plan in words, a push after your yes. Explains every result and refusal.
 - `/arcus:accept [files]` — Qi mode. Accept pushed versions into Arcus, after a policy check and your yes.
 - `/arcus:sync` — Show where each file stands. Pull QI's changes. Detach or attach a file. Pipeline check.
