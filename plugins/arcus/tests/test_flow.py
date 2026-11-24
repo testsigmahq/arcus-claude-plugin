@@ -17,9 +17,9 @@ HANDOVERS = {
     "verify": {"setup", "author", "run", "push", "context", "sync"},
     "push": {"setup", "author", "run", "accept", "sync", "context"},
     "accept": {"setup", "push", "sync"},
+    "prove": {"setup", "context", "author", "run", "verify", "push", "accept"},
     "sync": {"setup", "push", "run", "accept", "context"},
     "mode": {"setup", "push"},
-    "prove": {"setup", "context", "author", "run", "verify", "push", "accept"},
 }
 
 

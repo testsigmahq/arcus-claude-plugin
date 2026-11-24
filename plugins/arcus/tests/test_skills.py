@@ -122,7 +122,6 @@ def test_run_needs_no_sign_in_and_never_pushes():
 def test_run_reads_the_screenshot():
     assert "Read tool" in prose(skill_path("run"))
 
-
 def test_prove_follows_the_cases_and_invents_none():
     text = prose(skill_path("prove"))
     assert "arcus issue show <KEY> --json" in text and "arcus case show <id> --json" in text
