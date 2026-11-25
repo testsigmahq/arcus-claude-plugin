@@ -67,7 +67,8 @@ change. When it is done it has written `W/catch-candidates.json`, `W/catch-pr.js
 
 ## 5. The base
 
-Run `base.serve` and wait until `url` answers. Then, after `reset` if set:
+Run `base.serve` and wait until `url` answers. It fails or `url` never answers: run `base.restore`, stop, and say
+what it printed. Never move files, change git flags or pass other settings to get past it. Then, after `reset` if set:
 
 ```
 node S run --url <url> [--var ...] <story test files> > W/regression-base.json
@@ -136,7 +137,7 @@ and run it only after a yes.
 - Edit a story test or a case's expected result, or weaken a catching test.
 - Write catching tests itself, or give the writer or the judge more than this skill says. Change or drop a verdict.
 - Record a choice the developer did not make, or call a catch fixed before its test passes on the change.
-- Serve the base without a clean tree, or leave the base serving.
+- Serve the base without a clean tree, work around a failed `base.serve`, or leave the base serving.
 - Run against an address the settings do not name, or guess one.
 - Create a PR, post, push or mark ready without a yes.
 - Accept anything, sign in, or start the agent or the app.
