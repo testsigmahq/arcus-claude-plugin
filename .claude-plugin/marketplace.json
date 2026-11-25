@@ -3,12 +3,17 @@
   "owner": {
     "name": "Testsigma"
   },
-  "description": "Local marketplace for the Arcus Claude Code plugin.",
+  "description": "Local marketplace for the Arcus Claude Code plugins.",
   "plugins": [
     {
       "name": "arcus",
       "source": "./plugins/arcus",
       "description": "Guide a developer's agent through the Arcus CLI and the QI workflow: read an issue's cases from QI, write and check .sigma tests, run them on web or Android, push in direct or qi mode, pull, accept and verify."
+    },
+    {
+      "name": "arcus-jit",
+      "source": "./plugins/arcus-jit",
+      "description": "Catch a change before review, after Meta's just-in-time catching tests: run the story's tests on the change and its merge base on your own stack, have a fresh-session agent write tests that try to break it, have a judge subagent rule on what fails on the change alone, and record your fix-or-ship choice in one PR comment. Needs the arcus plugin and the Arcus CLI."
     }
   ],
   "renames": {

@@ -4,6 +4,17 @@ Guide your coding agent through the developer side of the Arcus CLI and the QI w
 keeps test cases as versions and a reviewer accepts them. The plugin is a set of skills for Claude Code. The `arcus`
 command-line tool does all the work and all the talking to Arcus and QI. The plugin itself sends nothing anywhere.
 
+## Two plugins
+
+- **`arcus`** teaches the CLI and the QI workflow: set up, read an issue's cases, write and run `.sigma` tests, push,
+  accept, verify. It has no view on how a team should test. Install it in every repo that uses Arcus.
+- **`arcus-jit`** is one way to test a change before review, after Meta's just-in-time catching tests (JiTTesting).
+  `/arcus-jit:catch` runs the story's tests on the change and its merge base, has a fresh-session agent write tests that
+  try to break the change, has a judge subagent rule on what fails on the change alone, and records the developer's
+  fix-or-ship choice in one PR comment. It needs `arcus`, and an `arcus-jit.json` in the repo that says how to serve the
+  merge base (`plugins/arcus-jit/references/catch.md`). A team that tests differently writes its own skills on the same
+  CLI.
+
 ## What lives where
 
 - **Arcus** holds the accepted test suite and all element files.
@@ -38,6 +49,7 @@ This repo is also a marketplace.
 ```bash
 claude plugin marketplace add testsigmahq/arcus-claude-plugin
 claude plugin install arcus@testsigma
+claude plugin install arcus-jit@testsigma   # optional: catch a change before review
 ```
 
 **From a branch, while a change is not merged yet.** Add the marketplace from the branch. It follows the latest commit
@@ -117,7 +129,8 @@ setup ──► context ──► author ──► run ──► push ──► 
 
 ## Privacy
 
-The plugin sends nothing by itself: it has no hooks and no scripts. When you push, the `arcus` CLI sends your tests and
+Neither plugin sends anything by itself: they have no hooks. `arcus-jit`'s one script only runs the `arcus` CLI and reads
+its output, and `/arcus-jit:catch` posts its PR comment through `gh` only after your yes. When you push, the `arcus` CLI sends your tests and
 elements to the Arcus project you chose, using your own sign-in. See the
 [Testsigma Privacy Policy](https://testsigma.com/privacy-policy).
 
@@ -132,7 +145,14 @@ plugins/arcus/
   references/                       notes the skills read when they need them
   tests/                            tests of the documents (pytest)
   evals/                            behavioural cases: `claude plugin eval plugins/arcus`
-CHANGELOG.md is in plugins/arcus/
+plugins/arcus-jit/
+  .claude-plugin/plugin.json        the plugin manifest
+  skills/catch/                     /arcus-jit:catch
+  agents/catch-{writer,judge}.md    the two subagents it starts
+  scripts/catch.mjs                 the comparison, the judge's packets and the comment (node --test plugins/arcus-jit/scripts/)
+  references/catch.md               the settings file, the budget and what counts
+  evals/                            behavioural cases: `claude plugin eval plugins/arcus-jit`
+Each plugin has its CHANGELOG.md
 ```
 
 ## Tests
@@ -142,5 +162,6 @@ and stays inside a size budget, every pointer resolves, and no document names a 
 exist. Run them from `plugins/arcus/` with `python -m pytest`.
 
 The evals (`plugins/arcus/evals/`) check that Claude behaves as the skills say. They need the `arcus` CLI on your `PATH`,
-and the local test agent running for the cases that open a browser: `claude plugin eval plugins/arcus`.
+and the local test agent running for the cases that open a browser: `claude plugin eval plugins/arcus`. The
+`arcus-jit` evals need no browser: `claude plugin eval plugins/arcus-jit`.
 
