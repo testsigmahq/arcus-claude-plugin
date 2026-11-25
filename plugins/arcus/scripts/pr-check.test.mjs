@@ -245,3 +245,19 @@ test("one run per file reads as one suite", () => {
   const out = suiteOf([run("t/a.sigma", "passed"), suite(run("t/b.sigma", "failed", "x")), { ok: false }]);
   assert.deepEqual(out.suite.tests.map((t) => t.run.path), ["t/a.sigma", "t/b.sigma"]);
 });
+
+test("a reason several findings share is said once, and a local run says where it ran", () => {
+  const diffs = [{ lane: "break", differences: [difference("break", "x"), difference("break", "y")], passed: [], not_counted: [] }];
+  const out = report({
+    issue: ISSUE,
+    prUrl: "http://local",
+    baseUrl: "http://local",
+    diffs,
+    verdicts: [BUG, BUG],
+    decisions: [{ n: 1, choice: "shipped", reason: "same" }, { n: 2, choice: "shipped", reason: "same" }],
+    local: true,
+  });
+  assert.match(out.comment, /Shipping 2: "same"\./);
+  assert.match(out.comment, /Ran locally by the developer, not a CI result: the change and its merge base, one after the other, at `http:\/\/local`/);
+  assert.ok(!out.comment.includes("against `http://local`"));
+});

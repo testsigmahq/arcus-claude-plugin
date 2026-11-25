@@ -281,8 +281,10 @@ export function report({ issue, prUrl, baseUrl, diffs, verdicts = [], decisions 
   const fixed = reported.filter((f) => f.decision?.choice === "fixed").length;
   const shipped = reported.filter((f) => f.decision?.choice === "shipped");
   if (fixed) lane2 += ` Fixed ${fixed}.`;
-  if (shipped.length) lane2 += ` Shipping ${shipped.length}: ${shipped.map((f) => `"${f.decision.reason}"`).join("; ")}.`;
-  let run = `Tested \`${prUrl}\` against \`${baseUrl}\``;
+  if (shipped.length) lane2 += ` Shipping ${shipped.length}: ${[...new Set(shipped.map((f) => f.decision.reason))].map((r) => `"${r}"`).join("; ")}.`;
+  let run = local
+    ? `Ran locally by the developer, not a CI result: the change and its merge base, one after the other, at \`${prUrl}\``
+    : `Tested \`${prUrl}\` against \`${baseUrl}\``;
   if (stats.minutes) run += ` in ${Math.round(stats.minutes)} min`;
   if (stats.budget) run += `. Budget ${stats.budget}`;
   if (stats.stopped_because) run += `, stopped: ${stats.stopped_because}`;
