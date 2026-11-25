@@ -1,25 +1,5 @@
 # Changelog
 
-## 0.12.0
-
-A new skill, `pr-check`, checks a change against its merge base and tries to break it, on the developer's machine,
-before review.
-
-- The change and its merge base are served one after the other on the developer's stack by the repo's recipe
-  (`ARCUS_PR_CHECK_SWITCH`, `ARCUS_PR_CHECK_RESTORE`). Tracked files must be committed. Without a recipe the skill stops;
-  it never compares with a deployed environment and never runs in CI.
-- The story's own tests run on both builds. A story case that breaks blocks the merge, unless the developer fixes it.
-- The PR opens as a draft. A new subagent, `pr-check-breaker`, writes and runs scenarios to break the change in a fresh
-  session, in the background. Its findings are advisory.
-- A new subagent, `pr-check-judge`, judges each difference with only a file reader, from a packet holding the story,
-  the test, each build's outcome and screenshots. It never gets the diff.
-- The developer fixes each real or unclear finding, or ships it with a one-line reason. Real break findings are pushed
-  to QI as pending cases either way.
-- `scripts/pr-check.mjs` keeps a test only when it fails on the change, fails again on a re-run, and the base passed or
-  failed another way. Its `packets`, `report` and `splice` commands build the judge's packets, the findings, and the
-  PR comment, which the skill posts or edits through `gh` after a yes. When the PR already has a "Ran locally" comment,
-  the check's section goes into it.
-
 ## 0.11.2
 
 The skills match the Android tools rule and the push rules of the present CLI. Only text changed.

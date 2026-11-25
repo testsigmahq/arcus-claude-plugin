@@ -49,4 +49,4 @@ jobs:
         with:
           node-version: "22"
       - name: Run the script tests
-        run: node --test plugins/arcus/scripts/
+        run: node --test plugins/arcus-jit/scripts/

@@ -3,7 +3,7 @@ import { test } from "node:test";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { COMMENT_MARKER, RAN_LOCALLY_MARKER, SECTION_END, decisionOf, diff, suiteOf, judgePacket, report, splice, storyOf, storyTests, testsOf, verdictOf, writePackets } from "./pr-check.mjs";
+import { COMMENT_MARKER, RAN_LOCALLY_MARKER, SECTION_END, decisionOf, diff, suiteOf, judgePacket, report, splice, storyOf, storyTests, testsOf, verdictOf, writePackets } from "./catch.mjs";
 
 const run = (p, status, failedStep) => ({
   run: {
@@ -84,13 +84,13 @@ test("a test that fails on both builds, but in another way on the PR, is a diffe
 test("an absolute screenshot path is kept as it is", () => {
   const t = run("t/a.sigma", "failed", "x");
   t.run.failedStep.screenshot = "/abs/run/step.jpg";
-  const out = diff({ lane: "break", pr: suite(t), base: suite(run("t/a.sigma", "passed")), readSteps: steps });
+  const out = diff({ lane: "catch", pr: suite(t), base: suite(run("t/a.sigma", "passed")), readSteps: steps });
   assert.equal(out.differences[0].pr.screenshot, "/abs/run/step.jpg");
 });
 
 test("a test that did not compile, or never ran on the base, is said, not judged", () => {
   const out = diff({
-    lane: "break",
+    lane: "catch",
     pr: suite(run("t/bad.sigma", "refused"), run("t/half.sigma", "failed", "x")),
     base: suite(),
     readSteps: steps,
@@ -111,14 +111,14 @@ const difference = (lane, title, extra = {}) => ({
 });
 
 test("the judge's packet holds the story, the cases, the test and each side, and only screenshots that exist", () => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "pr-check-"));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "arcus-jit-"));
   const shot = path.join(dir, "step.jpg");
   fs.writeFileSync(shot, "JPEG");
-  const d = difference("break", "Search by name", { pr: { status: "failed", failed_step: "verify @list", message: "", screenshot: shot }, base: { status: "passed", screenshot: path.join(dir, "gone.jpg") } });
+  const d = difference("catch", "Search by name", { pr: { status: "failed", failed_step: "verify @list", message: "", screenshot: shot }, base: { status: "passed", screenshot: path.join(dir, "gone.jpg") } });
   const text = judgePacket(storyOf(ISSUE), d);
   assert.match(text, /K-1: Discount code\n- A valid code lowers the total/);
   assert.match(text, /- Apply a valid code/);
-  assert.match(text, /a test written to break the change/);
+  assert.match(text, /a catching test, written to break the change/);
   assert.match(text, /PR build, re-run: failed/);
   assert.ok(text.includes(`- PR build: ${shot}`));
   assert.ok(!text.includes("gone.jpg"));
@@ -126,10 +126,10 @@ test("the judge's packet holds the story, the cases, the test and each side, and
 });
 
 test("packets are numbered in the order the report reads the verdicts", () => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "pr-check-"));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "arcus-jit-"));
   const diffs = [
     { lane: "regression", differences: [difference("regression", "a")], passed: [], not_counted: [] },
-    { lane: "break", differences: [difference("break", "b")], passed: [], not_counted: [] },
+    { lane: "catch", differences: [difference("catch", "b")], passed: [], not_counted: [] },
   ];
   const out = writePackets({ issue: null, diffs, out: dir });
   assert.deepEqual(out.map((p) => [p.n, p.title]), [[1, "a"], [2, "b"]]);
@@ -137,17 +137,17 @@ test("packets are numbered in the order the report reads the verdicts", () => {
   fs.rmSync(dir, { recursive: true });
 });
 
-test("an unreadable verdict is ambiguous, and a low-confidence bug in the break lane is unclear", () => {
+test("an unreadable verdict is ambiguous, and a low-confidence catch is unclear", () => {
   assert.equal(verdictOf("regression", { verdict: "nonsense", confidence: 4 }).verdict, "ambiguous");
   assert.equal(verdictOf("regression", undefined).verdict, "ambiguous");
-  assert.equal(verdictOf("break", { verdict: "real_bug", confidence: 2, reason: "r" }).verdict, "ambiguous");
+  assert.equal(verdictOf("catch", { verdict: "real_bug", confidence: 2, reason: "r" }).verdict, "ambiguous");
   assert.equal(verdictOf("regression", { verdict: "real_bug", confidence: 2, reason: "r" }).verdict, "real_bug");
 });
 
-test("a story case that is a real bug blocks; a break finding never does", () => {
+test("a story case that is a real bug blocks; a catch never does", () => {
   const diffs = [
     { lane: "regression", differences: [difference("regression", "Profiles show version")], passed: ["Search by name"], not_counted: [] },
-    { lane: "break", differences: [difference("break", "Rename twice")], passed: [], not_counted: ["c: flaky"] },
+    { lane: "catch", differences: [difference("catch", "Rename twice")], passed: [], not_counted: ["c: flaky"] },
   ];
   const out = report({
     issue: ISSUE,
@@ -164,7 +164,7 @@ test("a story case that is a real bug blocks; a break finding never does", () =>
   assert.deepEqual(out.findings.map((f) => f.blocks), [true, false]);
   assert.ok(out.comment.startsWith(COMMENT_MARKER));
   assert.match(out.comment, /Blocks the merge:\*\* 1 of the story's cases/);
-  assert.match(out.comment, /3 scenarios, 1 findings/);
+  assert.match(out.comment, /3 written, 1 caught something/);
   assert.match(out.comment, /in 13 min\. Budget low/);
   assert.match(out.comment, /### Passed on both builds\n\n- Search by name/);
   assert.match(out.comment, /### Not run\n\n- c: flaky/);
@@ -195,8 +195,8 @@ test("a fixed story case no longer blocks, and a shipped one still does", () => 
   assert.match(out.comment, /shipping it: QA owns the flag/);
 });
 
-test("break findings say what the developer fixed and what ships with a reason", () => {
-  const diffs = [{ lane: "break", differences: [difference("break", "x"), difference("break", "y")], passed: [], not_counted: [] }];
+test("catches say what the developer fixed and what ships with a reason", () => {
+  const diffs = [{ lane: "catch", differences: [difference("catch", "x"), difference("catch", "y")], passed: [], not_counted: [] }];
   const out = report({
     issue: ISSUE,
     prUrl: "p",
@@ -206,7 +206,7 @@ test("break findings say what the developer fixed and what ships with a reason",
     decisions: [{ n: 1, choice: "fixed" }, { n: 2, choice: "shipped", reason: "edge case, ticket filed" }],
     stats: { scenarios_run: 7 },
   });
-  assert.match(out.comment, /7 scenarios, 2 findings \(advisory, they don't block\)\. Fixed 1\. Shipping 1: "edge case, ticket filed"\./);
+  assert.match(out.comment, /7 written, 2 caught something \(advisory, they don't block\)\. Fixed 1\. Shipping 1: "edge case, ticket filed"\./);
   assert.equal(out.conclusion, "neutral");
 });
 
@@ -216,15 +216,15 @@ test("a shipped finding with no reason counts as undecided", () => {
   assert.deepEqual(decisionOf({ choice: "fixed" }), { choice: "fixed" });
 });
 
-test("all break findings fixed and the story held: the check passes", () => {
-  const diffs = [{ lane: "break", differences: [difference("break", "x")], passed: [], not_counted: [] }];
+test("all catches fixed and the story held: the check passes", () => {
+  const diffs = [{ lane: "catch", differences: [difference("catch", "x")], passed: [], not_counted: [] }];
   const out = report({ issue: ISSUE, prUrl: "p", baseUrl: "b", diffs, verdicts: [BUG], decisions: [{ n: 1, choice: "fixed" }] });
   assert.equal(out.conclusion, "success");
 });
 
 test("locally the report is a section that ends with its own marker", () => {
   const out = report({ issue: ISSUE, prUrl: "p", baseUrl: "b", diffs: [], local: true });
-  assert.ok(out.comment.startsWith(`${COMMENT_MARKER}\n\n### Checked against the base build`));
+  assert.ok(out.comment.startsWith(`${COMMENT_MARKER}\n\n### Arcus JiT: checked against the base`));
   assert.ok(out.comment.endsWith(SECTION_END));
 });
 
@@ -247,7 +247,7 @@ test("one run per file reads as one suite", () => {
 });
 
 test("a reason several findings share is said once, and a local run says where it ran", () => {
-  const diffs = [{ lane: "break", differences: [difference("break", "x"), difference("break", "y")], passed: [], not_counted: [] }];
+  const diffs = [{ lane: "catch", differences: [difference("catch", "x"), difference("catch", "y")], passed: [], not_counted: [] }];
   const out = report({
     issue: ISSUE,
     prUrl: "http://local",
@@ -260,4 +260,10 @@ test("a reason several findings share is said once, and a local run says where i
   assert.match(out.comment, /Shipping 2: "same"\./);
   assert.match(out.comment, /Ran locally by the developer, not a CI result: the change and its merge base, one after the other, at `http:\/\/local`/);
   assert.ok(!out.comment.includes("against `http://local`"));
+});
+
+test("a team's rubric goes into every packet, after the evidence", () => {
+  const text = judgePacket(storyOf(ISSUE), difference("catch", "x"), "A slow page is a bug for us.");
+  assert.match(text, /## Screenshots at the failing step[\s\S]*## The team's rubric\nA slow page is a bug for us\./);
+  assert.ok(!judgePacket(storyOf(ISSUE), difference("catch", "x")).includes("rubric"));
 });

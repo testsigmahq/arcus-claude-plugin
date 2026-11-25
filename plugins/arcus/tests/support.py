@@ -13,7 +13,7 @@ COMMANDS_DIR = PLUGIN_ROOT / "commands"
 REFERENCES_DIR = PLUGIN_ROOT / "references"
 
 #: The skills this plugin has. A new skill is added here on purpose, with its tests.
-SKILLS = ("setup", "context", "author", "run", "verify", "push", "accept", "sync", "mode", "pr-check")
+SKILLS = ("setup", "context", "author", "run", "verify", "push", "accept", "sync", "mode")
 
 #: A skill is read in full every time it loads, so it has a size budget. Detail goes in references/.
 SKILL_MAX_LINES = 200

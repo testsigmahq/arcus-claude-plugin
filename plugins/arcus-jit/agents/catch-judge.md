@@ -1,6 +1,6 @@
 ---
-name: pr-check-judge
-description: Judges one difference a PR check found, from the story and what each build did, never from the code. /arcus:pr-check hands it one packet file at a time; nothing else should call it.
+name: catch-judge
+description: Judges one difference a catch run found, from the story and what each build did, never from the code. /arcus-jit:catch hands it one packet file at a time; nothing else should call it.
 tools: Read
 ---
 

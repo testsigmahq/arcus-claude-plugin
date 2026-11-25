@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// The deterministic half of /arcus:pr-check: which tests are the story's, running them on each build, and
+// The deterministic half of /arcus-jit:catch: which tests are the story's, running them on each build, and
 // keeping only what fails on the PR's build, passes on the base build, and fails again on a retry, then the judge's
 // packets and the one PR comment its verdicts make.
 // Node 22+, no dependencies. Every command writes JSON to stdout.
@@ -9,14 +9,14 @@ import fs from "node:fs";
 import path from "node:path";
 
 const USAGE = `usage:
-  pr-check.mjs story-tests --issue <issue.json>
-  pr-check.mjs run --url <url> [--project <name>] [--var name=value ...] <paths...>
-  pr-check.mjs diff --lane regression|break --pr <run.json> --base <run.json> [--retry <run.json>] [--issue <issue.json>]
-  pr-check.mjs packets [--issue <issue.json>] --out <dir> [--diff <diff.json> ...]
-  pr-check.mjs report [--issue <issue.json>] --pr-url <url> --base-url <url> [--diff <diff.json> ...]
+  catch.mjs story-tests --issue <issue.json>
+  catch.mjs run --url <url> [--project <name>] [--var name=value ...] <paths...>
+  catch.mjs diff --lane regression|catch --pr <run.json> --base <run.json> [--retry <run.json>] [--issue <issue.json>]
+  catch.mjs packets [--issue <issue.json>] --out <dir> [--diff <diff.json> ...] [--rubric <rubric.md>]
+  catch.mjs report [--issue <issue.json>] --pr-url <url> --base-url <url> [--diff <diff.json> ...]
                       [--verdicts <verdicts.json>] [--decisions <decisions.json>] [--stats <stats.json>]
                       [--local] [--comment <comment.md>]
-  pr-check.mjs splice --section <comment.md> [--into <body.md>]`;
+  catch.mjs splice --section <comment.md> [--into <body.md>]`;
 
 function parse(argv) {
   const opts = { _: [], var: [], diff: [] };
@@ -166,10 +166,10 @@ const SIDES = [
 ];
 
 /** What the judge reads for one difference: the story, its cases, the test and what each build did. Never the diff. */
-export function judgePacket({ story, cases }, difference) {
+export function judgePacket({ story, cases }, difference, rubric = "") {
   const storyText = story ? `${story.issue_key}: ${story.title}\n${story.description}`.trim() : "No story is linked to this PR.";
   const caseLines = cases.map((c) => `- ${c.title}`).join("\n") || "- none";
-  const kind = difference.lane === "regression" ? "one of the story's own test cases" : "a test written to break the change";
+  const kind = difference.lane === "regression" ? "one of the story's own test cases" : "a catching test, written to break the change";
   const shots = SIDES.filter(([, k]) => difference[k]?.screenshot && fs.existsSync(difference[k].screenshot)).map(
     ([name, k]) => `- ${name}: ${difference[k].screenshot}`,
   );
@@ -179,22 +179,23 @@ export function judgePacket({ story, cases }, difference) {
     `## The test (${kind})\n${difference.title}\n\n${difference.steps}`,
     `## What happened\n${SIDES.map(([name, k]) => side(name, difference[k])).join("\n")}`,
     `## Screenshots at the failing step\n${shots.join("\n") || "- none"}`,
+    ...(rubric.trim() ? [`## The team's rubric\n${rubric.trim()}`] : []),
   ].join("\n\n");
 }
 
 /** One packet file per difference, numbered in the order the report reads the verdicts. */
-export function writePackets({ issue, diffs, out }) {
+export function writePackets({ issue, diffs, out, rubric = "" }) {
   const context = storyOf(issue);
   fs.mkdirSync(out, { recursive: true });
   return differencesOf(diffs).map((d, i) => {
     const packet = path.join(out, `judge-${i + 1}.md`);
-    fs.writeFileSync(packet, `${judgePacket(context, d)}\n`);
+    fs.writeFileSync(packet, `${judgePacket(context, d, rubric)}\n`);
     return { n: i + 1, lane: d.lane, title: d.title, packet };
   });
 }
 
-export const COMMENT_MARKER = "<!-- arcus-pr-check:v1 -->";
-export const SECTION_END = "<!-- /arcus-pr-check -->";
+export const COMMENT_MARKER = "<!-- arcus-jit:catch:v1 -->";
+export const SECTION_END = "<!-- /arcus-jit:catch -->";
 export const RAN_LOCALLY_MARKER = "<!-- arcus:ran-locally -->";
 const VERDICTS = ["real_bug", "intended_change", "test_issue", "environment_issue", "ambiguous"];
 const LABELS = {
@@ -205,7 +206,7 @@ const LABELS = {
   ambiguous: "Unclear",
 };
 const REPORTED = new Set(["real_bug", "ambiguous"]);
-// While the break lane is advisory, a low-confidence bug there is reported as unclear rather than as a bug.
+// While catches are advisory, a low-confidence bug there is reported as unclear rather than as a bug.
 const ADVISORY_MIN_CONFIDENCE = 3;
 
 /** A verdict as the judge gave it, or ambiguous when it gave none that reads. */
@@ -214,7 +215,7 @@ export function verdictOf(lane, given) {
     given && VERDICTS.includes(given.verdict) && Number.isInteger(given.confidence) && given.confidence >= 1 && given.confidence <= 5
       ? { verdict: given.verdict, confidence: given.confidence, reason: String(given.reason ?? "").trim() }
       : { verdict: "ambiguous", confidence: 1, reason: "The judge gave no verdict that reads." };
-  if (lane === "break" && v.verdict === "real_bug" && v.confidence < ADVISORY_MIN_CONFIDENCE) return { ...v, verdict: "ambiguous" };
+  if (lane === "catch" && v.verdict === "real_bug" && v.confidence < ADVISORY_MIN_CONFIDENCE) return { ...v, verdict: "ambiguous" };
   return v;
 }
 
@@ -265,7 +266,7 @@ export function report({ issue, prUrl, baseUrl, diffs, verdicts = [], decisions 
   const notRun = diffs.flatMap((d) => d.not_counted);
   const blocking = findings.filter((f) => f.blocks);
   const fixedCases = findings.filter((f) => f.difference.lane === "regression" && f.decision?.choice === "fixed");
-  const reported = findings.filter((f) => f.difference.lane === "break" && REPORTED.has(f.verdict.verdict));
+  const reported = findings.filter((f) => f.difference.lane === "catch" && REPORTED.has(f.verdict.verdict));
   const other = findings.filter((f) => !blocking.includes(f) && !fixedCases.includes(f) && !reported.includes(f));
   const open = findings.filter((f) => REPORTED.has(f.verdict.verdict) && f.decision?.choice !== "fixed");
 
@@ -277,7 +278,7 @@ export function report({ issue, prUrl, baseUrl, diffs, verdicts = [], decisions 
     : story
       ? `**The story's cases:** ${passed.length} passed on both builds, none broke.`
       : "";
-  let lane2 = `**Tried to break it:** ${stats.scenarios_run ?? 0} scenarios, ${reported.length} findings (advisory, they don't block).`;
+  let lane2 = `**Catching tests:** ${stats.scenarios_run ?? 0} written, ${reported.length} caught something (advisory, they don't block).`;
   const fixed = reported.filter((f) => f.decision?.choice === "fixed").length;
   const shipped = reported.filter((f) => f.decision?.choice === "shipped");
   if (fixed) lane2 += ` Fixed ${fixed}.`;
@@ -294,11 +295,11 @@ export function report({ issue, prUrl, baseUrl, diffs, verdicts = [], decisions 
   if (blocking.length) sections.push("### Blocking: the story's cases", ...blocking.map(findingMd));
   if (fixedCases.length) sections.push("### Story cases fixed before review", ...fixedCases.map(findingMd));
   if (passed.length) sections.push("### Passed on both builds", passed.map((t) => `- ${t}`).join("\n"));
-  if (reported.length) sections.push("### Findings from trying to break it", ...reported.map(findingMd));
+  if (reported.length) sections.push("### Catches", ...reported.map(findingMd));
   if (other.length) sections.push("### Not counted", ...other.map(findingMd));
   if (notRun.length) sections.push("### Not run", notRun.map((line) => `- ${line}`).join("\n"));
 
-  const title = local ? "### Checked against the base build, and tried to break it" : "## Arcus PR check";
+  const title = local ? "### Arcus JiT: checked against the base, and caught" : "## Arcus JiT catch";
   const comment = [COMMENT_MARKER, title, summary, ...sections, ...(local ? [SECTION_END] : [])].join("\n\n");
   return { conclusion, findings, comment };
 }
@@ -354,7 +355,7 @@ function main(argv) {
       if (!opts.url || opts._.length === 0) fail("run needs --url and at least one path");
       return suiteOf(opts._.map((file) => runOne(file, opts)));
     case "diff": {
-      if (!["regression", "break"].includes(opts.lane) || !opts.pr || !opts.base) fail("diff needs --lane, --pr and --base");
+      if (!["regression", "catch"].includes(opts.lane) || !opts.pr || !opts.base) fail("diff needs --lane, --pr and --base");
       const caseIds = new Map(opts.issue ? storyTests(readJson(opts.issue)).map((t) => [t.path, t.case_id]) : []);
       return diff({
         lane: opts.lane,
@@ -366,7 +367,12 @@ function main(argv) {
     }
     case "packets":
       if (!opts.out) fail("packets needs --out");
-      return writePackets({ issue: opts.issue ? readJson(opts.issue) : null, diffs: opts.diff.map(readJson), out: opts.out });
+      return writePackets({
+        issue: opts.issue ? readJson(opts.issue) : null,
+        diffs: opts.diff.map(readJson),
+        out: opts.out,
+        rubric: opts.rubric ? fs.readFileSync(opts.rubric, "utf8") : "",
+      });
     case "report": {
       if (!opts["pr-url"] || !opts["base-url"]) fail("report needs --pr-url and --base-url");
       const out = report({
