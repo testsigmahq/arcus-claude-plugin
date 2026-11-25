@@ -321,17 +321,24 @@ export function splice(body, section) {
   return `${body.slice(0, start).trimEnd()}\n\n${section}${rest}`;
 }
 
-function runArcus(paths, opts) {
-  const args = ["test", "run", ...paths, "--json", "--screenshots", "failed", "--base-url", opts.url];
+/** One file's run, as `arcus test run --json` answers it. The released CLI takes one test file per run. */
+function runOne(file, opts) {
+  const args = ["test", "run", file, "--json", "--screenshots", "failed", "--base-url", opts.url];
   if (opts.project) args.push("--project", opts.project);
   for (const v of opts.var) args.push("--var", v);
   try {
-    return execFileSync("arcus", args, { encoding: "utf8", maxBuffer: 64 * 1024 * 1024, stdio: ["ignore", "pipe", "inherit"] });
+    return JSON.parse(execFileSync("arcus", args, { encoding: "utf8", maxBuffer: 64 * 1024 * 1024, stdio: ["ignore", "pipe", "inherit"] }));
   } catch (e) {
-    // A failed test exits 1 with its result on stdout; only an empty stdout is a setup error.
-    if (e.stdout) return e.stdout;
-    throw e;
+    // A failed test exits 1 with its result on stdout. With nothing there, the run never started. The error's own
+    // message holds the command line, and with it any --var value, so it is never printed.
+    if (e.stdout) return JSON.parse(e.stdout);
+    return { run: { path: file, title: path.basename(file, ".sigma"), status: "refused", problem: `arcus test run did not start (exit ${e.status ?? "unknown"})` } };
   }
+}
+
+/** Several runs as one suite, the shape `diff` reads. */
+export function suiteOf(runs) {
+  return { suite: { tests: runs.flatMap(testsOf) } };
 }
 
 function main(argv) {
@@ -343,7 +350,7 @@ function main(argv) {
       return storyTests(readJson(opts.issue));
     case "run":
       if (!opts.url || opts._.length === 0) fail("run needs --url and at least one path");
-      return JSON.parse(runArcus(opts._, opts));
+      return suiteOf(opts._.map((file) => runOne(file, opts)));
     case "diff": {
       if (!["regression", "break"].includes(opts.lane) || !opts.pr || !opts.base) fail("diff needs --lane, --pr and --base");
       const caseIds = new Map(opts.issue ? storyTests(readJson(opts.issue)).map((t) => [t.path, t.case_id]) : []);

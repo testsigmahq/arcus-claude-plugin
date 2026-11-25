@@ -3,7 +3,7 @@ import { test } from "node:test";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { COMMENT_MARKER, RAN_LOCALLY_MARKER, SECTION_END, decisionOf, diff, judgePacket, report, splice, storyOf, storyTests, testsOf, verdictOf, writePackets } from "./pr-check.mjs";
+import { COMMENT_MARKER, RAN_LOCALLY_MARKER, SECTION_END, decisionOf, diff, suiteOf, judgePacket, report, splice, storyOf, storyTests, testsOf, verdictOf, writePackets } from "./pr-check.mjs";
 
 const run = (p, status, failedStep) => ({
   run: {
@@ -239,4 +239,9 @@ test("the section goes into the Ran locally comment, and replaces itself on the 
 test("without a Ran locally comment the section is the whole comment", () => {
   assert.equal(splice("", "S"), "S");
   assert.equal(splice("someone else's comment", "S"), "S");
+});
+
+test("one run per file reads as one suite", () => {
+  const out = suiteOf([run("t/a.sigma", "passed"), suite(run("t/b.sigma", "failed", "x")), { ok: false }]);
+  assert.deepEqual(out.suite.tests.map((t) => t.run.path), ["t/a.sigma", "t/b.sigma"]);
 });
