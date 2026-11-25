@@ -22,6 +22,10 @@ versions, and a reviewer accepts them. Elements go to Arcus in both modes.
 - `/arcus:accept [files]` — Qi mode. Accept pushed versions into Arcus, after a policy check and your yes.
 - `/arcus:sync` — Show where each file stands. Pull QI's changes. Detach or attach a file. Pipeline check.
 - `/arcus:mode` — Show the project mode. Switch it with a dry run and your yes.
+- `/arcus:pr-check` — Qi mode, once the story's tests pass, on your own stack. Runs the story's tests on the change
+  and the base build, has a fresh-session agent try to break the change, has a judge subagent rule on what fails on the
+  change alone, asks you to fix or ship each finding, and writes it all in one PR comment. A story case that
+  breaks blocks the merge; the rest is advisory.
 
 ## Typical flow
 
