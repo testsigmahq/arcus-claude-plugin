@@ -51,7 +51,8 @@ node S run --url <pr url> [--var ...] <files> > W/regression-pr.json
 node S run --url <pr url> [--var ...] <failed files> > W/regression-retry.json
 ```
 
-None listed: the comment says "no automated tests for this story yet". When `ARCUS_PR_CHECK_RESET` is set, run it before
+It lists only files this checkout has; a case whose file is elsewhere is not run. None listed: the comment
+says "no automated tests for this story yet". When `ARCUS_PR_CHECK_RESET` is set, run it before
 every run of the story tests. Never fix, edit or weaken a story test here.
 
 ## 4. Break lane

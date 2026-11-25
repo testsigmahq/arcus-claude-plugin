@@ -28,8 +28,12 @@ const ISSUE = {
 };
 
 test("the story's tests are the files issue show names for its cases", () => {
-  assert.deepEqual(storyTests(ISSUE), [{ path: "g/tests/a.sigma", case_id: "c1" }]);
+  assert.deepEqual(storyTests(ISSUE, () => true), [{ path: "g/tests/a.sigma", case_id: "c1" }]);
   assert.deepEqual(storyTests(null), []);
+});
+
+test("a case whose file this checkout does not have is not a story test", () => {
+  assert.deepEqual(storyTests(ISSUE, () => false), []);
 });
 
 test("the judge reads the issue's title and acceptance criteria as the story", () => {

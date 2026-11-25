@@ -46,9 +46,12 @@ function fail(message) {
 
 const readJson = (file) => JSON.parse(fs.readFileSync(file, "utf8"));
 
-/** The test files `arcus issue show --json` names for the story's cases, with each file's case. */
-export function storyTests(issue) {
-  return (issue?.cases ?? []).filter((c) => c.file).map((c) => ({ path: c.file, case_id: c.id }));
+/**
+ * The test files `arcus issue show --json` names for the story's cases, with each file's case. A case can name a file
+ * this checkout does not have (pushed from another branch, or by an earlier check that then deleted it): it is not run.
+ */
+export function storyTests(issue, exists = fs.existsSync) {
+  return (issue?.cases ?? []).filter((c) => c.file && exists(c.file)).map((c) => ({ path: c.file, case_id: c.id }));
 }
 
 /** The story the judge reads, from `arcus issue show --json`: its key, title and acceptance criteria. */
